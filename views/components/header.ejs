@@ -1,0 +1,15 @@
+<div id="logo">
+  <img src="assets/transparent_logo.png" alt="Logo My Watching Companion" />
+
+  <h1>MY WATCHING<br />COMPANION</h1>
+</div>
+
+<nav>
+  <a href="/" <% if (selected === "Accueil") { %>class="selected" <% } %>>Accueil</a>
+  <a href="/my-watchlist" <% if (selected === "Ma Watchlist") { %> class="selected" <% } %>>Ma Watchlist</a>
+  <a href="/discovery" <% if (selected === "Découverte") { %> class="selected" <% } %>>Découverte</a>
+  <a href="/trending" <% if (selected === "Tendance") { %> class="selected" <% } %>>Tendance</a>
+  <a href="/settings" <% if (selected === "Paramètres") { %> class="selected" <% } %>>Paramètres</a>
+</nav>
+
+<a id="login-button" href="/connection">CONNEXION</a>

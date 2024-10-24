@@ -1,0 +1,71 @@
+@import url("https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap");
+
+* {
+  font-family: "Lato", serif;
+}
+
+body {
+  margin: 0;
+}
+
+/* HEADER */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: center;
+  padding: 0.5rem;
+}
+
+/* Header Logo */
+header #logo {
+  display: flex;
+}
+
+header #logo img {
+  width: 3rem;
+  height: 3rem;
+}
+
+header #logo h1 {
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+/* Header Navigation */
+nav {
+  display: flex;
+  gap: 1rem;
+}
+
+nav a {
+  color: black;
+  text-decoration: none;
+}
+
+nav a.selected {
+  font-weight: bold;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+nav a:hover {
+  font-weight: bold;
+}
+
+/* Header Login */
+header a#login-button {
+  text-decoration: none;
+  color: white;
+  font-weight: bolder;
+  background-color: #f7384a;
+  box-shadow: 0px 5px 10px -5px #f7384a;
+  border: none;
+  border-radius: 10px;
+  padding: 1rem;
+  transition: box-shadow 0.1s ease-in-out;
+}
+
+header a#login-button:hover {
+  box-shadow: 0px 5px 10px -2.5px #f7384a;
+}
