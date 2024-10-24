@@ -1,10 +1,18 @@
-require("dotenv").config();
 const express = require("express");
 const path = require("path");
-const {executeQuery} = require("./db")
+const session = require("express-session");
 const PORT = process.env.PORT || 3000;
-
+const { CRYPTO_KEY } = require("./config");
+session.user = null;
 const app = express();
+
+app.use(
+  session({
+    secret: CRYPTO_KEY,
+    resave: false,
+    saveUninitialized: true,
+  })
+);
 
 // Définition du répertoire des fichiers et moteur de modèles
 app.set("views", path.join(__dirname + "/views"));
@@ -13,17 +21,14 @@ app.set("view engine", "ejs");
 // Définition du dossier de fichiers statiques
 app.use(express.static(path.join(__dirname + "/public")));
 
-// Définition des différentes routes
-const appRoute = require("./routes/app");
-app.use("/", appRoute);
-
-
-
 // TODO: Routes d'API
 
 const api = require("./routes/api");
 app.use("/api", api);
 
+// Définition des différentes routes
+const appRoute = require("./routes/app");
+app.use("/", appRoute);
 
 // Lancement de l'application sur le port spécifié
 app.listen(PORT, async () => {

@@ -11,9 +11,9 @@ router.get("/connection", (req, res) => {
 
 // Définition de la route erreur 404
 router.get("*", (req, res) => {
-  res.status(404);
+ res.status(404);
 
-  res.render("error");
+ res.render("error");
 });
 
 module.exports = router;
