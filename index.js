@@ -1,7 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const path = require("path");
-
+const {executeQuery} = require("./db")
 const PORT = process.env.PORT || 3000;
 
 const app = express();
@@ -16,6 +16,7 @@ app.use(express.static(path.join(__dirname + "/public")));
 // Définition des différentes routes
 const appRoute = require("./routes/app");
 app.use("/", appRoute);
+
 
 // TODO: Routes d'API
 /*
