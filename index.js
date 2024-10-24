@@ -18,11 +18,12 @@ const appRoute = require("./routes/app");
 app.use("/", appRoute);
 
 
+
 // TODO: Routes d'API
-/*
+
 const api = require("./routes/api");
 app.use("/api", api);
-*/
+
 
 // Lancement de l'application sur le port spécifié
 app.listen(PORT, async () => {
