@@ -3,11 +3,15 @@ const { isAuthenticated, GetUser } = require("./api");
 
 // Définition de la route principale
 router.get("/", (req, res) => {
-  res.render("home");
+  res.render("home", { selected: "Accueil" });
 });
 
-router.get("/connection", (req, res) => {
-  res.render("connection");
+router.get("/signin", (req, res) => {
+  res.render("signin", { selected: "Connexion" });
+});
+
+router.get("/signup", (req, res) => {
+  res.render("signup", { selected: "Inscription" });
 });
 
 // Définition de la route erreur 404

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+  <%- include('components/head', { selected }) %>
+
+  <link rel="stylesheet" href="styles/sign-in-up.css" />
+</head>
+
+<body>
+  <header>
+    <%- include('components/header', { selected }) %>
+  </header>
+
+  <section>
+    <h1>CONNEXION</h1>
+
+    <form action="/api/url" method="post">
+      <div class="from-container">
+        <label for="username"><b>Nom d'Utilisateur</b></label>
+        <input type="text" placeholder="Entrez votre nom d'utilisateur" name="username" required />
+
+        <label for="password"><b>Mot de Passe</b></label>
+        <input type="password" placeholder="Entrez votre mot de passe" name="password" required />
+
+        <button type="submit">Me Connecter</button>
+
+        <div class="signin-utilities">
+          <label>
+            <input type="checkbox" checked="checked" name="remember" /> Rester
+            connecté
+          </label>
+          <span class="password"><a href="#">Mot de passe oublié ?</a></span>
+        </div>
+      </div>
+    </form>
+  </section>
+</body>
+
+</html>
