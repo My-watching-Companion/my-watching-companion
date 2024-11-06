@@ -19,7 +19,7 @@ router.post("/login/ok", async (req, res) => {
   const Password = req.body.Password;
   try {
     const DBPass = await executeQuery(
-      `SELECT password from Users where username = ${Username}`
+      `SELECT password from UsersLogin where Login = '${Username}'`
     );
     if (
       Password ===
@@ -30,10 +30,10 @@ router.post("/login/ok", async (req, res) => {
       req.session.cookie.maxAge = hour;
       res.render("profil");
     } else {
-      res.send("Mot de passe incorrect");
+      res.json({ message: "Mot de passe incorrect" });
     }
   } catch (e) {
-    res.send(`Internal server Error : ${e}`);
+    res.json({ message: `Internal server Error : ${e}` });
   }
 });
 
@@ -44,18 +44,45 @@ router.post("/register/ok", async (req, res) => {
   const Mail = req.body.Mail;
   const Username = req.body.Username;
   const Password = req.body.Password;
-  if(await executeQuery(`SELECT EmailAddress from UsersGeneralInfos where FirstName = '${FirstName}' and LastName = '${LastName}'`).recordsets[0].EmailAddress === Mail){
-    res.json({message: 'User already exists'})
-  }
-  else{
+  if (
+    (await executeQuery(
+      `SELECT EmailAddress from UsersGeneralInfos where FirstName = '${FirstName}' and LastName = '${LastName}'`
+    ).recordsets[0].EmailAddress) === Mail
+  ) {
+    res.json({ message: "User already exists" });
+  } else {
     try {
       await executeQuery(
         `INSERT INTO Users VALUES(0, GETDATE(), GETDATE()) INSERT INTO UsersGeneralInfos  VALUES('${FirstName}','${LastName}','${BirthDate}','${Mail}','Default') INSERT INTO UsersLogin VALUES('${Username}','${Password}',0)`
       );
-      res.send("Utilisateur créé avec succès");
+      res.json({ message: "Utilisateur créé avec succès" });
     } catch (e) {
-      res.send(`Internal server Error : ${e}`);
+      res.json({ message: `Internal server Error : ${e}` });
     }
+  }
+});
+
+router.get("/user/:u", async (req, res) => {
+  const SearchUser = req.param("u");
+  try {
+    const query = await executeQuery(
+      `SELECT * from Users U LEFT JOIN UsersGeneralInfos UGI ON U.UserID = UGI.UserID LEFT JOIN UsersLogin UL ON UL.UserID = UGI.UserID where Login = '${SearchUser}'`
+    );
+    if (query.length === 0) {
+      res.json({ message: "User dosn't exists" });
+    } else {
+      res.json({
+        UserID: `${query.recordsets[0].UserID}`,
+        FirstName: `${query.recordsets[0].FirstName}`,
+        LastName: `${query.recordsets[0].LastName}`,
+        CreationDate: `${query.recordsets[0].CreationDate}`,
+        UpdatedDate: `${query.recordsets[0].UpdatedDate}`,
+        BirthDate: `${query.recordsets[0].UsersBirthDate}`,
+        Role: `${query.recordsets[0].RoleID === 1 ? "Admin" : "User"}`,
+      });
+    }
+  } catch (e) {
+    res.json({ Error: `Internal server error : ${e}` });
   }
 });
 
