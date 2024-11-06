@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const { isAuthenticated, GetUser } = require("./api");
 
 // Définition de la route principale
 router.get("/", (req, res) => {
