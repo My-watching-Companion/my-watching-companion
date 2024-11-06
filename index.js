@@ -3,7 +3,7 @@ const path = require("path");
 const session = require("express-session");
 const PORT = process.env.PORT || 3000;
 const { CRYPTO_KEY } = require("./config");
-const {isAuthenticated} = require("./routes/api")
+const { router: api, isAuthenticated } = require("./routes/api");
 const app = express();
 app.use(
   session({
@@ -12,6 +12,7 @@ app.use(
     saveUninitialized: true,
   })
 );
+app.use(express.urlencoded({ extended: true }));
 
 // Définition du répertoire des fichiers et moteur de modèles
 app.set("views", path.join(__dirname + "/views"));
@@ -22,7 +23,6 @@ app.use(express.static(path.join(__dirname + "/public")));
 
 // TODO: Routes d'API
 
-const api = require("./routes/api");
 app.use("/api", api);
 
 // Définition des différentes routes

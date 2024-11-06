@@ -1,7 +1,8 @@
 const router = require("express").Router();
 const { executeQuery } = require("../db");
-const CrypotJS = require("crypto-js");
+const CryptoJS = require("crypto-js");
 const session = require("express-session");
+const {CRYPTO_KEY} = require("../config")
 var hour = 1000 * 60 * 20;
 
 function isAuthenticated(req, res, next) {
@@ -23,6 +24,18 @@ async function GetUser(req, res, next) {
   }
 }
 
+function formatDate(dateString) {
+  const date = new Date(dateString);
+
+  // Récupération du jour, mois, et année
+  const day = String(date.getDate()).padStart(2, '0'); // JJ
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // MM (mois commence à 0, donc +1)
+  const year = date.getFullYear(); // AAAA
+
+  // Format JJ-MM-AAAA
+  return `${day}-${month}-${year}`;
+}
+
 // TODO: Implémenter les différentes routes d'API
 
 router.get("/", (req, res) => {
@@ -30,15 +43,15 @@ router.get("/", (req, res) => {
 });
 
 router.post("/login/ok", async (req, res) => {
-  const Username = req.body.Username;
-  const Password = req.body.Password;
+  const Username = req.body.username;
+  const Password = req.body.password;
   try {
     const DBPass = await executeQuery(
       `SELECT password from UsersLogin where Login = '${Username}'`
     );
     if (
       Password ===
-      CrypotJS.AES.decrypt(DBPass.recordsets[0].password, CRYPTO_KEY)
+      CryptoJS.AES.decrypt(DBPass[0].password, CRYPTO_KEY).toString(CryptoJS.enc.Utf8)
     ) {
       req.session.user = Username;
       req.session.cookie.expires = new Date(Date.now() + hour);
@@ -53,31 +66,34 @@ router.post("/login/ok", async (req, res) => {
 });
 
 router.post("/register/ok", async (req, res) => {
-  const LastName = req.body.LastName;
-  const FirstName = req.body.FirstName;
-  const BirthDate = req.body.BirthDate;
-  const Mail = req.body.Mail;
-  const Username = req.body.Username;
-  const Password = req.body.Password;
-  if (
-    (await executeQuery(
-      `SELECT EmailAddress from UsersGeneralInfos where FirstName = '${FirstName}' and LastName = '${LastName}'`
-    ).recordsets[0].EmailAddress) === Mail
-  ) {
-    res.json({ message: "User already exists" });
-  } else {
-    try {
+  const LastName = req.body.lastname;
+  const FirstName = req.body.firstname;
+  const BirthDate = req.body.birthdate;
+  const Mail = req.body.email;
+  const Username = req.body.username;
+  const Password = req.body.password;
+  try {
+    if (
+      (await executeQuery(
+        `SELECT EmailAddress from UsersGeneralInfos where FirstName = '${FirstName}' and LastName = '${LastName}'`
+      )) === undefined
+    ) {
+      res.json({ message: "User already exists" });
+    } else {
       await executeQuery(
-        `INSERT INTO Users VALUES(0, GETDATE(), GETDATE()) INSERT INTO UsersGeneralInfos  VALUES('${FirstName}','${LastName}','${BirthDate}','${Mail}','Default') INSERT INTO UsersLogin VALUES('${Username}','${Password}',0)`
+        `INSERT INTO Users VALUES(0, GETDATE(), GETDATE()) INSERT INTO UsersGeneralInfos  VALUES('${FirstName}','${LastName}','${BirthDate}','${Mail}','Default') INSERT INTO UsersLogin VALUES('${Username}','${CryptoJS.AES.encrypt(
+          `${Password}`,
+          CRYPTO_KEY
+        )}',0)`
       );
       res.json({ message: "Utilisateur créé avec succès" });
-    } catch (e) {
-      res.json({ message: `Internal server Error : ${e}` });
     }
+  } catch (e) {
+    res.json({ message: `Internal server Error : ${e}` });
   }
 });
 
-router.get("/user/:u", async (req, res) => {
+router.get("/users/:u", async (req, res) => {
   const SearchUser = req.param("u");
   try {
     const query = await executeQuery(
@@ -87,13 +103,13 @@ router.get("/user/:u", async (req, res) => {
       res.json({ message: "User dosn't exists" });
     } else {
       res.json({
-        UserID: `${query.recordsets[0].UserID}`,
-        FirstName: `${query.recordsets[0].FirstName}`,
-        LastName: `${query.recordsets[0].LastName}`,
-        CreationDate: `${query.recordsets[0].CreationDate}`,
-        UpdatedDate: `${query.recordsets[0].UpdatedDate}`,
-        BirthDate: `${query.recordsets[0].UsersBirthDate}`,
-        Role: `${query.recordsets[0].RoleID === 1 ? "Admin" : "User"}`,
+        UserID: `${query[0].UserID[0]}`,
+        FirstName: `${query[0].FirstName}`,
+        LastName: `${query[0].LastName}`,
+        CreationDate: `${formatDate(query[0].CreationDate)}`,
+        UpdatedDate: `${formatDate(query[0].UpdatedDate)}`,
+        BirthDate: `${formatDate(query[0].UsersBirthDate)}`,
+        Role: `${query[0].RoleID === 1 ? "Admin" : "User"}`,
       });
     }
   } catch (e) {
@@ -106,12 +122,13 @@ router.get("/users/:u/watchlists", async (req, res) => {
   try {
     const query = await executeQuery(
       `SELECT * from Users U 
+        INNER JOIN UsersLogin ULog ON U.UserID = ULog.UserID
         LEFT JOIN Ref_UsersLists RUL ON U.UserID = RUL.UserID 
         LEFT JOIN UsersLists UL ON RUL.ListsID = UL.ListsID 
-        WHERE U.UserID = '${SearchUser}'`
+        WHERE ULog.Login = '${SearchUser}'`
     );
     res.json({
-      User: { UserID: query.recordsets[0].UserID, UserURL: `/api/users/${u}` },
+      User: { UserID: query[0].UserID, UserURL: `/api/users/${SearchUser}` },
       Watchlist: query.recordsets.map((element) => ({
         ListsID: element.ListsID,
         ListName: element.ListsName,
@@ -141,7 +158,7 @@ router.get("/users/:u/watchlists/:w", async (req, res) => {
                                       WHERE U.UserID = '${SearchUser}' AND UL.ListsName = '${SearchList}'`);
 
     res.json({
-      User: { UserID: query.recordsets[0].UserID, UserURL: `/api/users/${u}` },
+      User: { UserID: query[0].UserID, UserURL: `/api/users/${SearchUser}` },
       WatchListInfo: {
         ListsID: element.ListsID,
         ListName: element.ListsName,
