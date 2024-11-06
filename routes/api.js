@@ -44,18 +44,23 @@ router.post("/register/ok", async (req, res) => {
   const Mail = req.body.Mail;
   const Username = req.body.Username;
   const Password = req.body.Password;
-  try {
-    await executeQuery(
-      `INSERT INTO Users VALUES(0, GETDATE(), GETDATE()) INSERT INTO UsersGeneralInfos  VALUES('${FirstName}','${LastName}','${BirthDate}','${Mail}','Default') INSERT INTO UsersLogin VALUES('${Username}','${Password}',0)`
-    );
-    res.send("Utilisateur créé avec succès");
-  } catch (e) {
-    res.send(`Internal server Error : ${e}`);
+  if(await executeQuery("SELECT EmailAddress from UsersGeneralInfos where FirstName = '${FirstName}' and LastName = '${LastName}'").recordsets[0].EmailAddress === Mail){
+    res.json({message: 'User already exists'})
+  }
+  else{
+    try {
+      await executeQuery(
+        `INSERT INTO Users VALUES(0, GETDATE(), GETDATE()) INSERT INTO UsersGeneralInfos  VALUES('${FirstName}','${LastName}','${BirthDate}','${Mail}','Default') INSERT INTO UsersLogin VALUES('${Username}','${Password}',0)`
+      );
+      res.send("Utilisateur créé avec succès");
+    } catch (e) {
+      res.send(`Internal server Error : ${e}`);
+    }
   }
 });
 
 router.get("/isconnected", (req, res) => {
-  res.json({ message: isAuthenticated() });
+  res.json({ message: isAuthenticated(req) });
 });
 
 module.exports = router;
