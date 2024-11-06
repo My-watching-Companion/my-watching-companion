@@ -10,11 +10,12 @@ h1 {
   font-weight: 900;
 }
 
-.from-container {
+form {
   display: flex;
   flex-direction: column;
-  width: 50vw;
+  width: 50%;
   gap: 1rem;
+  margin-bottom: 2rem;
 }
 
 input[type="text"],
@@ -22,10 +23,21 @@ input[type="date"],
 input[type="email"],
 input[type="password"] {
   padding: 12px 20px;
-  display: inline-block;
   border: 1px solid #ccc;
   box-sizing: border-box;
   border-radius: 10px;
+  width: 100%;
+}
+
+.container {
+  display: flex;
+  align-items: center;
+}
+
+#visibility {
+  margin-left: -2rem;
+  cursor: pointer;
+  user-select: none;
 }
 
 button {
@@ -47,4 +59,11 @@ button:hover {
 .signin-utilities {
   display: flex;
   justify-content: space-between;
+}
+
+/* Responsiveness */
+@media screen and (max-width: 900px) {
+  form {
+    width: 75%;
+  }
 }
