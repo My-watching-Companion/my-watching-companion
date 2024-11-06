@@ -18,6 +18,10 @@ header {
 }
 
 /* Header Logo */
+a#logo {
+  text-decoration: none;
+}
+
 header #logo {
   display: flex;
 }
@@ -28,6 +32,7 @@ header #logo img {
 }
 
 header #logo h1 {
+  color: black;
   font-size: 1rem;
   font-weight: 900;
 }
@@ -53,8 +58,9 @@ nav a:hover {
   font-weight: bold;
 }
 
-/* Header Login */
-header a#login-button {
+/* Header Connection */
+header a#signin-button,
+header a#signup-button {
   text-decoration: none;
   color: white;
   font-weight: bolder;
@@ -66,6 +72,8 @@ header a#login-button {
   transition: box-shadow 0.1s ease-in-out;
 }
 
-header a#login-button:hover {
+header a#signin-button:hover,
+header a#signup-button:hover {
   box-shadow: 0px 5px 10px -2.5px #f7384a;
+  cursor: pointer;
 }
