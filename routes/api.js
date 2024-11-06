@@ -44,7 +44,7 @@ router.post("/register/ok", async (req, res) => {
   const Mail = req.body.Mail;
   const Username = req.body.Username;
   const Password = req.body.Password;
-  if(await executeQuery("SELECT EmailAddress from UsersGeneralInfos where FirstName = '${FirstName}' and LastName = '${LastName}'").recordsets[0].EmailAddress === Mail){
+  if(await executeQuery(`SELECT EmailAddress from UsersGeneralInfos where FirstName = '${FirstName}' and LastName = '${LastName}'`).recordsets[0].EmailAddress === Mail){
     res.json({message: 'User already exists'})
   }
   else{
