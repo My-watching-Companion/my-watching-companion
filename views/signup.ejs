@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+  <%- include('components/head', { selected }) %>
+
+  <link rel="stylesheet" href="styles/sign-in-up.css" />
+</head>
+
+<body>
+  <header>
+    <%- include('components/header', { selected }) %>
+  </header>
+
+  <section>
+    <h1>INSCRIPTION</h1>
+
+    <form action="/api/url" method="post">
+      <div class="from-container">
+        <label for="lastname"><b>Nom</b></label>
+        <input type="text" placeholder="Entrez votre nom de famille" name="lastname" required />
+
+        <label for="firstname"><b>Prénom</b></label>
+        <input type="text" placeholder="Entrez votre prénom" name="firstname" required />
+
+        <label for="birthdate"><b>Date de Naissance</b></label>
+        <input type="date" placeholder="Entrez votre date de naissance" name="birthdate" required />
+
+        <label for="username"><b>Nom d'Utilisateur</b></label>
+        <input type="text" placeholder="Entrez votre nom d'utilisateur" name="username" required />
+
+        <label for="email"><b>Email</b></label>
+        <input type="email" placeholder="Entrez votre adresse mail" name="email" required />
+
+        <label for="password"><b>Mot de Passe</b></label>
+        <input type="password" placeholder="Entrez votre mot de passe" name="password" required />
+
+        <div class="signin-utilities">
+          <label>
+            <input type="checkbox" name="confirm" /> Je confirme la validité des informations spécifiées, y compris le nom, prénom ainsi que mon âge.
+          </label>
+        </div>
+
+        <button type="submit">Créer mon Compte</button>
+      </div>
+    </form>
+  </section>
+</body>
+
+</html>
