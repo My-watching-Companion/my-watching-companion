@@ -1,23 +1,23 @@
 <a id="logo" href="/">
-  <div id="logo">
-    <img src="assets/transparent_logo.png" alt="Logo My Watching Companion" />
+  <img src="assets/transparent_logo.png" alt="Logo My Watching Companion" />
 
-    <h1>MY WATCHING<br />COMPANION</h1>
-  </div>
+  <h1>MY WATCHING<br />COMPANION</h1>
 </a>
 
 <nav>
-  <a href="/" <% if (selected === "Accueil") { %>class="selected" <% } %>>Accueil</a>
-  <a href="/my-watchlist" <% if (selected === "Ma Watchlist") { %> class="selected" <% } %>>Ma Watchlist</a>
-  <a href="/discovery" <% if (selected === "Découverte") { %> class="selected" <% } %>>Découverte</a>
-  <a href="/trending" <% if (selected === "Tendance") { %> class="selected" <% } %>>Tendance</a>
-  <a href="/settings" <% if (selected === "Paramètres") { %> class="selected" <% } %>>Paramètres</a>
+  <a href="/" class="nav-item <% if (selected === "Accueil") { %>selected<% } %>">Accueil</a>
+  <a href="/my-watchlist" class="nav-item <% if (selected === "Ma Watchlist") { %>selected<% } %>">Ma Watchlist</a>
+  <a href="/discovery" class="nav-item <% if (selected === "Découverte") { %>selected<% } %>">Découverte</a>
+  <a href="/trending" class="nav-item <% if (selected === "Tendance") { %>selected<% } %>">Tendance</a>
+  <a href="/settings" class="nav-item <% if (selected === "Paramètres") { %>selected<% } %>">Paramètres</a>
 </nav>
 
 <% if (selected === "Connexion") { %>
-<a id="signup-button" href="/signup">INSCRIPTION</a>
-<% } else if (selected === "Inscription") { %>
-<a id="signin-button" href="/signin">CONNEXION</a>
+<button class="sign" id="sign-up" onclick="location.href='/signup'">INSCRIPTION</button>
 <% } else { %>
-<a id="signin-button" href="/signin">CONNEXION/INSCRIPTION</a>
+<button class="sign" id="sign-in" onclick="location.href='/signin'">CONNEXION</button>
 <% } %>
+
+<span id="open-sidebar" class="material-symbols-rounded" onclick="openSidebar()">
+  menu
+</span>
