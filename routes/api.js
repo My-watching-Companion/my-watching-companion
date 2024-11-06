@@ -5,7 +5,22 @@ const session = require("express-session");
 var hour = 1000 * 60 * 20;
 
 function isAuthenticated(req, res, next) {
-  return req.session.user ? true : false;
+  if (req.session.user) {
+    return next();
+  } else {
+    res.redirect("/");
+  }
+}
+
+async function GetUser(req, res, next) {
+  if (req.session.user) {
+    const user = await executeQuery(
+      `SELECT UGI.LastName, UGI.FirstName, UL.Login, UGI.EmailAddress, UGI.UserProfilePicture from UsersLogin UL INNER JOIN UsersGeneralInfos UGI ON UL.UserID = UGI.UserID where UL.Login = '${req.session.user}'`
+    );
+    return next({ user });
+  } else {
+    return next({ user: undefined });
+  }
 }
 
 // TODO: Implémenter les différentes routes d'API
@@ -86,8 +101,82 @@ router.get("/user/:u", async (req, res) => {
   }
 });
 
-router.get("/isconnected", (req, res) => {
-  res.json({ message: isAuthenticated(req) });
+router.get("/users/:u/watchlists", async (req, res) => {
+  const SearchUser = req.param("u");
+  try {
+    const query = await executeQuery(
+      `SELECT * from Users U 
+        LEFT JOIN Ref_UsersLists RUL ON U.UserID = RUL.UserID 
+        LEFT JOIN UsersLists UL ON RUL.ListsID = UL.ListsID 
+        WHERE U.UserID = '${SearchUser}'`
+    );
+    res.json({
+      User: { UserID: query.recordsets[0].UserID, UserURL: `/api/users/${u}` },
+      Watchlist: query.recordsets.map((element) => ({
+        ListsID: element.ListsID,
+        ListName: element.ListsName,
+        Updated: element.UpdatedDate,
+        ListURL: `/api/${u}/watchlists/${element.ListName}`,
+      })),
+    });
+  } catch (e) {
+    res.json({ Error: `Internal server error : ${e}` });
+  }
 });
 
-module.exports = router;
+router.get("/users/:u/watchlists/:w", async (req, res) => {
+  const SearchUser = req.param("u");
+  const SearchList = req.param("w");
+  try {
+    const query = await executeQuery(`SELECT * from Users U 
+                                      LEFT JOIN Ref_UsersLists RUL ON U.UserID = RUL.UserID 
+                                      LEFT JOIN UsersLists UL ON RUL.ListsID = UL.ListsID 
+                                      LEFT JOIN Ref_ArtworkLists RAL ON RAL.ListsID = UL.ListsID
+                                      LEFT JOIN Artwork A ON A.ArtworkID = RAL.ArtworkID
+                                      LEFT JOIN ArtworkGeneralInfo AGI ON AGI.ArtworkID = A.ArtworkID
+                                      LEFT JOIN Ref_ArtworkType RAT ON RAT.ArtworkID = A.ArtworkID
+                                      LEFT JOIN Ref_ArtworkNature RAN ON RAN.ArtworkID = A.ArtworkID
+                                      LEFT JOIN Ref_ArtworkCreator RAC ON RAC.ArtworkID = A.ArtworkID
+                                      LEFT JOIN Ref_Creator RC ON RC.CreatorID = RAC.CreatorID
+                                      WHERE U.UserID = '${SearchUser}' AND UL.ListsName = '${SearchList}'`);
+
+    res.json({
+      User: { UserID: query.recordsets[0].UserID, UserURL: `/api/users/${u}` },
+      WatchListInfo: {
+        ListsID: element.ListsID,
+        ListName: element.ListsName,
+        Updated: element.UpdatedDate,
+        Artwork: query.recordsets.map((element) => ({
+          ArtworkID: element.ArtworkID,
+          ArtworkName: element.ArtworkName,
+          ArtworkNature: element.NatureLabel,
+          ArtworkType: element.Ref_ArtworkType,
+          ArtworkCreatorURL: `/api/artwork/${element.ArtworkName}/creator`,
+        })),
+      },
+    });
+  } catch (e) {
+    res.json({ Error: `Internal server error : ${e}` });
+  }
+});
+
+router.get("/artwork/:a/creator", async (req, res) => {
+  const SearchArtwork = req.param("a");
+  try {
+    const query =
+      await executeQuery(`SELECT RAC.CreatorID, RC.CreatorName from Artowrk
+                                      LEFT JOIN ArtworkGeneralInfo AGI ON AGI.ArtworkID = A.ArtworkID
+                                      LEFT JOIN Ref_ArtworkCreator RAC ON RAC.ArtworkID = A.ArtworkID
+                                      LEFT JOIN Ref_Creator RC ON RC.CreatorID = RAC.CreatorID
+                                      WHERE AGI.ArtworkName = '${SearchArtwork}'`);
+    res.json({
+      ArtworkName: SearchArtwork,
+      ArtworkCreator: query.recordsets.map((creator) => ({
+        CreatorID: creator.CreatorID,
+        CreatorName: creator.CreatorName,
+      })),
+    });
+  } catch (e) {}
+});
+
+module.exports = { router, isAuthenticated, GetUser };
