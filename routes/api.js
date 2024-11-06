@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const { executeQuery } = require("../db");
 const CrypotJS = require("crypto-js");
+const session = require("express-session");
 var hour = 1000 * 60 * 20;
 
 function isAuthenticated(req, res, next) {
@@ -13,7 +14,7 @@ router.get("/", (req, res) => {
   res.json({ message: "Bienvenue sur l'API de MyWatchingCompanion" });
 });
 
-router.post("/connexion/ok", async (req, res) => {
+router.post("/login/ok", async (req, res) => {
   const Username = req.body.Username;
   const Password = req.body.Password;
   try {

@@ -3,7 +3,6 @@ const path = require("path");
 const session = require("express-session");
 const PORT = process.env.PORT || 3000;
 const { CRYPTO_KEY } = require("./config");
-session.user = null;
 const app = express();
 
 app.use(
