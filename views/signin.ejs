@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+  <%- include('components/head', { selected }) %>
+
+  <link rel="stylesheet" href="styles/sign-in-up.css" />
+
+  <script src="scripts/sign-in-up.js" defer></script>
+</head>
+
+<body>
+  <header>
+    <%- include('components/header', { selected }) %>
+  </header>
+
+  <%- include('components/sidebar') %>
+
+  <section>
+    <h1>CONNEXION</h1>
+
+    <form action="/api/login/ok" method="post">
+      <label for="username"><b>Nom d'Utilisateur</b></label>
+      <div class="container">
+        <input type="text" placeholder="Entrez votre nom d'utilisateur" name="username" required />
+      </div>
+
+      <label for="password"><b>Mot de Passe</b></label>
+      <div class="container">
+        <input id="password" type="password" placeholder="Entrez votre mot de passe" name="password" required />
+
+        <span id="visibility" class="material-symbols-rounded" onclick="toggleVisibility()">
+          visibility_off
+        </span>
+      </div>
+
+      <button type="submit">Me Connecter</button>
+
+      <div class="signin-utilities">
+        <label>
+          <input type="checkbox" checked="checked" name="remember" /> Rester
+          connecté
+        </label>
+        <span class="password"><a href="#">Mot de passe oublié ?</a></span>
+      </div>
+    </form>
+  </section>
+</body>
+
+</html>

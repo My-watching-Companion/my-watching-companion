@@ -1,0 +1,27 @@
+<div id="sidebar">
+  <div class="top">
+    <div class="title">
+      <h3>MENU</h3>
+
+      <span id="close-sidebar" class="material-symbols-rounded" onclick="closeSidebar()">
+        close
+      </span>
+    </div>
+
+    <div class="navigation">
+      <a href="/" class="nav-item <% if (selected === "Accueil") { %>selected<% } %>">Accueil</a>
+      <a href="/my-watchlist" class="nav-item <% if (selected === "Ma Watchlist") { %>selected<% } %>">Ma Watchlist</a>
+      <a href="/discovery" class="nav-item <% if (selected === "Découverte") { %>selected<% } %>">Découverte</a>
+      <a href="/trending" class="nav-item <% if (selected === "Tendance") { %>selected<% } %>">Tendance</a>
+      <a href="/settings" class="nav-item <% if (selected === "Paramètres") { %>selected<% } %>">Paramètres</a>
+    </div>
+  </div>
+
+  <div class="user">
+    <% if (selected === "Connexion") { %>
+    <button class="sign" id="sign-up" onclick="location.href='/signup'">INSCRIPTION</button>
+    <% } else { %>
+    <button class="sign" id="sign-in" onclick="location.href='/signin'">CONNEXION</button>
+    <% } %>
+  </div>
+</div>
