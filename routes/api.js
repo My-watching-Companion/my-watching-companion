@@ -2,7 +2,7 @@ const router = require("express").Router();
 const { executeQuery } = require("../db");
 const CryptoJS = require("crypto-js");
 const session = require("express-session");
-const {CRYPTO_KEY} = require("../config")
+const { CRYPTO_KEY } = require("../config");
 var hour = 1000 * 60 * 20;
 
 function isAuthenticated(req, res, next) {
@@ -28,8 +28,8 @@ function formatDate(dateString) {
   const date = new Date(dateString);
 
   // Récupération du jour, mois, et année
-  const day = String(date.getDate()).padStart(2, '0'); // JJ
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // MM (mois commence à 0, donc +1)
+  const day = String(date.getDate()).padStart(2, "0"); // JJ
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // MM (mois commence à 0, donc +1)
   const year = date.getFullYear(); // AAAA
 
   // Format JJ-MM-AAAA
@@ -51,7 +51,9 @@ router.post("/login/ok", async (req, res) => {
     );
     if (
       Password ===
-      CryptoJS.AES.decrypt(DBPass[0].password, CRYPTO_KEY).toString(CryptoJS.enc.Utf8)
+      CryptoJS.AES.decrypt(DBPass[0].password, CRYPTO_KEY).toString(
+        CryptoJS.enc.Utf8
+      )
     ) {
       req.session.user = Username;
       req.session.cookie.expires = new Date(Date.now() + hour);
