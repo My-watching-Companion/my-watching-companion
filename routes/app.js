@@ -14,6 +14,10 @@ router.get("/signup", (req, res) => {
   res.render("signup", { selected: "Inscription" });
 });
 
+router.get("/settings", (req,res)=>{
+  res.render("settings", { selected: "Paramètres" })
+})
+
 // Définition de la route erreur 404
 router.get("*", (req, res) => {
   res.status(404);

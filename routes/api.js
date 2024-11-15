@@ -2,7 +2,7 @@ const router = require("express").Router();
 const { executeQuery } = require("../db");
 const CryptoJS = require("crypto-js");
 const session = require("express-session");
-const {CRYPTO_KEY} = require("../config")
+const { CRYPTO_KEY } = require("../config");
 var hour = 1000 * 60 * 20;
 
 function isAuthenticated(req, res, next) {
@@ -24,19 +24,27 @@ async function GetUser(req, res, next) {
   }
 }
 
+async function TraceLogs(req, res, message){
+  await executeQuery(`INSERT INTO TraceLogs VALUES (GETDATE(), ${req.session.user}, ${message}, 0)`)
+}
+
+async function TraceError(req, res, message) {
+  await executeQuery(`INSERT INTO TraceLogs VALUES (GETDATE(), ${req.session.user}, ${message}, 1)`)
+}
+
 function formatDate(dateString) {
   const date = new Date(dateString);
 
   // Récupération du jour, mois, et année
-  const day = String(date.getDate()).padStart(2, '0'); // JJ
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // MM (mois commence à 0, donc +1)
+  const day = String(date.getDate()).padStart(2, "0"); // JJ
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // MM (mois commence à 0, donc +1)
   const year = date.getFullYear(); // AAAA
 
   // Format JJ-MM-AAAA
   return `${day}-${month}-${year}`;
 }
 
-// TODO: Implémenter les différentes routes d'API
+//! Route API pour Insérer / modifier en base
 
 router.get("/", (req, res) => {
   res.json({ message: "Bienvenue sur l'API de MyWatchingCompanion" });
@@ -51,17 +59,31 @@ router.post("/login/ok", async (req, res) => {
     );
     if (
       Password ===
-      CryptoJS.AES.decrypt(DBPass[0].password, CRYPTO_KEY).toString(CryptoJS.enc.Utf8)
+      CryptoJS.AES.decrypt(DBPass[0].password, CRYPTO_KEY).toString(
+        CryptoJS.enc.Utf8
+      )
     ) {
       req.session.user = Username;
       req.session.cookie.expires = new Date(Date.now() + hour);
       req.session.cookie.maxAge = hour;
-      res.render("profil");
+
+      TraceLogs(req,res,`User ${Username} successfully login`)
+
+      res.render("home");
     } else {
-      res.json({ message: "Mot de passe incorrect" });
+      TraceError(req,res, `Users use wrong password`)
+
+      res.json({ 
+        status: "ERROR",
+        message: "Mot de passe incorrect" });
     }
   } catch (e) {
-    res.json({ message: `Internal server Error : ${e}` });
+    TraceError(req,res, `Internal Server Error ${e}`)
+
+    res.json({
+      status: "KO",
+      message: `Internal Server Error ${e}`
+    })
   }
 });
 
@@ -72,38 +94,79 @@ router.post("/register/ok", async (req, res) => {
   const Mail = req.body.email;
   const Username = req.body.username;
   const Password = req.body.password;
+  console.log(`INSERT INTO Users VALUES(0, GETDATE(), GETDATE()) 
+         INSERT INTO UsersGeneralInfos  VALUES('${Username}','${FirstName}','${LastName}','${BirthDate}','${Mail}','Default') 
+         INSERT INTO UsersLogin VALUES('${Username}','${CryptoJS.AES.encrypt(`${Password}`,CRYPTO_KEY)}',0)`)
   try {
+    const VerifMail = await executeQuery(`SELECT EmailAddress from UsersGeneralInfos where FirstName = '${FirstName}' and LastName = '${LastName}'`)
+    const VerifLogin = await executeQuery(`SELECT Login FROM UsersLogin WHERE Login = '${Username}'`)
+    console.log(VerifMail)
     if (
-      (await executeQuery(
-        `SELECT EmailAddress from UsersGeneralInfos where FirstName = '${FirstName}' and LastName = '${LastName}'`
-      )) === undefined
+      (VerifMail[0].EmailAddress === Mail)
     ) {
-      res.json({ message: "User already exists" });
-    } else {
+      res.redirect('/signup' + {message: "L'email est déjà utilisé pour un compte"})
+    } else if 
+    (VerifLogin[0].Login === Username){
+      res.redirect('/signup' + {message: 'Pseudonyme déjà utilisé'})
+    }
+    else {
       await executeQuery(
-        `INSERT INTO Users VALUES(0, GETDATE(), GETDATE()) INSERT INTO UsersGeneralInfos  VALUES('${FirstName}','${LastName}','${BirthDate}','${Mail}','Default') INSERT INTO UsersLogin VALUES('${Username}','${CryptoJS.AES.encrypt(
-          `${Password}`,
-          CRYPTO_KEY
-        )}',0)`
+        `INSERT INTO Users VALUES(0, GETDATE(), GETDATE()) 
+         INSERT INTO UsersGeneralInfos  VALUES('${Username}','${FirstName}','${LastName}','${BirthDate}','${Mail}','Default') 
+         INSERT INTO UsersLogin VALUES('${Username}','${CryptoJS.AES.encrypt(`${Password}`,CRYPTO_KEY)}',0)`
       );
-      res.json({ message: "Utilisateur créé avec succès" });
+      res.redirect('/signin' + {message: 'Utilisateur créé avec succès'})
     }
   } catch (e) {
-    res.json({ message: `Internal server Error : ${e}` });
+    res.json({
+      status: "KO",
+      message: `Internal Server Error ${e}`
+    })
   }
 });
+
+
+router.post("/changePP:u", async(req,res)=>{
+  try{
+    const query =  executeQuery(`UPDATE UsersGeneralInfos
+      SET UserProfilePicture = '${image}'
+      where UserID = (SELECT UserID FROM UsersGeneralInfos where Username = '${username}')`)
+
+      res.json({
+      status: "OK",
+      message: "Profile Picture of user was modified with success"})
+  }
+  catch(e){
+    res.json({
+      status: "KO",
+      message: `Internal Server Error ${e}`
+    })
+  }
+})
+
+
+
+//! Route API pour chercher des choses 
+
 
 router.get("/users/:u", async (req, res) => {
   const SearchUser = req.param("u");
   try {
     const query = await executeQuery(
-      `SELECT * from Users U LEFT JOIN UsersGeneralInfos UGI ON U.UserID = UGI.UserID LEFT JOIN UsersLogin UL ON UL.UserID = UGI.UserID where Login = '${SearchUser}'`
+      `SELECT U.UserID, UGI.FirstName, UGI.LastName, U.CreationDate, U.UpdatedDate, UGI.UsersBirthDate, UL.RoleID from Users U 
+          LEFT JOIN UsersGeneralInfos UGI ON U.UserID = UGI.UserID 
+          LEFT JOIN Ref_UsersLogin RUL ON RUL.UserID = U.UserID
+          LEFT JOIN UsersLogin UL ON UL.LoginID = RUL.LoginID 
+          where Login = '${SearchUser}'`
     );
     if (query.length === 0) {
-      res.json({ message: "User dosn't exists" });
+      res.json({ 
+        status: "ERROR",
+        message: "User dosn't exists" 
+      });
     } else {
       res.json({
-        UserID: `${query[0].UserID[0]}`,
+        UserID: `${query[0].UserID}`,
         FirstName: `${query[0].FirstName}`,
         LastName: `${query[0].LastName}`,
         CreationDate: `${formatDate(query[0].CreationDate)}`,
@@ -113,7 +176,9 @@ router.get("/users/:u", async (req, res) => {
       });
     }
   } catch (e) {
-    res.json({ Error: `Internal server error : ${e}` });
+    res.json({ 
+      status: "KO",
+      message: `Internal server error : ${e}` });
   }
 });
 
@@ -121,10 +186,12 @@ router.get("/users/:u/watchlists", async (req, res) => {
   const SearchUser = req.param("u");
   try {
     const query = await executeQuery(
-      `SELECT * from Users U 
-        INNER JOIN UsersLogin ULog ON U.UserID = ULog.UserID
-        LEFT JOIN Ref_UsersLists RUL ON U.UserID = RUL.UserID 
-        LEFT JOIN UsersLists UL ON RUL.ListsID = UL.ListsID 
+      `SELECT U.UserID, UL.ListsID, UL.ListsName, UL.UpdatedDate
+      from Users U
+		    INNER JOIN Ref_UsersLogin RUL ON RUL.UserID = U.UserID 
+        INNER JOIN UsersLogin ULog ON RUL.LoginID = ULog.LoginID
+        LEFT JOIN Ref_UsersLists RULi ON U.UserID = RULi.UserID 
+        LEFT JOIN UsersLists UL ON RULi.ListsID = UL.ListsID
         WHERE ULog.Login = '${SearchUser}'`
     );
     res.json({
@@ -137,7 +204,9 @@ router.get("/users/:u/watchlists", async (req, res) => {
       })),
     });
   } catch (e) {
-    res.json({ Error: `Internal server error : ${e}` });
+    res.json({ 
+      status: "KO",
+      message: `Internal server error : ${e}` });
   }
 });
 
@@ -145,20 +214,21 @@ router.get("/users/:u/watchlists/:w", async (req, res) => {
   const SearchUser = req.param("u");
   const SearchList = req.param("w");
   try {
-    const query = await executeQuery(`SELECT * from Users U 
+    const query = await executeQuery(`SELECT U.UserID, UL.ListsID, UL.ListsName, UL.UpdatedDate, A.ArtworkID, A.ArtworkName, RN.NatureLabel, RT.TypeName 
+                                      from Users U 
+                                      INNER JOIN UserGeneralInfos UGI ON UGI.UserID = U.UserID
                                       LEFT JOIN Ref_UsersLists RUL ON U.UserID = RUL.UserID 
                                       LEFT JOIN UsersLists UL ON RUL.ListsID = UL.ListsID 
-                                      LEFT JOIN Ref_ArtworkLists RAL ON RAL.ListsID = UL.ListsID
-                                      LEFT JOIN Artwork A ON A.ArtworkID = RAL.ArtworkID
-                                      LEFT JOIN ArtworkGeneralInfo AGI ON AGI.ArtworkID = A.ArtworkID
+                                      LEFT JOIN Ref_UsersListsArtwork RULA ON RULA.ListsID = UL.ListsID
+                                      LEFT JOIN Artwork A ON A.ArtworkID = RULA.ArtworkID
                                       LEFT JOIN Ref_ArtworkType RAT ON RAT.ArtworkID = A.ArtworkID
                                       LEFT JOIN Ref_ArtworkNature RAN ON RAN.ArtworkID = A.ArtworkID
                                       LEFT JOIN Ref_ArtworkCreator RAC ON RAC.ArtworkID = A.ArtworkID
                                       LEFT JOIN Ref_Creator RC ON RC.CreatorID = RAC.CreatorID
-                                      WHERE U.UserID = '${SearchUser}' AND UL.ListsName = '${SearchList}'`);
+                                      WHERE UGI.Username = '${SearchUser}' AND UL.ListsName = '${SearchList}'`);
 
     res.json({
-      User: { UserID: query[0].UserID, UserURL: `/api/users/${SearchUser}` },
+      User: { UserID: query.UserID, UserURL: `/api/users/${SearchUser}` },
       WatchListInfo: {
         ListsID: element.ListsID,
         ListName: element.ListsName,
@@ -173,7 +243,9 @@ router.get("/users/:u/watchlists/:w", async (req, res) => {
       },
     });
   } catch (e) {
-    res.json({ Error: `Internal server error : ${e}` });
+    res.json({ 
+      status: "KO",
+      message: `Internal server error : ${e}` });
   }
 });
 
@@ -182,10 +254,9 @@ router.get("/artwork/:a/creator", async (req, res) => {
   try {
     const query =
       await executeQuery(`SELECT RAC.CreatorID, RC.CreatorName from Artowrk
-                                      LEFT JOIN ArtworkGeneralInfo AGI ON AGI.ArtworkID = A.ArtworkID
                                       LEFT JOIN Ref_ArtworkCreator RAC ON RAC.ArtworkID = A.ArtworkID
                                       LEFT JOIN Ref_Creator RC ON RC.CreatorID = RAC.CreatorID
-                                      WHERE AGI.ArtworkName = '${SearchArtwork}'`);
+                                      WHERE A.ArtworkName = '${SearchArtwork}'`);
     res.json({
       ArtworkName: SearchArtwork,
       ArtworkCreator: query.recordsets.map((creator) => ({
@@ -193,7 +264,12 @@ router.get("/artwork/:a/creator", async (req, res) => {
         CreatorName: creator.CreatorName,
       })),
     });
-  } catch (e) {}
+  } catch (e) {
+    res.json({
+      status: "KO",
+      message: `Internal Server Error ${e}`
+    })
+  }
 });
 
 module.exports = { router, isAuthenticated, GetUser };
