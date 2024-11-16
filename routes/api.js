@@ -233,12 +233,12 @@ router.get("/users/:u/watchlists/:w", async (req, res) => {
                                       WHERE UGI.Username = '${SearchUser}' AND UL.ListsName = '${SearchList}'`);
 
     res.json({
-      User: { UserID: query.UserID, UserURL: `/api/users/${SearchUser}` },
+      User: { UserID: query[0].UserID, UserURL: `/api/users/${SearchUser}` },
       WatchListInfo: {
         ListsID: element.ListsID,
         ListName: element.ListsName,
         Updated: element.UpdatedDate,
-        Artwork: query.recordsets.map((element) => ({
+        Artwork: query[0].map((element) => ({
           ArtworkID: element.ArtworkID,
           ArtworkName: element.ArtworkName,
           ArtworkNature: element.NatureLabel,
@@ -264,7 +264,7 @@ router.get("/artwork/:a/creator", async (req, res) => {
                                       WHERE A.ArtworkName = '${SearchArtwork}'`);
     res.json({
       ArtworkName: SearchArtwork,
-      ArtworkCreator: query.recordsets.map((creator) => ({
+      ArtworkCreator: query[0].map((creator) => ({
         CreatorID: creator.CreatorID,
         CreatorName: creator.CreatorName,
       })),
