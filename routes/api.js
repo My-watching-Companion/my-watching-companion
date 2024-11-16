@@ -13,6 +13,11 @@ function isAuthenticated(req, res, next) {
   }
 }
 
+async function CheckAge(username, age) {
+  const query = await executeQuery(`SELECT UsersBirthDate from UsersGeneralInfos WHERE Username = ${username}`)
+  return query[0].UsersBirthDate > age ? true : false
+}
+
 async function GetUser(req, res, next) {
   if (req.session.user) {
     const user = await executeQuery(
@@ -272,4 +277,4 @@ router.get("/artwork/:a/creator", async (req, res) => {
   }
 });
 
-module.exports = { router, isAuthenticated, GetUser };
+module.exports = { router, isAuthenticated, GetUser, CheckAge };
