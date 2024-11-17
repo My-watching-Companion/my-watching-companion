@@ -13,6 +13,14 @@ function isAuthenticated(req, res, next) {
   }
 }
 
+async function CheckAge(username, age) {
+  const query = await executeQuery(`SELECT UsersBirthDate, GETDATE() AS Today from UsersGeneralInfos WHERE Username = '${username}'`)
+  const Today = formatDate(query[0].Today)
+  const UserBirthDate = formatDate(query[0].UsersBirthDate)
+  
+  return (Today - UserBirthDate) > (Today - (formatDate(`${Today.getFullYear()-age}-${Today.getMonth()}-${Today.getDay()}`))) ? true : false
+}
+
 async function GetUser(req, res, next) {
   if (req.session.user) {
     const user = await executeQuery(
@@ -41,7 +49,7 @@ function formatDate(dateString) {
   const year = date.getFullYear(); // AAAA
 
   // Format JJ-MM-AAAA
-  return `${day}-${month}-${year}`;
+  return (new Date(year, month, day));
 }
 
 //! Route API pour Insérer / modifier en base
@@ -228,12 +236,12 @@ router.get("/users/:u/watchlists/:w", async (req, res) => {
                                       WHERE UGI.Username = '${SearchUser}' AND UL.ListsName = '${SearchList}'`);
 
     res.json({
-      User: { UserID: query.UserID, UserURL: `/api/users/${SearchUser}` },
+      User: { UserID: query[0].UserID, UserURL: `/api/users/${SearchUser}` },
       WatchListInfo: {
         ListsID: element.ListsID,
         ListName: element.ListsName,
         Updated: element.UpdatedDate,
-        Artwork: query.recordsets.map((element) => ({
+        Artwork: query[0].map((element) => ({
           ArtworkID: element.ArtworkID,
           ArtworkName: element.ArtworkName,
           ArtworkNature: element.NatureLabel,
@@ -259,7 +267,7 @@ router.get("/artwork/:a/creator", async (req, res) => {
                                       WHERE A.ArtworkName = '${SearchArtwork}'`);
     res.json({
       ArtworkName: SearchArtwork,
-      ArtworkCreator: query.recordsets.map((creator) => ({
+      ArtworkCreator: query[0].map((creator) => ({
         CreatorID: creator.CreatorID,
         CreatorName: creator.CreatorName,
       })),
@@ -272,4 +280,4 @@ router.get("/artwork/:a/creator", async (req, res) => {
   }
 });
 
-module.exports = { router, isAuthenticated, GetUser };
+module.exports = { router, isAuthenticated, GetUser, CheckAge };
