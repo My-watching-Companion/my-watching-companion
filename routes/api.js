@@ -161,7 +161,7 @@ router.get("/users/:u", async (req, res) => {
   const SearchUser = req.param("u");
   try {
     const query = await executeQuery(
-      `SELECT U.UserID, UGI.FirstName, UGI.LastName, U.CreationDate, U.UpdatedDate, UGI.UsersBirthDate, UL.RoleID from Users U 
+      `SELECT U.UserID, UGI.FirstName, UGI.LastName, U.CreationDate, U.UpdatedDate, UGI.UsersBirthDate, UL.RoleID, UGI.UserProfilePicture from Users U 
           LEFT JOIN UsersGeneralInfos UGI ON U.UserID = UGI.UserID 
           LEFT JOIN Ref_UsersLogin RUL ON RUL.UserID = U.UserID
           LEFT JOIN UsersLogin UL ON UL.LoginID = RUL.LoginID 
@@ -180,6 +180,7 @@ router.get("/users/:u", async (req, res) => {
         CreationDate: `${formatDate(query[0].CreationDate)}`,
         UpdatedDate: `${formatDate(query[0].UpdatedDate)}`,
         BirthDate: `${formatDate(query[0].UsersBirthDate)}`,
+        ProfilePicture: query[0].UserProfilePicture,
         Role: `${query[0].RoleID === 1 ? "Admin" : "User"}`,
       });
     }
