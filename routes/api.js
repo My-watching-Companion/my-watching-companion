@@ -14,8 +14,11 @@ function isAuthenticated(req, res, next) {
 }
 
 async function CheckAge(username, age) {
-  const query = await executeQuery(`SELECT UsersBirthDate from UsersGeneralInfos WHERE Username = ${username}`)
-  return query[0].UsersBirthDate > age ? true : false
+  const query = await executeQuery(`SELECT UsersBirthDate, GETDATE() AS Today from UsersGeneralInfos WHERE Username = '${username}'`)
+  const Today = formatDate(query[0].Today)
+  const UserBirthDate = formatDate(query[0].UsersBirthDate)
+  
+  return (Today - UserBirthDate) > (Today - (formatDate(`${Today.getFullYear()-age}-${Today.getMonth()}-${Today.getDay()}`))) ? true : false
 }
 
 async function GetUser(req, res, next) {
@@ -46,7 +49,7 @@ function formatDate(dateString) {
   const year = date.getFullYear(); // AAAA
 
   // Format JJ-MM-AAAA
-  return `${day}-${month}-${year}`;
+  return (new Date(year, month, day));
 }
 
 //! Route API pour Insérer / modifier en base
