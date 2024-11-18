@@ -1,0 +1,32 @@
+.text-sidebar{
+    text-align: start;
+}
+
+.container{
+    margin-left: 10px;
+    width: 15vw;
+    height: 90vh;
+    border-right: 3px black solid;
+}
+
+.comments{
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.text-sidebar{
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    gap: 5px;
+    padding: 5px;
+    font-size: 1vw;
+}
+
+.comment-sidebar{
+    color: gray;
+    text-align: center;
+    font-size: 0.75vw;
+}
