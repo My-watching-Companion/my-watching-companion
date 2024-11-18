@@ -18,7 +18,7 @@ router.get("/signup", (req, res) => {
 router.get("*", (req, res) => {
   res.status(404);
 
-  res.render("error");
+  res.render("error", { selected: "Erreur" });
 });
 
 module.exports = router;
