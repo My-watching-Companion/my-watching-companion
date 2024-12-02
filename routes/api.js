@@ -33,11 +33,11 @@ async function GetUser(req, res, next) {
 }
 
 async function TraceLogs(req, res, message){
-  await executeQuery(`INSERT INTO TraceLogs VALUES (GETDATE(), ${req.session.user}, ${message}, 0)`)
+  await executeQuery(`INSERT INTO TraceLogs VALUES (GETDATE(), 1, '${message}', 0)`) /// A MODIF LE USERID
 }
 
 async function TraceError(req, res, message) {
-  await executeQuery(`INSERT INTO TraceLogs VALUES (GETDATE(), ${req.session.user}, ${message}, 1)`)
+  await executeQuery(`INSERT INTO TraceLogs VALUES (GETDATE(), 1, '${message}', 1)`) /// A MODIF LE USERID
 }
 
 function formatDate(dateString) {
@@ -102,28 +102,25 @@ router.post("/register/ok", async (req, res) => {
   const Mail = req.body.email;
   const Username = req.body.username;
   const Password = req.body.password;
-  console.log(`INSERT INTO Users VALUES(0, GETDATE(), GETDATE()) 
-         INSERT INTO UsersGeneralInfos  VALUES('${Username}','${FirstName}','${LastName}','${BirthDate}','${Mail}','Default') 
-         INSERT INTO UsersLogin VALUES('${Username}','${CryptoJS.AES.encrypt(`${Password}`,CRYPTO_KEY)}',0)`)
   try {
     const VerifMail = await executeQuery(`SELECT EmailAddress from UsersGeneralInfos where FirstName = '${FirstName}' and LastName = '${LastName}'`)
     const VerifLogin = await executeQuery(`SELECT Login FROM UsersLogin WHERE Login = '${Username}'`)
-    console.log(VerifMail)
     if (
-      (VerifMail[0].EmailAddress === Mail)
+      (VerifMail[0] !== undefined)
     ) {
-      res.redirect('/signup' + {message: "L'email est déjà utilisé pour un compte"})
+      res.redirect('/signup') ///+ {message: "L'email est déjà utilisé pour un compte"})
     } else if 
-    (VerifLogin[0].Login === Username){
-      res.redirect('/signup' + {message: 'Pseudonyme déjà utilisé'})
+    (VerifLogin[0] !== undefined){
+      res.redirect('/signup') ///+ {message: 'Pseudonyme déjà utilisé'})
     }
     else {
       await executeQuery(
         `INSERT INTO Users VALUES(0, GETDATE(), GETDATE()) 
-         INSERT INTO UsersGeneralInfos  VALUES('${Username}','${FirstName}','${LastName}','${BirthDate}','${Mail}','Default') 
-         INSERT INTO UsersLogin VALUES('${Username}','${CryptoJS.AES.encrypt(`${Password}`,CRYPTO_KEY)}',0)`
+         INSERT INTO UsersGeneralInfos  VALUES('${Username}','${FirstName}','${LastName}','${BirthDate}','${Mail}','Default',1,'0',0) 
+         INSERT INTO UsersLogin VALUES('${Username}','${CryptoJS.AES.encrypt(`${Password}`,CRYPTO_KEY)}',0)
+         INSERT INTO Ref_UsersLogin VALUES((SELECT UserID FROM UsersGeneralInfos where Username = '${Username}'),(SELECT UserID FROM UsersGeneralInfos where Username = '${Username}'))` 
       );
-      res.redirect('/signin' + {message: 'Utilisateur créé avec succès'})
+      res.redirect('/signin') ///+ {message: 'Utilisateur créé avec succès'})
     }
   } catch (e) {
     res.json({
@@ -156,17 +153,53 @@ router.post("/changePP:u", async(req,res)=>{
 
 //! Route API pour chercher des choses 
 
+router.get("/getuserswithoutfriends/:user", async (req,res)=>{
+  try{
+    const user = req.params['user']
+    console.log(req.session.user)
+    const query = await executeQuery(`
+      SELECT UGI.UserID, UGI.Username, UGI.FirstName, UGI.LastName, U.CreationDate, U.UpdatedDate, UGI.UsersBirthDate, UGI.UserProfilePicture  from Users U
+      INNER JOIN UsersGeneralInfos UGI ON UGI.UserID = U.UserID
+      INNER JOIN Ref_UsersLogin RUL ON RUL.UserID = U.UserID
+      INNER JOIN UsersLogin UL ON UL.LoginID = RUL.LoginID
+	    WHERE U.UserID NOT IN (SELECT FriendsUserID FROM Ref_Friends where UserID = 
+							(SELECT UserID from UsersGeneralInfos WHERE Username = '${user}'))
+      `)
+
+    res.json({
+      Users : query.map((element)=>({
+        UserID: `${element.UserID}`,
+        Username: `${element.Username}`,
+        FirstName: `${element.FirstName}`,
+        LastName: `${element.LastName}`,
+        CreationDate: `${formatDate(element.CreationDate)}`,
+        UpdatedDate: `${formatDate(element.UpdatedDate)}`,
+        BirthDate: `${formatDate(element.UsersBirthDate)}`,
+        ProfilePicture: element.UserProfilePicture,
+      }))
+      
+    })
+  }
+  catch(e){
+    res.json({
+      status: "KO",
+      message: `Internal Server Error ${e}`
+    })
+  }
+})
+
 
 router.get("/users/:u", async (req, res) => {
   const SearchUser = req.param("u");
   try {
     const query = await executeQuery(
       `SELECT U.UserID, UGI.FirstName, UGI.LastName, U.CreationDate, U.UpdatedDate, UGI.UsersBirthDate, UL.RoleID, UGI.UserProfilePicture from Users U 
-          LEFT JOIN UsersGeneralInfos UGI ON U.UserID = UGI.UserID 
-          LEFT JOIN Ref_UsersLogin RUL ON RUL.UserID = U.UserID
-          LEFT JOIN UsersLogin UL ON UL.LoginID = RUL.LoginID 
-          where Login = '${SearchUser}'`
+      LEFT JOIN UsersGeneralInfos UGI ON U.UserID = UGI.UserID 
+      LEFT JOIN Ref_UsersLogin RUL ON RUL.UserID = U.UserID
+      LEFT JOIN UsersLogin UL ON UL.LoginID = RUL.LoginID 
+      where Login = '${SearchUser}'`
     );
+    console.log(query)
     if (query.length === 0) {
       res.json({ 
         status: "ERROR",
@@ -280,5 +313,86 @@ router.get("/artwork/:a/creator", async (req, res) => {
     })
   }
 });
+
+router.get("/modifyconfidentiality/:conf/:user", isAuthenticated, async (req,res)=>{
+  const conf = req.params['conf']
+  const user = req.params['user']
+  if (conf in ['public', 'pivate', 'friends']){
+    try{
+      await executeQuery(`UPDATE UsersGeneralInfos
+                          SET Confidentiality = '${conf}'
+                          WHERE Username = '${user}'`)
+    }
+    catch(e){
+      res.json({
+        status: "KO",
+        message: `Internal Server Error ${e}`
+      })
+    }
+  }
+  else{
+    res.json({
+      status: "ERROR",
+      message: `Confidentiality dosn't exist`
+    })
+  }
+})
+
+router.get('/friends/:user', async (req,res)=>{
+  const user = req.params['user']
+  try{
+    const friendslist = await executeQuery(`SELECT RF.FriendsUserID, UGI.Username, UGI.FirstName, UGI.LastName, UGI.UserProfilePicture, UGI.Confidentiality from Ref_Friends RF
+                                            INNER JOIN Users U ON RF.FriendsUserID = U.UserID
+                                            INNER JOIN UsersGeneralInfos UGI ON UGI.UserID = U.UserID
+                                            WHERE RF.UserID = (SELECT UserID from UsersGeneralInfos where Username = '${user}')`)
+      res.json({
+      Friends : friendslist.map((element) => ({
+        UserID: element.FriendsUserID,
+        Username: element.Username,
+        FirstName: element.FirstName,
+        LastName: element.LastName,
+        UserProfilePicture: element.UserProfilePicture,
+        Confidentiality: element.Confidentiality
+      }))
+    })
+  }
+  catch(e){
+    res.json({
+      status: "KO",
+      message: `Internal Server Error ${e}`
+    })
+  }
+})
+
+router.get("/addfriends/:user/:friends", async(req,res)=>{
+  const user = req.params["user"]
+  const friends = req.params["friends"]
+  try{
+    await executeQuery(`INSERT INTO Ref_Friends VALUES((SELECT UserID From UsersGeneralInfos where Username = '${user}'), (SELECT UserID From UsersGeneralInfos where Username = '${friends}'))`)
+    res.redirect("/settings/confidentiality/friends")
+  }
+  catch(e){
+    res.json({
+      status: "KO",
+      message: `Internal Server Error ${e}`
+    })
+  }
+})
+
+router.get("/removefriends/:user/:friend", async(req,res)=>{
+  const user = req.params["user"]
+  const friend = req.params["friend"]
+  try{
+    await executeQuery(`DELETE FROM Ref_Friends
+                        WHERE UserID = (SELECT UserID from UsersGeneralInfos where Username = '${user}') AND FriendsUserID = (SELECT UserID from UsersGeneralInfos where Username = '${friend}')`)
+    res.redirect("/settings/confidentiality/friends")
+  }
+  catch(e){
+    res.json({
+      status: "KO",
+      message: `Internal Server Error ${e}`
+    })
+  }
+})
 
 module.exports = { router, isAuthenticated, GetUser, CheckAge };

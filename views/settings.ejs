@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
     <link rel="stylesheet" href="/styles/settings.css">
+    <script src="../../../scripts/search-friends.js" defer></script>
 <head>
     <%- include("components/head", { selected }) %>
 </head>
@@ -8,27 +9,70 @@
     <header>
         <%- include("components/header" , { selected }) %>
     </header>
-    
-    <div class="container">
-        <div class="comments">
-            <div class="modif-profil list">
-                <p class="comment-sidebar">Paramètre du profil</p>
-                <h2 class="text-sidebar" onclick="location.href='../settings/profile/modifyprofile'"><span class="material-symbols-rounded">person</span> Modifier le Profil</h2>
-                <h2 class="text-sidebar" onclick="location.href='../settings/profile/notifications'"><span class="material-symbols-rounded">notifications</span> Notifications</h2>
-            </div>
-            <div class="confidentiality list">
-                <p class="comment-sidebar">Qui peut voir votre contenu</p>
-                <h2 class="text-sidebar" onclick="location.href='../settings/confidentiality/account'"><span class="material-symbols-rounded">lock</span>Confidentialité du compte</h2>
-                <h2 class="text-sidebar" onclick="location.href='../settings/confidentiality/friends'"><span class="material-symbols-rounded">stars</span>Ami(e)s proches</h2>
-                <h2 class="text-sidebar" onclick="location.href='../settings/confidentiality/lockperson'"><span class="material-symbols-rounded">block</span>Bloqués</h2>
-            </div>
-            <div class="watchlists list">
-                <p class="comment-sidebar">Paramètres relatifs aux watchlists</p>
-                <h2 class="text-sidebar" onclick="location.href='../settings/watchlists/confidentiality'"><span class="material-symbols-rounded">lock</span>Confidentialité des Watchlists</h2>
-                <h2 class="text-sidebar" onclick="location.href='../settings/watchlists/preferences'"><span class="material-symbols-rounded">favorite</span>Préférences films</h2>
-                <h2 class="text-sidebar" onclick="location.href='../settings/watchlists/autorisations'"><span class="material-symbols-rounded">encrypted</span>Autorisations</h2>
+    <div class="all-container">
+        <div class="container">
+            <div class="comments">
+                <div class="modif-profil list">
+                    <p class="comment-sidebar">Paramètre du profil</p>
+                    <h2 class="text-sidebar" onclick="location.href='/settings/profile/modifyprofile'"><span class="material-symbols-rounded">person</span> Modifier le Profil</h2>
+                    <h2 class="text-sidebar" onclick="location.href='/settings/profile/notifications'"><span class="material-symbols-rounded">notifications</span> Notifications</h2>
+                </div>
+                <div class="confidentiality list">
+                    <p class="comment-sidebar">Qui peut voir votre contenu</p>
+                    <h2 class="text-sidebar" onclick="location.href='/settings/confidentiality/account'"><span class="material-symbols-rounded">lock</span>Confidentialité du compte</h2>
+                    <h2 class="text-sidebar" onclick="location.href='/settings/confidentiality/friends'"><span class="material-symbols-rounded">stars</span>Ami(e)s</h2>
+                    <h2 class="text-sidebar" onclick="location.href='/settings/confidentiality/lockperson'"><span class="material-symbols-rounded">block</span>Bloqués</h2>
+                </div>
+                <div class="watchlists list">
+                    <p class="comment-sidebar">Paramètres relatifs aux watchlists</p>
+                    <h2 class="text-sidebar" onclick="location.href='/settings/watchlists/confidentiality'"><span class="material-symbols-rounded">lock</span>Confidentialité des Watchlists</h2>
+                    <h2 class="text-sidebar" onclick="location.href='/settings/watchlists/preferences'"><span class="material-symbols-rounded">favorite</span>Préférences films</h2>
+                    <h2 class="text-sidebar" onclick="location.href='/settings/watchlists/autorisations'"><span class="material-symbols-rounded">encrypted</span>Autorisations</h2>
+                </div>
             </div>
         </div>
+        <% if (choice === 'confidentiality/friends'){%>
+            <div class="friend-container">
+                <div class="friend-search">
+                    <h1>Rechercher un ami :</h1>
+                    <input type="text" id="friends-tab">
+                </div>
+                <button id="AddFriends" onclick="SeeAddFriends()">Ajouter</button> 
+                <div class="friends-tab">
+                    <% console.log(selected, choice, user, friends) %>
+                    <% friends.Friends.forEach(element => {%>
+                        <div class="friends">
+                            <img src="<%= element.UserProfilePicture %>" alt="">
+                            <h1> <%= element.Username %> </h1>
+                            <h2> <%= element.FirstName %> <%= element.LastName %></h2>
+                            <a onclick="location.href='/api/removefriends/<%=user%>/<%=element.Username%>'"> <span class="material-symbols-rounded">person_remove</span> </a>
+                        </div>
+                    <%});%>
+                </div>
+                <div class="ContainerAddFriends" id="AddingFriendsList">
+                    <div class="AddFriends">
+                        <h1>Ajouter un ami :</h1>
+                        <input type="text" id="adding-friends">
+                        <span class="material-symbols-rounded" onclick="SeeAddFriends()">close</span>
+                        <div class="listgrid">
+                            <% allusers.Users.forEach(element => {%>
+                                <% if (element.Username === user) {%>
+                                    
+                                <%} else {%>
+                                    <div class="userslist">
+                                        <img src="<%= element.UserProfilePicture %>" alt="">
+                                        <h1> <%= element.Username %> </h1>
+                                        <h2> <%= element.FirstName %> <%= element.LastName %></h2>
+                                        <a onclick="location.href='/api/AddFriends/<%=user%>/<%=element.Username%>'"> <span class="material-symbols-rounded">person_add</span> </a>
+                                    </div>
+                                <%}%>
+                            <%});%>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <%}%>
     </div>
+    
 </body>
 </html>
