@@ -9,7 +9,7 @@ function isAuthenticated(req, res, next) {
   if (req.session.user) {
     return next();
   } else {
-    res.redirect("/");
+    res.redirect("/signin");
   }
 }
 
@@ -77,7 +77,7 @@ router.post("/login/ok", async (req, res) => {
 
       TraceLogs(req,res,`User ${Username} successfully login`)
 
-      res.render("home");
+      res.redirect("/");
     } else {
       TraceError(req,res, `Users use wrong password`)
 
