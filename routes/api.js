@@ -130,12 +130,44 @@ router.post("/register/ok", async (req, res) => {
   }
 });
 
-
-router.post("/changePP:u", async(req,res)=>{
+router.get("/addfriends/:user/:friends", async(req,res)=>{
+  const user = req.params["user"]
+  const friends = req.params["friends"]
   try{
+    await executeQuery(`INSERT INTO Ref_Friends VALUES((SELECT UserID From UsersGeneralInfos where Username = '${user}'), (SELECT UserID From UsersGeneralInfos where Username = '${friends}'))`)
+    res.redirect("/settings/confidentiality/friends")
+  }
+  catch(e){
+    res.json({
+      status: "KO",
+      message: `Internal Server Error ${e}`
+    })
+  }
+})
+
+router.get("/removefriends/:user/:friend", async(req,res)=>{
+  const user = req.params["user"]
+  const friend = req.params["friend"]
+  try{
+    await executeQuery(`DELETE FROM Ref_Friends
+                        WHERE UserID = (SELECT UserID from UsersGeneralInfos where Username = '${user}') AND FriendsUserID = (SELECT UserID from UsersGeneralInfos where Username = '${friend}')`)
+    res.redirect("/settings/confidentiality/friends")
+  }
+  catch(e){
+    res.json({
+      status: "KO",
+      message: `Internal Server Error ${e}`
+    })
+  }
+})
+
+
+router.post("/changePP/:user", async(req,res)=>{
+  try{
+    const user = req.params['user']
     const query =  executeQuery(`UPDATE UsersGeneralInfos
       SET UserProfilePicture = '${image}'
-      where UserID = (SELECT UserID FROM UsersGeneralInfos where Username = '${username}')`)
+      where UserID = (SELECT UserID FROM UsersGeneralInfos where Username = '${user}')`)
 
       res.json({
       status: "OK",
@@ -317,8 +349,17 @@ router.get("/artwork/:a/creator", async (req, res) => {
 router.get("/modifyconfidentiality/:conf/:user", isAuthenticated, async (req,res)=>{
   const conf = req.params['conf']
   const user = req.params['user']
-  if (conf in ['public', 'pivate', 'friends']){
+  if (conf in ['public', 'private', 'friends']){
     try{
+      if(conf === 'public'){
+        conf = 0
+      }
+      else if(conf === 'private'){
+        conf = 1
+      }
+      else if (conf === 'friends') {
+        conf = 2
+      }
       await executeQuery(`UPDATE UsersGeneralInfos
                           SET Confidentiality = '${conf}'
                           WHERE Username = '${user}'`)
@@ -364,35 +405,6 @@ router.get('/friends/:user', async (req,res)=>{
   }
 })
 
-router.get("/addfriends/:user/:friends", async(req,res)=>{
-  const user = req.params["user"]
-  const friends = req.params["friends"]
-  try{
-    await executeQuery(`INSERT INTO Ref_Friends VALUES((SELECT UserID From UsersGeneralInfos where Username = '${user}'), (SELECT UserID From UsersGeneralInfos where Username = '${friends}'))`)
-    res.redirect("/settings/confidentiality/friends")
-  }
-  catch(e){
-    res.json({
-      status: "KO",
-      message: `Internal Server Error ${e}`
-    })
-  }
-})
 
-router.get("/removefriends/:user/:friend", async(req,res)=>{
-  const user = req.params["user"]
-  const friend = req.params["friend"]
-  try{
-    await executeQuery(`DELETE FROM Ref_Friends
-                        WHERE UserID = (SELECT UserID from UsersGeneralInfos where Username = '${user}') AND FriendsUserID = (SELECT UserID from UsersGeneralInfos where Username = '${friend}')`)
-    res.redirect("/settings/confidentiality/friends")
-  }
-  catch(e){
-    res.json({
-      status: "KO",
-      message: `Internal Server Error ${e}`
-    })
-  }
-})
 
 module.exports = { router, isAuthenticated, GetUser, CheckAge };
