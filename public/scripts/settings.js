@@ -1,3 +1,11 @@
+/// CONFIDENTIALITY SETTINGS
+
+async function ChangeConf(event, user){
+    const response = await fetch(`http://localhost:3000/api/modifyconfidentiality/${event.target.value}/${user}`)
+} 
+
+/// FRIENDS SETTINGS
+
 document.getElementById('friends-tab').addEventListener('keyup', function(e) {
     var recherche = this.value.toLowerCase();
     var documents = document.querySelectorAll('.friends');

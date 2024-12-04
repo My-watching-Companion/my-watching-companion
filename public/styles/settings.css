@@ -35,16 +35,100 @@
     font-size: 0.75vw;
 }
 
-
-/* ---- AMIS ---- */
-
-.friend-container{
+.settings-container{
     display: flex;
     width: 80%;
     align-items: center;
     flex-direction: column;
     gap: 20px;
+    padding: 20px;
 }
+
+/* ---- CONFIDENTIALITY ---- */
+.conf-div{
+    display: flex;
+    border-width: 1px;
+    border-radius: 25px;
+    background-color: lightgray;
+    width: 60%;
+    height: auto;
+    box-shadow: 0 0 20px rgba(65, 65, 65, 0.6); 
+}
+
+.conf-text{
+    width: 80%;
+    height: 100%;
+    margin-left: 10px;
+}
+
+.conf-select{
+    height: 100%;
+    width: 19%;
+    align-content: center;
+}
+
+
+#confselect {
+    appearance: none;
+    cursor: pointer;
+    color: white;
+    font-weight: bolder;
+    background-color: #f7384a;
+    box-shadow: 0px 5px 10px -5px #f7384a;
+    border: none;
+    border-radius: 10px;
+    padding: 1rem;
+    transition: box-shadow 0.1s ease-in-out, background-color 0.3s ease-in,color 0.3s ease-in;
+}
+
+#confselect:hover{
+    background-color: white;
+    color: #f7384a;
+    transition: box-shadow 0.1s ease-in-out, background-color 0.3s ease-in,color 0.3s ease-in;
+}
+
+#confselect:focus {
+    border-color: #f7384a; 
+    box-shadow: 0 0 8px rgba(247, 56, 74, 0.6); 
+}
+  
+  #confselect option {
+    padding: 10px;
+    background-color: #fff;
+    color: #333; /* Texte gris foncé */
+    border: none;
+    font-size: 16px;
+  }
+  
+  /* Style de l'option sélectionnée */
+  #confselect option:checked {
+    background-color: #f7384a; /* Fond rouge */
+    color: #fff; /* Texte blanc */
+  }
+  
+  /* Flèche personnalisée pour le select */
+  #confselect::-ms-expand {
+    display: none; /* Retirer la flèche par défaut sur Internet Explorer */
+  }
+  
+  #confselect::before {
+    content: ' ▼'; /* Flèche vers le bas */
+    font-size: 16px;
+    color: #f7384a;
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+  }
+  
+  /* Style pour le container du select pour éviter que la flèche chevauche le texte */
+  #confselect {
+    position: relative;
+  }
+
+/* ---- AMIS ---- */
+
+
 
 .friend-search{
     text-align: center;
@@ -52,11 +136,6 @@
 
 .friend-search > h1{
     text-align: center;
-}
-
-
-.friend-container {
-    padding: 20px;
 }
 
 .friends-tab {
@@ -73,6 +152,11 @@
 
     .listgrid{
         grid-template-columns: 1fr;
+    }
+    
+    .conf-div{
+        flex-direction: column;
+        align-items: center;
     }
 }
 

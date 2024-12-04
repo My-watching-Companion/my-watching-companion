@@ -24,7 +24,10 @@ async function CheckAge(username, age) {
 async function GetUser(req, res, next) {
   if (req.session.user) {
     const user = await executeQuery(
-      `SELECT UGI.LastName, UGI.FirstName, UL.Login, UGI.EmailAddress, UGI.UserProfilePicture from UsersLogin UL INNER JOIN UsersGeneralInfos UGI ON UL.UserID = UGI.UserID where UL.Login = '${req.session.user}'`
+      `SELECT UGI.LastName, UGI.FirstName, UGI.Username, UGI.EmailAddress, UGI.UserProfilePicture from UsersLogin UL 
+      INNER JOIN Ref_UsersLogin RUL ON RUL.LoginID = UL.LoginID
+      INNER JOIN UsersGeneralInfos UGI ON RUL.UserID = UGI.UserID 
+      where UL.Login = 'Twisste' '${req.session.user}'`
     );
     return next({ user });
   } else {
@@ -188,7 +191,6 @@ router.post("/changePP/:user", async(req,res)=>{
 router.get("/getuserswithoutfriends/:user", async (req,res)=>{
   try{
     const user = req.params['user']
-    console.log(req.session.user)
     const query = await executeQuery(`
       SELECT UGI.UserID, UGI.Username, UGI.FirstName, UGI.LastName, U.CreationDate, U.UpdatedDate, UGI.UsersBirthDate, UGI.UserProfilePicture  from Users U
       INNER JOIN UsersGeneralInfos UGI ON UGI.UserID = U.UserID
@@ -231,7 +233,6 @@ router.get("/users/:u", async (req, res) => {
       LEFT JOIN UsersLogin UL ON UL.LoginID = RUL.LoginID 
       where Login = '${SearchUser}'`
     );
-    console.log(query)
     if (query.length === 0) {
       res.json({ 
         status: "ERROR",
@@ -349,20 +350,30 @@ router.get("/artwork/:a/creator", async (req, res) => {
 router.get("/modifyconfidentiality/:conf/:user", isAuthenticated, async (req,res)=>{
   const conf = req.params['conf']
   const user = req.params['user']
-  if (conf in ['public', 'private', 'friends']){
+  let nbconf = 0
     try{
       if(conf === 'public'){
-        conf = 0
+        nbconf = 0
       }
       else if(conf === 'private'){
-        conf = 1
+        nbconf = 1
       }
       else if (conf === 'friends') {
-        conf = 2
+        nbconf = 2
+      }
+      else{
+        res.json({
+          status: "ERROR",
+          message: `Confidentiality dosn't exist`
+        })
       }
       await executeQuery(`UPDATE UsersGeneralInfos
-                          SET Confidentiality = '${conf}'
+                          SET Confidentiality = '${nbconf}'
                           WHERE Username = '${user}'`)
+      res.json({
+        status: "OK",
+        message: 'Query executed with successed'
+      })
     }
     catch(e){
       res.json({
@@ -370,13 +381,8 @@ router.get("/modifyconfidentiality/:conf/:user", isAuthenticated, async (req,res
         message: `Internal Server Error ${e}`
       })
     }
-  }
-  else{
-    res.json({
-      status: "ERROR",
-      message: `Confidentiality dosn't exist`
-    })
-  }
+  
+  
 })
 
 router.get('/friends/:user', async (req,res)=>{

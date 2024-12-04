@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
     <link rel="stylesheet" href="/styles/settings.css">
-    <script src="../../../scripts/search-friends.js" defer></script>
+    <script src="../../../scripts/settings.js" defer></script>
 <head>
     <%- include("components/head", { selected }) %>
 </head>
@@ -31,15 +31,39 @@
                 </div>
             </div>
         </div>
+        <% if(choice === 'confidentiality/account'){ %>
+            <div class="settings-container">
+                <h1>Confidentialité du compte</h1>
+                <div class="conf-div">
+                    <div class="conf-text">
+                        <h1>Compte</h1>
+                        <p>Avec <strong>MyWatchingCompanion</strong>, le niveau de confidentialité de votre profil et de vos listes peut être ajusté selon vos préférences :</p>
+                            <ul>
+                                <li><strong>Public</strong> : Votre profil et vos watchlists sont visibles par tout le monde.</li> <br>
+                                <li><strong>Privé</strong> : Personne ne peut voir votre profil ni vos watchlists</li> <br>
+                                <li><strong>Amis uniquement</strong> : Seuls vos amis peuvent consulter vos watchlists et votre profil complet. Cela permet de partager vos découvertes uniquement avec les personnes de confiance.</li>
+                            </ul>
+                        <p>Choisissez le niveau de confidentialité qui vous convient et profitez d’une expérience personnalisée et sécurisée !</p>
+                    </div>
+                    <div class="conf-select">
+                        <select name="confselect" id="confselect" onchange="(ChangeConf(event,'<%=user%>'))">
+                            <option value="public" class="confoptions">Privé</option>
+                            <option value="private" class="confoptions">Publique</option>
+                            <option value="friends" class="confoptions">Amis uniquement</option>
+                        </select>
+                    </div>
+                    
+                </div>
+            </div>
+        <%}%>    
         <% if (choice === 'confidentiality/friends'){%>
-            <div class="friend-container">
+            <div class="settings-container">
                 <div class="friend-search">
                     <h1>Rechercher un ami :</h1>
                     <input type="text" id="friends-tab">
                 </div>
                 <button id="AddFriends" onclick="SeeAddFriends()">Ajouter</button> 
                 <div class="friends-tab">
-                    <% console.log(selected, choice, user, friends) %>
                     <% friends.Friends.forEach(element => {%>
                         <div class="friends">
                             <img src="<%= element.UserProfilePicture %>" alt="">
@@ -72,6 +96,7 @@
                 </div>
             </div>
         <%}%>
+        
     </div>
     
 </body>
