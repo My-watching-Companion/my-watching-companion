@@ -165,9 +165,12 @@ router.get("/removefriends/:user/:friend", async(req,res)=>{
 })
 
 
-router.post("/changePP/:user", async(req,res)=>{
-  try{
-    const user = req.params['user']
+router.post("/changePP/:user", async (req, res) => {
+  try {
+    const user = req.params['user'];
+    const base64Image = req.body.ProfilePicture; 
+
+    const image = `data:${user}/png;base64,${base64Image}`
     const query =  executeQuery(`UPDATE UsersGeneralInfos
       SET UserProfilePicture = '${image}'
       where UserID = (SELECT UserID FROM UsersGeneralInfos where Username = '${user}')`)
