@@ -31,6 +31,19 @@
                 </div>
             </div>
         </div>
+        <div class="settings-container">
+            <div class="div-container">
+                <% if (settings == "profile/modifyprofile") {%>
+                    <h1 class="title">Modifier le Profil</h1>
+                        <div class="profile">
+                            <img src="https://www.leroidufer.fr/344-home_default/tube-carre-acier-45-mm.jpg" class="profil-image">
+                            <span class="profile-span"><p>Username</p></span>
+                            <button class="button-change-pp">Modifier la photo</button>
+                        </div>
+                <%}%>    
+            </div>
+                
+        </div>
         <% if(choice === 'confidentiality/account'){ %>
             <div class="settings-container">
                 <h1>Confidentialité du compte</h1>
