@@ -73,7 +73,7 @@ button.sign {
   transition: box-shadow 0.1s ease-in-out;
 }
 
-button.sign {
+button.sign:hover {
   box-shadow: 0px 5px 10px -2.5px #f7384a;
   cursor: pointer;
 }
@@ -132,6 +132,23 @@ button.sign {
 #sidebar .user {
   align-self: center;
   margin-bottom: 2rem;
+}
+
+/* REUSABLE BUTTONS */
+button.main-button {
+  color: white;
+  font-weight: bolder;
+  background-color: #f7384a;
+  box-shadow: 0px 5px 10px -5px #f7384a;
+  border: none;
+  border-radius: 10px;
+  padding: 1rem;
+  transition: box-shadow 0.1s ease-in-out;
+}
+
+button.main-button:hover {
+  box-shadow: 0px 5px 10px -2.5px #f7384a;
+  cursor: pointer;
 }
 
 /* Responsiveness */
