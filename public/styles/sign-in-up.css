@@ -61,6 +61,10 @@ button:hover {
   justify-content: space-between;
 }
 
+p#sign-in-up-switcher {
+  align-self: center;
+}
+
 /* Responsiveness */
 @media screen and (max-width: 900px) {
   form {
