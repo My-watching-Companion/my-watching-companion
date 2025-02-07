@@ -2,8 +2,11 @@ const router = require("express").Router();
 const { executeQuery } = require("../db");
 const CryptoJS = require("crypto-js");
 const session = require("express-session");
-const {CRYPTO_KEY} = require("../config")
+const { CRYPTO_KEY } = require("../config");
 var hour = 1000 * 60 * 20;
+
+const express = require("express");
+router.use(express.json());
 
 function isAuthenticated(req, res, next) {
   if (req.session.user) {
@@ -28,8 +31,8 @@ function formatDate(dateString) {
   const date = new Date(dateString);
 
   // Récupération du jour, mois, et année
-  const day = String(date.getDate()).padStart(2, '0'); // JJ
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // MM (mois commence à 0, donc +1)
+  const day = String(date.getDate()).padStart(2, "0"); // JJ
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // MM (mois commence à 0, donc +1)
   const year = date.getFullYear(); // AAAA
 
   // Format JJ-MM-AAAA
@@ -51,7 +54,9 @@ router.post("/login/ok", async (req, res) => {
     );
     if (
       Password ===
-      CryptoJS.AES.decrypt(DBPass[0].password, CRYPTO_KEY).toString(CryptoJS.enc.Utf8)
+      CryptoJS.AES.decrypt(DBPass[0].password, CRYPTO_KEY).toString(
+        CryptoJS.enc.Utf8
+      )
     ) {
       req.session.user = Username;
       req.session.cookie.expires = new Date(Date.now() + hour);
@@ -72,6 +77,9 @@ router.post("/register/ok", async (req, res) => {
   const Mail = req.body.email;
   const Username = req.body.username;
   const Password = req.body.password;
+  const SecurityQuestion = req.body.question;
+  const SecurityAnswer = req.body.answer;
+
   try {
     if (
       (await executeQuery(
@@ -81,7 +89,7 @@ router.post("/register/ok", async (req, res) => {
       res.json({ message: "User already exists" });
     } else {
       await executeQuery(
-        `INSERT INTO Users VALUES(0, GETDATE(), GETDATE()) INSERT INTO UsersGeneralInfos  VALUES('${FirstName}','${LastName}','${BirthDate}','${Mail}','Default') INSERT INTO UsersLogin VALUES('${Username}','${CryptoJS.AES.encrypt(
+        `INSERT INTO Users VALUES(0, GETDATE(), GETDATE()) INSERT INTO UsersGeneralInfos (Username, FirstName, LastName, UsersBirthDate, EmailAddress, UserProfilePicture, SecurityQuestionID, SecurityQuestionAnswer) VALUES('${Username}', '${FirstName}','${LastName}','${BirthDate}','${Mail}','Default', '${SecurityQuestion}', '${SecurityAnswer}') INSERT INTO UsersLogin VALUES('${Username}','${CryptoJS.AES.encrypt(
           `${Password}`,
           CRYPTO_KEY
         )}',0)`
@@ -195,5 +203,126 @@ router.get("/artwork/:a/creator", async (req, res) => {
     });
   } catch (e) {}
 });
+
+router.get("/securityquestions", async (req, res) => {
+  try {
+    const query = await executeQuery(`SELECT * from SecurityQuestions`);
+
+    const questions = query.map((question) => ({
+      SecurityQuestionID: question.SecurityQuestionID,
+      SecurityQuestion: question.Question,
+    }));
+
+    return res.json({ questions });
+  } catch (e) {
+    return res.json({ error: `Internal server error : ${e}` });
+  }
+});
+
+router.post("/getsecurityquestion", async (req, res) => {
+  if (!req.body.email)
+    return res.json({ error: "Veuillez entrer une adresse email valide." });
+
+  const email = req.body.email;
+
+  try {
+    const query = await executeQuery(
+      `SELECT UGI.SecurityQuestionID, SQ.Question as SecurityQuestion from UsersGeneralInfos AS UGI INNER JOIN SecurityQuestions AS SQ ON UGI.SecurityQuestionID = SQ.SecurityQuestionID WHERE UGI.EmailAddress = '${email}'`
+    );
+
+    if (query.length === 0)
+      return res.json({
+        error: "Aucun compte n'est associé à cette adresse email.",
+      });
+
+    return res.json({ securityQuestion: query[0].SecurityQuestion });
+  } catch (e) {
+    return res.json({
+      error:
+        "Une erreur est survenue lors de la vérification de votre adresse email.",
+    });
+  }
+});
+
+router.post("/checksecurityanswer", async (req, res) => {
+  if (!req.body.email || !req.body.response)
+    return res.json({ error: "Veuillez remplir tous les champs." });
+
+  const email = req.body.email;
+  const response = req.body.response;
+
+  try {
+    const query = await executeQuery(
+      `SELECT UGI.SecurityQuestionAnswer from UsersGeneralInfos AS UGI WHERE UGI.EmailAddress = '${email}'`
+    );
+
+    if (query.length === 0)
+      return res.json({
+        error: "Aucun compte n'est associé à cette adresse email.",
+      });
+
+    if (query[0].SecurityQuestionAnswer !== response)
+      return res.json({ error: "La réponse est incorrecte." });
+
+    return res.json({ success: true });
+  } catch (e) {
+    return res.json({
+      error: "Une erreur est survenue lors de la vérification de la réponse.",
+    });
+  }
+});
+
+router.post(
+  "/changepassword",
+  async (req, res, next) => {
+    if (!req.body.email || !req.body.response)
+      return res.json({ error: "Veuillez remplir tous les champs." });
+
+    const email = req.body.email;
+    const response = req.body.response;
+
+    try {
+      const query = await executeQuery(
+        `SELECT UGI.SecurityQuestionAnswer from UsersGeneralInfos AS UGI WHERE UGI.EmailAddress = '${email}'`
+      );
+
+      if (query.length === 0)
+        return res.json({
+          error: "Aucun compte n'est associé à cette adresse email.",
+        });
+
+      if (query[0].SecurityQuestionAnswer !== response)
+        return res.json({ error: "La réponse est incorrecte." });
+
+      next();
+    } catch (e) {
+      return res.json({
+        error: "Une erreur est survenue lors de la vérification de la réponse.",
+      });
+    }
+  },
+  async (req, res) => {
+    if (!req.body.email || !req.body.response || !req.body.password)
+      return res.json({ error: "Veuillez remplir tous les champs." });
+
+    const { email, response, password } = req.body;
+
+    try {
+      await executeQuery(
+        `UPDATE UsersLogin SET Password = '${CryptoJS.AES.encrypt(
+          password,
+          CRYPTO_KEY
+        )}' WHERE LoginID = (SELECT UL.LoginID FROM UsersLogin UL INNER JOIN Ref_UsersLogin RUL ON RUL.LoginID = UL.LoginID INNER JOIN UsersGeneralInfos UGI ON UGI.UserID = RUL.UserID WHERE UGI.EmailAddress = '${email}' AND UGI.SecurityQuestionAnswer = '${response}')`
+      );
+
+      return res.json({ success: true });
+    } catch (error) {
+      return res.json({
+        error:
+          "Une erreur est survenue lors de la modification de votre mot de passe.",
+      });
+    }
+  }
+);
 
 module.exports = { router, isAuthenticated, GetUser };

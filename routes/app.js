@@ -14,6 +14,10 @@ router.get("/signup", (req, res) => {
   res.render("signup", { selected: "Inscription" });
 });
 
+router.get("/forgot-password", (req, res) => {
+  res.render("forgot-password", { selected: "Mot de Passe Oublié" });
+});
+
 // Définition de la route erreur 404
 router.get("*", (req, res) => {
   res.status(404);
