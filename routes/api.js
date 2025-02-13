@@ -138,7 +138,7 @@ router.post("/register/ok", async (req, res) => {
         `INSERT INTO Users VALUES(GETDATE(), GETDATE(), '${Username}', '${LastName}', '${BirthDate}','${Mail}', 'Default', '${CryptoJS.AES.encrypt(
           Password,
           CRYPTO_KEY
-        )}', '${FirstName}', 0, 0, 0, NULL, NULL)`
+        )}', '${FirstName}', 0, 0, 0, '${SecurityQuestion}', '${SecurityAnswer}')`
       );
       res.redirect("/signin"); ///+ {message: 'Utilisateur créé avec succès'})
     }
