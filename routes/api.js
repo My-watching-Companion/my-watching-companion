@@ -206,7 +206,7 @@ router.get("/artwork/:a/creator", async (req, res) => {
 
 router.get("/securityquestions", async (req, res) => {
   try {
-    const query = await executeQuery(`SELECT * from SecurityQuestions`);
+    const query = await executeQuery(`SELECT * from SecurityQuestion`);
 
     const questions = query.map((question) => ({
       SecurityQuestionID: question.SecurityQuestionID,
@@ -227,7 +227,7 @@ router.post("/getsecurityquestion", async (req, res) => {
 
   try {
     const query = await executeQuery(
-      `SELECT UGI.SecurityQuestionID, SQ.Question as SecurityQuestion from UsersGeneralInfos AS UGI INNER JOIN SecurityQuestions AS SQ ON UGI.SecurityQuestionID = SQ.SecurityQuestionID WHERE UGI.EmailAddress = '${email}'`
+      `SELECT U.SecurityQuestionID, SQ.Question as SecurityQuestion from Users AS U INNER JOIN SecurityQuestions AS SQ ON U.SecurityQuestionID = SQ.SecurityQuestionID WHERE U.EmailAddress = '${email}'`
     );
 
     if (query.length === 0)
@@ -253,7 +253,7 @@ router.post("/checksecurityanswer", async (req, res) => {
 
   try {
     const query = await executeQuery(
-      `SELECT UGI.SecurityQuestionAnswer from UsersGeneralInfos AS UGI WHERE UGI.EmailAddress = '${email}'`
+      `SELECT SecurityQuestionAnswer from Users WHERE EmailAddress = '${email}'`
     );
 
     if (query.length === 0)
@@ -283,7 +283,7 @@ router.post(
 
     try {
       const query = await executeQuery(
-        `SELECT UGI.SecurityQuestionAnswer from UsersGeneralInfos AS UGI WHERE UGI.EmailAddress = '${email}'`
+        `SELECT SecurityQuestionAnswer from Users WHERE EmailAddress = '${email}'`
       );
 
       if (query.length === 0)
@@ -309,10 +309,10 @@ router.post(
 
     try {
       await executeQuery(
-        `UPDATE UsersLogin SET Password = '${CryptoJS.AES.encrypt(
+        `UPDATE Users SET Password = '${CryptoJS.AES.encrypt(
           password,
           CRYPTO_KEY
-        )}' WHERE LoginID = (SELECT UL.LoginID FROM UsersLogin UL INNER JOIN Ref_UsersLogin RUL ON RUL.LoginID = UL.LoginID INNER JOIN UsersGeneralInfos UGI ON UGI.UserID = RUL.UserID WHERE UGI.EmailAddress = '${email}' AND UGI.SecurityQuestionAnswer = '${response}')`
+        )}' WHERE EmailAddress = '${email}' AND SecurityQuestionAnswer = '${response}'`
       );
 
       return res.json({ success: true });
