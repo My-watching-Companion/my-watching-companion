@@ -206,7 +206,7 @@ router.get("/artwork/:a/creator", async (req, res) => {
 
 router.get("/securityquestions", async (req, res) => {
   try {
-    const query = await executeQuery(`SELECT * from SecurityQuestion`);
+    const query = await executeQuery(`SELECT * FROM SecurityQuestion`);
 
     const questions = query.map((question) => ({
       SecurityQuestionID: question.SecurityQuestionID,
