@@ -9,12 +9,12 @@ function isAuthenticated(req, res, next) {
   if (req.session.user) {
     return next();
   } else {
-    res.redirect("/");
+    res.redirect("/signin");
   }
 }
 
 async function CheckAge(username, age) {
-  const query = await executeQuery(`SELECT UsersBirthDate, GETDATE() AS Today from UsersGeneralInfos WHERE Username = '${username}'`)
+  const query = await executeQuery(`SELECT UsersBirthDate, GETDATE() AS Today from Users WHERE Username = '${username}'`)
   const Today = formatDate(query[0].Today)
   const UserBirthDate = formatDate(query[0].UsersBirthDate)
   
@@ -24,7 +24,8 @@ async function CheckAge(username, age) {
 async function GetUser(req, res, next) {
   if (req.session.user) {
     const user = await executeQuery(
-      `SELECT UGI.LastName, UGI.FirstName, UL.Login, UGI.EmailAddress, UGI.UserProfilePicture from UsersLogin UL INNER JOIN UsersGeneralInfos UGI ON UL.UserID = UGI.UserID where UL.Login = '${req.session.user}'`
+      `SELECT UGI.LastName, UGI.FirstName, UGI.Username, UGI.EmailAddress, UGI.UserProfilePicture from Users
+      where Username = '${req.session.user}'`
     );
     return next({ user });
   } else {
@@ -33,11 +34,11 @@ async function GetUser(req, res, next) {
 }
 
 async function TraceLogs(req, res, message){
-  await executeQuery(`INSERT INTO TraceLogs VALUES (GETDATE(), ${req.session.user}, ${message}, 0)`)
+  await executeQuery(`INSERT INTO TraceLogs VALUES (GETDATE(), 1, '${message}', 0)`) /// A MODIF LE USERID
 }
 
 async function TraceError(req, res, message) {
-  await executeQuery(`INSERT INTO TraceLogs VALUES (GETDATE(), ${req.session.user}, ${message}, 1)`)
+  await executeQuery(`INSERT INTO TraceLogs VALUES (GETDATE(), 1, '${message}', 1)`) /// A MODIF LE USERID
 }
 
 function formatDate(dateString) {
@@ -63,7 +64,7 @@ router.post("/login/ok", async (req, res) => {
   const Password = req.body.password;
   try {
     const DBPass = await executeQuery(
-      `SELECT password from UsersLogin where Login = '${Username}'`
+      `SELECT password from Users where Username = '${Username}'`
     );
     if (
       Password ===
@@ -77,7 +78,7 @@ router.post("/login/ok", async (req, res) => {
 
       TraceLogs(req,res,`User ${Username} successfully login`)
 
-      res.render("home");
+      res.redirect("/");
     } else {
       TraceError(req,res, `Users use wrong password`)
 
@@ -102,28 +103,21 @@ router.post("/register/ok", async (req, res) => {
   const Mail = req.body.email;
   const Username = req.body.username;
   const Password = req.body.password;
-  console.log(`INSERT INTO Users VALUES(0, GETDATE(), GETDATE()) 
-         INSERT INTO UsersGeneralInfos  VALUES('${Username}','${FirstName}','${LastName}','${BirthDate}','${Mail}','Default') 
-         INSERT INTO UsersLogin VALUES('${Username}','${CryptoJS.AES.encrypt(`${Password}`,CRYPTO_KEY)}',0)`)
   try {
-    const VerifMail = await executeQuery(`SELECT EmailAddress from UsersGeneralInfos where FirstName = '${FirstName}' and LastName = '${LastName}'`)
-    const VerifLogin = await executeQuery(`SELECT Login FROM UsersLogin WHERE Login = '${Username}'`)
-    console.log(VerifMail)
+    const VerifMail = await executeQuery(`SELECT EmailAddress from Users where FirstName = '${FirstName}' and LastName = '${LastName}'`)
+    const VerifLogin = await executeQuery(`SELECT Username FROM Users WHERE Username = '${Username}'`)
     if (
-      (VerifMail[0].EmailAddress === Mail)
+      (VerifMail[0] !== undefined)
     ) {
-      res.redirect('/signup' + {message: "L'email est déjà utilisé pour un compte"})
+      res.redirect('/signup') ///+ {message: "L'email est déjà utilisé pour un compte"})
     } else if 
-    (VerifLogin[0].Login === Username){
-      res.redirect('/signup' + {message: 'Pseudonyme déjà utilisé'})
+    (VerifLogin[0] !== undefined){
+      res.redirect('/signup') ///+ {message: 'Pseudonyme déjà utilisé'})
     }
     else {
       await executeQuery(
-        `INSERT INTO Users VALUES(0, GETDATE(), GETDATE()) 
-         INSERT INTO UsersGeneralInfos  VALUES('${Username}','${FirstName}','${LastName}','${BirthDate}','${Mail}','Default') 
-         INSERT INTO UsersLogin VALUES('${Username}','${CryptoJS.AES.encrypt(`${Password}`,CRYPTO_KEY)}',0)`
-      );
-      res.redirect('/signin' + {message: 'Utilisateur créé avec succès'})
+        `INSERT INTO Users VALUES(GETDATE(), GETDATE(), '${Username}', '${LastName}', '${BirthDate}','${Mail}', 'Default', '${Password}', '${FirstName}', 0, 0, 0, NULL, NULL)`      );
+      res.redirect('/signin') ///+ {message: 'Utilisateur créé avec succès'})
     }
   } catch (e) {
     res.json({
@@ -133,12 +127,47 @@ router.post("/register/ok", async (req, res) => {
   }
 });
 
-
-router.post("/changePP:u", async(req,res)=>{
+router.get("/addfriends/:user/:friends", async(req,res)=>{
+  const user = req.params["user"]
+  const friends = req.params["friends"]
   try{
-    const query =  executeQuery(`UPDATE UsersGeneralInfos
+    await executeQuery(`INSERT INTO Friend VALUES((SELECT UserID From Users where Username = '${user}'), (SELECT UserID From Users where Username = '${friends}'))`)
+    res.redirect("/settings/confidentiality/friends")
+  }
+  catch(e){
+    res.json({
+      status: "KO",
+      message: `Internal Server Error ${e}`
+    })
+  }
+})
+
+router.get("/removefriends/:user/:friend", async(req,res)=>{
+  const user = req.params["user"]
+  const friend = req.params["friend"]
+  try{
+    await executeQuery(`DELETE FROM Friend
+                        WHERE UserID = (SELECT UserID from Users where Username = '${user}') AND FriendsUserID = (SELECT UserID from Users where Username = '${friend}')`)
+    res.redirect("/settings/confidentiality/friends")
+  }
+  catch(e){
+    res.json({
+      status: "KO",
+      message: `Internal Server Error ${e}`
+    })
+  }
+})
+
+
+router.post("/changePP/:user", async (req, res) => {
+  try {
+    const user = req.params['user'];
+    const base64Image = req.body.ProfilePicture; 
+
+    const image = `data:${user}/png;base64,${base64Image}`
+    const query =  executeQuery(`UPDATE Users
       SET UserProfilePicture = '${image}'
-      where UserID = (SELECT UserID FROM UsersGeneralInfos where Username = '${username}')`)
+      where UserID = (SELECT UserID FROM Users where Username = '${user}')`)
 
       res.json({
       status: "OK",
@@ -156,16 +185,44 @@ router.post("/changePP:u", async(req,res)=>{
 
 //! Route API pour chercher des choses 
 
+router.get("/getuserswithoutfriends/:user", async (req,res)=>{
+  try{
+    const user = req.params['user']
+    const query = await executeQuery(`
+      SELECT UGI.UserID, UGI.Username, UGI.FirstName, UGI.LastName, U.CreationDate, U.UpdatedDate, UGI.UsersBirthDate, UGI.UserProfilePicture  from Users U
+	    WHERE U.UserID NOT IN (SELECT FriendsUserID FROM Friend where UserID = 
+							(SELECT UserID from Users WHERE Username = '${user}'))
+      `)
+
+    res.json({
+      Users : query.map((element)=>({
+        UserID: `${element.UserID}`,
+        Username: `${element.Username}`,
+        FirstName: `${element.FirstName}`,
+        LastName: `${element.LastName}`,
+        CreationDate: `${formatDate(element.CreationDate)}`,
+        UpdatedDate: `${formatDate(element.UpdatedDate)}`,
+        BirthDate: `${formatDate(element.UsersBirthDate)}`,
+        ProfilePicture: element.UserProfilePicture,
+      }))
+      
+    })
+  }
+  catch(e){
+    res.json({
+      status: "KO",
+      message: `Internal Server Error ${e}`
+    })
+  }
+})
+
 
 router.get("/users/:u", async (req, res) => {
   const SearchUser = req.param("u");
   try {
     const query = await executeQuery(
-      `SELECT U.UserID, UGI.FirstName, UGI.LastName, U.CreationDate, U.UpdatedDate, UGI.UsersBirthDate, UL.RoleID from Users U 
-          LEFT JOIN UsersGeneralInfos UGI ON U.UserID = UGI.UserID 
-          LEFT JOIN Ref_UsersLogin RUL ON RUL.UserID = U.UserID
-          LEFT JOIN UsersLogin UL ON UL.LoginID = RUL.LoginID 
-          where Login = '${SearchUser}'`
+      `SELECT U.UserID, UGI.FirstName, UGI.LastName, U.CreationDate, U.UpdatedDate, UGI.UsersBirthDate, UL.RoleID, UGI.UserProfilePicture from Users U
+      where Username = '${SearchUser}'`
     );
     if (query.length === 0) {
       res.json({ 
@@ -180,6 +237,7 @@ router.get("/users/:u", async (req, res) => {
         CreationDate: `${formatDate(query[0].CreationDate)}`,
         UpdatedDate: `${formatDate(query[0].UpdatedDate)}`,
         BirthDate: `${formatDate(query[0].UsersBirthDate)}`,
+        ProfilePicture: query[0].UserProfilePicture,
         Role: `${query[0].RoleID === 1 ? "Admin" : "User"}`,
       });
     }
@@ -197,10 +255,9 @@ router.get("/users/:u/watchlists", async (req, res) => {
       `SELECT U.UserID, UL.ListsID, UL.ListsName, UL.UpdatedDate
       from Users U
 		    INNER JOIN Ref_UsersLogin RUL ON RUL.UserID = U.UserID 
-        INNER JOIN UsersLogin ULog ON RUL.LoginID = ULog.LoginID
-        LEFT JOIN Ref_UsersLists RULi ON U.UserID = RULi.UserID 
-        LEFT JOIN UsersLists UL ON RULi.ListsID = UL.ListsID
-        WHERE ULog.Login = '${SearchUser}'`
+        LEFT JOIN Ref_UsersList RULi ON U.UserID = RULi.UserID 
+        LEFT JOIN List UL ON RULi.ListsID = UL.ListsID
+        WHERE U.Username = '${SearchUser}'`
     );
     res.json({
       User: { UserID: query[0].UserID, UserURL: `/api/users/${SearchUser}` },
@@ -224,10 +281,9 @@ router.get("/users/:u/watchlists/:w", async (req, res) => {
   try {
     const query = await executeQuery(`SELECT U.UserID, UL.ListsID, UL.ListsName, UL.UpdatedDate, A.ArtworkID, A.ArtworkName, RN.NatureLabel, RT.TypeName 
                                       from Users U 
-                                      INNER JOIN UserGeneralInfos UGI ON UGI.UserID = U.UserID
                                       LEFT JOIN Ref_UsersLists RUL ON U.UserID = RUL.UserID 
-                                      LEFT JOIN UsersLists UL ON RUL.ListsID = UL.ListsID 
-                                      LEFT JOIN Ref_UsersListsArtwork RULA ON RULA.ListsID = UL.ListsID
+                                      LEFT JOIN List UL ON RUL.ListsID = UL.ListsID 
+                                      LEFT JOIN Ref_ListArtwork RULA ON RULA.ListsID = UL.ListsID
                                       LEFT JOIN Artwork A ON A.ArtworkID = RULA.ArtworkID
                                       LEFT JOIN Ref_ArtworkType RAT ON RAT.ArtworkID = A.ArtworkID
                                       LEFT JOIN Ref_ArtworkNature RAN ON RAN.ArtworkID = A.ArtworkID
@@ -279,5 +335,70 @@ router.get("/artwork/:a/creator", async (req, res) => {
     })
   }
 });
+
+router.get("/modifyconfidentiality/:conf/:user", isAuthenticated, async (req,res)=>{
+  const conf = req.params['conf']
+  const user = req.params['user']
+  let nbconf = 0
+    try{
+      if(conf === 'public'){
+        nbconf = 0
+      }
+      else if(conf === 'private'){
+        nbconf = 1
+      }
+      else if (conf === 'friends') {
+        nbconf = 2
+      }
+      else{
+        res.json({
+          status: "ERROR",
+          message: `Confidentiality dosn't exist`
+        })
+      }
+      await executeQuery(`UPDATE Users
+                          SET Confidentiality = '${nbconf}'
+                          WHERE Username = '${user}'`)
+      res.json({
+        status: "OK",
+        message: 'Query executed with successed'
+      })
+    }
+    catch(e){
+      res.json({
+        status: "KO",
+        message: `Internal Server Error ${e}`
+      })
+    }
+  
+  
+})
+
+router.get('/friends/:user', async (req,res)=>{
+  const user = req.params['user']
+  try{
+    const friendslist = await executeQuery(`SELECT RF.FriendsUserID, UGI.Username, UGI.FirstName, UGI.LastName, UGI.UserProfilePicture, UGI.Confidentiality from Friend RF
+                                            INNER JOIN Users U ON RF.FriendsUserID = U.UserID
+                                            WHERE RF.UserID = (SELECT UserID from Users where Username = '${user}')`)
+      res.json({
+      Friends : friendslist.map((element) => ({
+        UserID: element.FriendsUserID,
+        Username: element.Username,
+        FirstName: element.FirstName,
+        LastName: element.LastName,
+        UserProfilePicture: element.UserProfilePicture,
+        Confidentiality: element.Confidentiality
+      }))
+    })
+  }
+  catch(e){
+    res.json({
+      status: "KO",
+      message: `Internal Server Error ${e}`
+    })
+  }
+})
+
+
 
 module.exports = { router, isAuthenticated, GetUser, CheckAge };

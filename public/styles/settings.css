@@ -1,0 +1,285 @@
+.text-sidebar{
+    text-align: start;
+}
+
+.all-container{
+    display: flex;
+}
+
+.container{
+    margin-left: 10px;
+    width: 15vw;
+    height: 90vh;
+    border-right: 3px black solid;
+}
+
+.comments{
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.text-sidebar{
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    gap: 5px;
+    padding: 5px;
+    font-size: 1vw;
+}
+
+.comment-sidebar{
+    color: gray;
+    text-align: center;
+    font-size: 0.75vw;
+}
+
+.settings-container{
+    display: flex;
+    width: 80%;
+    align-items: center;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+}
+
+/* ---- CONFIDENTIALITY ---- */
+.conf-div{
+    display: flex;
+    border-width: 1px;
+    border-radius: 25px;
+    background-color: lightgray;
+    width: 60%;
+    height: auto;
+    box-shadow: 0 0 20px rgba(65, 65, 65, 0.6); 
+}
+
+.conf-text{
+    width: 80%;
+    height: 100%;
+    margin-left: 10px;
+}
+
+.conf-select{
+    height: 100%;
+    width: 19%;
+    align-content: center;
+}
+
+
+#confselect {
+    appearance: none;
+    cursor: pointer;
+    color: white;
+    font-weight: bolder;
+    background-color: #f7384a;
+    box-shadow: 0px 5px 10px -5px #f7384a;
+    border: none;
+    border-radius: 10px;
+    padding: 1rem;
+    transition: box-shadow 0.1s ease-in-out, background-color 0.3s ease-in,color 0.3s ease-in;
+}
+
+#confselect:hover{
+    background-color: white;
+    color: #f7384a;
+    transition: box-shadow 0.1s ease-in-out, background-color 0.3s ease-in,color 0.3s ease-in;
+}
+
+#confselect:focus {
+    border-color: #f7384a; 
+    box-shadow: 0 0 8px rgba(247, 56, 74, 0.6); 
+}
+  
+  #confselect option {
+    padding: 10px;
+    background-color: #fff;
+    color: #333; /* Texte gris foncé */
+    border: none;
+    font-size: 16px;
+  }
+  
+  /* Style de l'option sélectionnée */
+  #confselect option:checked {
+    background-color: #f7384a; /* Fond rouge */
+    color: #fff; /* Texte blanc */
+  }
+  
+  /* Flèche personnalisée pour le select */
+  #confselect::-ms-expand {
+    display: none; /* Retirer la flèche par défaut sur Internet Explorer */
+  }
+  
+  #confselect::before {
+    content: ' ▼'; /* Flèche vers le bas */
+    font-size: 16px;
+    color: #f7384a;
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+  }
+  
+  /* Style pour le container du select pour éviter que la flèche chevauche le texte */
+  #confselect {
+    position: relative;
+  }
+
+/* ---- AMIS ---- */
+
+
+
+.friend-search{
+    text-align: center;
+}
+
+.friend-search > h1{
+    text-align: center;
+}
+
+.friends-tab {
+    display: grid;
+    border-radius: 25px;
+    gap: 10px; 
+    grid-template-columns: repeat(2, 1fr); 
+}
+
+@media (max-width: 600px) {
+    .friends-tab {
+        grid-template-columns: 1fr; 
+    }
+
+    .listgrid{
+        grid-template-columns: 1fr;
+    }
+    
+    .conf-div{
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+.friends {
+    display: flex;
+    align-items: center;
+    background-color: #f9f9f9;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.friends img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.friends h1, .friends h2 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.friends > h2{
+    margin-left: 10px;
+}
+
+.friends > span{
+    margin-left: 10px;
+}
+
+.friends > a{
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+#AddFriends{
+    color: white;
+    background-color: rgb(1, 150, 1);
+    cursor: pointer;
+    border-color: none;
+    border-width: 0;
+    font-size: 1.2em;
+}
+
+#AddFriends:hover{
+    background-color: green;
+}
+
+.ContainerAddFriends {
+    display: flex;
+    opacity: 0; /* Initialement invisible */
+    visibility: hidden; /* Complètement inaccessible */
+    position: fixed; /* Toujours au-dessus de tout */
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #00000090;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.3s ease, visibility 0.3s ease; /* Transition fluide */
+    z-index: -1; /* Place l'élément derrière tant qu'il n'est pas actif */
+}
+
+.ContainerAddFriends.active {
+    opacity: 1; /* Passe visible */
+    visibility: visible; /* Permet l’interaction */
+    z-index: 10; /* Place l'élément au-dessus */
+}
+
+.AddFriends{
+    position: relative;
+    display: flex;
+    width: 50vw;
+    height: 70vh;
+    background-color: #f9f9f9;
+    border-radius: 25px;
+    align-items: center;
+    flex-direction: column;
+}
+
+.AddFriends > span{
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+    font-size: 1.5rem;
+}
+
+.listgrid{
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    align-items: center;
+}
+
+.userslist{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #f9f9f9;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.userslist > img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.userslist h1, .userslist h2 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.userslist > a{
+    cursor: pointer;
+}
