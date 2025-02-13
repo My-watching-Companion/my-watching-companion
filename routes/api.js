@@ -5,6 +5,9 @@ const session = require("express-session");
 const { CRYPTO_KEY } = require("../config");
 var hour = 1000 * 60 * 20;
 
+const express = require("express");
+router.use(express.json());
+
 function isAuthenticated(req, res, next) {
   if (req.session.user) {
     return next();
@@ -14,11 +17,19 @@ function isAuthenticated(req, res, next) {
 }
 
 async function CheckAge(username, age) {
-  const query = await executeQuery(`SELECT UsersBirthDate, GETDATE() AS Today from Users WHERE Username = '${username}'`)
-  const Today = formatDate(query[0].Today)
-  const UserBirthDate = formatDate(query[0].UsersBirthDate)
-  
-  return (Today - UserBirthDate) > (Today - (formatDate(`${Today.getFullYear()-age}-${Today.getMonth()}-${Today.getDay()}`))) ? true : false
+  const query = await executeQuery(
+    `SELECT UsersBirthDate, GETDATE() AS Today from Users WHERE Username = '${username}'`
+  );
+  const Today = formatDate(query[0].Today);
+  const UserBirthDate = formatDate(query[0].UsersBirthDate);
+
+  return Today - UserBirthDate >
+    Today -
+      formatDate(
+        `${Today.getFullYear() - age}-${Today.getMonth()}-${Today.getDay()}`
+      )
+    ? true
+    : false;
 }
 
 async function GetUser(req, res, next) {
@@ -33,12 +44,16 @@ async function GetUser(req, res, next) {
   }
 }
 
-async function TraceLogs(req, res, message){
-  await executeQuery(`INSERT INTO TraceLogs VALUES (GETDATE(), 1, '${message}', 0)`) /// A MODIF LE USERID
+async function TraceLogs(req, res, message) {
+  await executeQuery(
+    `INSERT INTO TraceLogs VALUES (GETDATE(), 1, '${message}', 0)`
+  ); /// A MODIF LE USERID
 }
 
 async function TraceError(req, res, message) {
-  await executeQuery(`INSERT INTO TraceLogs VALUES (GETDATE(), 1, '${message}', 1)`) /// A MODIF LE USERID
+  await executeQuery(
+    `INSERT INTO TraceLogs VALUES (GETDATE(), 1, '${message}', 1)`
+  ); /// A MODIF LE USERID
 }
 
 function formatDate(dateString) {
@@ -50,7 +65,7 @@ function formatDate(dateString) {
   const year = date.getFullYear(); // AAAA
 
   // Format JJ-MM-AAAA
-  return (new Date(year, month, day));
+  return new Date(year, month, day);
 }
 
 //! Route API pour Insérer / modifier en base
@@ -76,23 +91,24 @@ router.post("/login/ok", async (req, res) => {
       req.session.cookie.expires = new Date(Date.now() + hour);
       req.session.cookie.maxAge = hour;
 
-      TraceLogs(req,res,`User ${Username} successfully login`)
+      TraceLogs(req, res, `User ${Username} successfully login`);
 
       res.redirect("/");
     } else {
-      TraceError(req,res, `Users use wrong password`)
+      TraceError(req, res, `Users use wrong password`);
 
-      res.json({ 
+      res.json({
         status: "ERROR",
-        message: "Mot de passe incorrect" });
+        message: "Mot de passe incorrect",
+      });
     }
   } catch (e) {
-    TraceError(req,res, `Internal Server Error ${e}`)
+    TraceError(req, res, `Internal Server Error ${e}`);
 
     res.json({
       status: "KO",
-      message: `Internal Server Error ${e}`
-    })
+      message: `Internal Server Error ${e}`,
+    });
   }
 });
 
@@ -103,99 +119,100 @@ router.post("/register/ok", async (req, res) => {
   const Mail = req.body.email;
   const Username = req.body.username;
   const Password = req.body.password;
+  const SecurityQuestion = req.body.question;
+  const SecurityAnswer = req.body.answer;
+
   try {
-    const VerifMail = await executeQuery(`SELECT EmailAddress from Users where FirstName = '${FirstName}' and LastName = '${LastName}'`)
-    const VerifLogin = await executeQuery(`SELECT Username FROM Users WHERE Username = '${Username}'`)
-    if (
-      (VerifMail[0] !== undefined)
-    ) {
-      res.redirect('/signup') ///+ {message: "L'email est déjà utilisé pour un compte"})
-    } else if 
-    (VerifLogin[0] !== undefined){
-      res.redirect('/signup') ///+ {message: 'Pseudonyme déjà utilisé'})
-    }
-    else {
+    const VerifMail = await executeQuery(
+      `SELECT EmailAddress from Users where FirstName = '${FirstName}' and LastName = '${LastName}'`
+    );
+    const VerifLogin = await executeQuery(
+      `SELECT Username FROM Users WHERE Username = '${Username}'`
+    );
+    if (VerifMail[0] !== undefined) {
+      res.redirect("/signup"); ///+ {message: "L'email est déjà utilisé pour un compte"})
+    } else if (VerifLogin[0] !== undefined) {
+      res.redirect("/signup"); ///+ {message: 'Pseudonyme déjà utilisé'})
+    } else {
       await executeQuery(
-        `INSERT INTO Users VALUES(GETDATE(), GETDATE(), '${Username}', '${LastName}', '${BirthDate}','${Mail}', 'Default', '${Password}', '${FirstName}', 0, 0, 0, NULL, NULL)`      );
-      res.redirect('/signin') ///+ {message: 'Utilisateur créé avec succès'})
+        `INSERT INTO Users VALUES(GETDATE(), GETDATE(), '${Username}', '${LastName}', '${BirthDate}','${Mail}', 'Default', '${Password}', '${FirstName}', 0, 0, 0, NULL, NULL)`
+      );
+      res.redirect("/signin"); ///+ {message: 'Utilisateur créé avec succès'})
     }
   } catch (e) {
     res.json({
       status: "KO",
-      message: `Internal Server Error ${e}`
-    })
+      message: `Internal Server Error ${e}`,
+    });
   }
 });
 
-router.get("/addfriends/:user/:friends", async(req,res)=>{
-  const user = req.params["user"]
-  const friends = req.params["friends"]
-  try{
-    await executeQuery(`INSERT INTO Friend VALUES((SELECT UserID From Users where Username = '${user}'), (SELECT UserID From Users where Username = '${friends}'))`)
-    res.redirect("/settings/confidentiality/friends")
-  }
-  catch(e){
+router.get("/addfriends/:user/:friends", async (req, res) => {
+  const user = req.params["user"];
+  const friends = req.params["friends"];
+  try {
+    await executeQuery(
+      `INSERT INTO Friend VALUES((SELECT UserID From Users where Username = '${user}'), (SELECT UserID From Users where Username = '${friends}'))`
+    );
+    res.redirect("/settings/confidentiality/friends");
+  } catch (e) {
     res.json({
       status: "KO",
-      message: `Internal Server Error ${e}`
-    })
+      message: `Internal Server Error ${e}`,
+    });
   }
-})
+});
 
-router.get("/removefriends/:user/:friend", async(req,res)=>{
-  const user = req.params["user"]
-  const friend = req.params["friend"]
-  try{
+router.get("/removefriends/:user/:friend", async (req, res) => {
+  const user = req.params["user"];
+  const friend = req.params["friend"];
+  try {
     await executeQuery(`DELETE FROM Friend
-                        WHERE UserID = (SELECT UserID from Users where Username = '${user}') AND FriendsUserID = (SELECT UserID from Users where Username = '${friend}')`)
-    res.redirect("/settings/confidentiality/friends")
-  }
-  catch(e){
+                        WHERE UserID = (SELECT UserID from Users where Username = '${user}') AND FriendsUserID = (SELECT UserID from Users where Username = '${friend}')`);
+    res.redirect("/settings/confidentiality/friends");
+  } catch (e) {
     res.json({
       status: "KO",
-      message: `Internal Server Error ${e}`
-    })
+      message: `Internal Server Error ${e}`,
+    });
   }
-})
-
+});
 
 router.post("/changePP/:user", async (req, res) => {
   try {
-    const user = req.params['user'];
-    const base64Image = req.body.ProfilePicture; 
+    const user = req.params["user"];
+    const base64Image = req.body.ProfilePicture;
 
-    const image = `data:${user}/png;base64,${base64Image}`
-    const query =  executeQuery(`UPDATE Users
+    const image = `data:${user}/png;base64,${base64Image}`;
+    const query = executeQuery(`UPDATE Users
       SET UserProfilePicture = '${image}'
-      where UserID = (SELECT UserID FROM Users where Username = '${user}')`)
+      where UserID = (SELECT UserID FROM Users where Username = '${user}')`);
 
-      res.json({
+    res.json({
       status: "OK",
-      message: "Profile Picture of user was modified with success"})
-  }
-  catch(e){
+      message: "Profile Picture of user was modified with success",
+    });
+  } catch (e) {
     res.json({
       status: "KO",
-      message: `Internal Server Error ${e}`
-    })
+      message: `Internal Server Error ${e}`,
+    });
   }
-})
+});
 
+//! Route API pour chercher des choses
 
-
-//! Route API pour chercher des choses 
-
-router.get("/getuserswithoutfriends/:user", async (req,res)=>{
-  try{
-    const user = req.params['user']
+router.get("/getuserswithoutfriends/:user", async (req, res) => {
+  try {
+    const user = req.params["user"];
     const query = await executeQuery(`
       SELECT UGI.UserID, UGI.Username, UGI.FirstName, UGI.LastName, U.CreationDate, U.UpdatedDate, UGI.UsersBirthDate, UGI.UserProfilePicture  from Users U
 	    WHERE U.UserID NOT IN (SELECT FriendsUserID FROM Friend where UserID = 
 							(SELECT UserID from Users WHERE Username = '${user}'))
-      `)
+      `);
 
     res.json({
-      Users : query.map((element)=>({
+      Users: query.map((element) => ({
         UserID: `${element.UserID}`,
         Username: `${element.Username}`,
         FirstName: `${element.FirstName}`,
@@ -204,18 +221,15 @@ router.get("/getuserswithoutfriends/:user", async (req,res)=>{
         UpdatedDate: `${formatDate(element.UpdatedDate)}`,
         BirthDate: `${formatDate(element.UsersBirthDate)}`,
         ProfilePicture: element.UserProfilePicture,
-      }))
-      
-    })
-  }
-  catch(e){
+      })),
+    });
+  } catch (e) {
     res.json({
       status: "KO",
-      message: `Internal Server Error ${e}`
-    })
+      message: `Internal Server Error ${e}`,
+    });
   }
-})
-
+});
 
 router.get("/users/:u", async (req, res) => {
   const SearchUser = req.param("u");
@@ -225,9 +239,9 @@ router.get("/users/:u", async (req, res) => {
       where Username = '${SearchUser}'`
     );
     if (query.length === 0) {
-      res.json({ 
+      res.json({
         status: "ERROR",
-        message: "User dosn't exists" 
+        message: "User dosn't exists",
       });
     } else {
       res.json({
@@ -242,9 +256,10 @@ router.get("/users/:u", async (req, res) => {
       });
     }
   } catch (e) {
-    res.json({ 
+    res.json({
       status: "KO",
-      message: `Internal server error : ${e}` });
+      message: `Internal server error : ${e}`,
+    });
   }
 });
 
@@ -269,9 +284,10 @@ router.get("/users/:u/watchlists", async (req, res) => {
       })),
     });
   } catch (e) {
-    res.json({ 
+    res.json({
       status: "KO",
-      message: `Internal server error : ${e}` });
+      message: `Internal server error : ${e}`,
+    });
   }
 });
 
@@ -279,7 +295,8 @@ router.get("/users/:u/watchlists/:w", async (req, res) => {
   const SearchUser = req.param("u");
   const SearchList = req.param("w");
   try {
-    const query = await executeQuery(`SELECT U.UserID, UL.ListsID, UL.ListsName, UL.UpdatedDate, A.ArtworkID, A.ArtworkName, RN.NatureLabel, RT.TypeName 
+    const query =
+      await executeQuery(`SELECT U.UserID, UL.ListsID, UL.ListsName, UL.UpdatedDate, A.ArtworkID, A.ArtworkName, RN.NatureLabel, RT.TypeName 
                                       from Users U 
                                       LEFT JOIN Ref_UsersLists RUL ON U.UserID = RUL.UserID 
                                       LEFT JOIN List UL ON RUL.ListsID = UL.ListsID 
@@ -307,9 +324,10 @@ router.get("/users/:u/watchlists/:w", async (req, res) => {
       },
     });
   } catch (e) {
-    res.json({ 
+    res.json({
       status: "KO",
-      message: `Internal server error : ${e}` });
+      message: `Internal server error : ${e}`,
+    });
   }
 });
 
@@ -331,74 +349,191 @@ router.get("/artwork/:a/creator", async (req, res) => {
   } catch (e) {
     res.json({
       status: "KO",
-      message: `Internal Server Error ${e}`
-    })
+      message: `Internal Server Error ${e}`,
+    });
   }
 });
 
-router.get("/modifyconfidentiality/:conf/:user", isAuthenticated, async (req,res)=>{
-  const conf = req.params['conf']
-  const user = req.params['user']
-  let nbconf = 0
-    try{
-      if(conf === 'public'){
-        nbconf = 0
-      }
-      else if(conf === 'private'){
-        nbconf = 1
-      }
-      else if (conf === 'friends') {
-        nbconf = 2
-      }
-      else{
+router.get(
+  "/modifyconfidentiality/:conf/:user",
+  isAuthenticated,
+  async (req, res) => {
+    const conf = req.params["conf"];
+    const user = req.params["user"];
+    let nbconf = 0;
+    try {
+      if (conf === "public") {
+        nbconf = 0;
+      } else if (conf === "private") {
+        nbconf = 1;
+      } else if (conf === "friends") {
+        nbconf = 2;
+      } else {
         res.json({
           status: "ERROR",
-          message: `Confidentiality dosn't exist`
-        })
+          message: `Confidentiality dosn't exist`,
+        });
       }
       await executeQuery(`UPDATE Users
                           SET Confidentiality = '${nbconf}'
-                          WHERE Username = '${user}'`)
+                          WHERE Username = '${user}'`);
       res.json({
         status: "OK",
-        message: 'Query executed with successed'
-      })
-    }
-    catch(e){
+        message: "Query executed with successed",
+      });
+    } catch (e) {
       res.json({
         status: "KO",
-        message: `Internal Server Error ${e}`
-      })
+        message: `Internal Server Error ${e}`,
+      });
     }
-  
-  
-})
+  }
+);
 
-router.get('/friends/:user', async (req,res)=>{
-  const user = req.params['user']
-  try{
-    const friendslist = await executeQuery(`SELECT RF.FriendsUserID, UGI.Username, UGI.FirstName, UGI.LastName, UGI.UserProfilePicture, UGI.Confidentiality from Friend RF
+router.get("/friends/:user", async (req, res) => {
+  const user = req.params["user"];
+  try {
+    const friendslist =
+      await executeQuery(`SELECT RF.FriendsUserID, UGI.Username, UGI.FirstName, UGI.LastName, UGI.UserProfilePicture, UGI.Confidentiality from Friend RF
                                             INNER JOIN Users U ON RF.FriendsUserID = U.UserID
-                                            WHERE RF.UserID = (SELECT UserID from Users where Username = '${user}')`)
-      res.json({
-      Friends : friendslist.map((element) => ({
+                                            WHERE RF.UserID = (SELECT UserID from Users where Username = '${user}')`);
+    res.json({
+      Friends: friendslist.map((element) => ({
         UserID: element.FriendsUserID,
         Username: element.Username,
         FirstName: element.FirstName,
         LastName: element.LastName,
         UserProfilePicture: element.UserProfilePicture,
-        Confidentiality: element.Confidentiality
-      }))
-    })
-  }
-  catch(e){
+        Confidentiality: element.Confidentiality,
+      })),
+    });
+  } catch (e) {
     res.json({
       status: "KO",
-      message: `Internal Server Error ${e}`
-    })
+      message: `Internal Server Error ${e}`,
+    });
   }
-})
+});
 
+router.get("/securityquestions", async (req, res) => {
+  try {
+    const query = await executeQuery(`SELECT * FROM SecurityQuestion`);
 
+    const questions = query.map((question) => ({
+      SecurityQuestionID: question.SecurityQuestionID,
+      SecurityQuestion: question.Question,
+    }));
+
+    return res.json({ questions });
+  } catch (e) {
+    return res.json({ error: `Internal server error : ${e}` });
+  }
+});
+
+router.post("/getsecurityquestion", async (req, res) => {
+  if (!req.body.email)
+    return res.json({ error: "Veuillez entrer une adresse email valide." });
+
+  const email = req.body.email;
+
+  try {
+    const query = await executeQuery(
+      `SELECT U.SecurityQuestionID, SQ.Question as SecurityQuestion from Users AS U INNER JOIN SecurityQuestions AS SQ ON U.SecurityQuestionID = SQ.SecurityQuestionID WHERE U.EmailAddress = '${email}'`
+    );
+
+    if (query.length === 0)
+      return res.json({
+        error: "Aucun compte n'est associé à cette adresse email.",
+      });
+
+    return res.json({ securityQuestion: query[0].SecurityQuestion });
+  } catch (e) {
+    return res.json({
+      error:
+        "Une erreur est survenue lors de la vérification de votre adresse email.",
+    });
+  }
+});
+
+router.post("/checksecurityanswer", async (req, res) => {
+  if (!req.body.email || !req.body.response)
+    return res.json({ error: "Veuillez remplir tous les champs." });
+
+  const email = req.body.email;
+  const response = req.body.response;
+
+  try {
+    const query = await executeQuery(
+      `SELECT SecurityQuestionAnswer from Users WHERE EmailAddress = '${email}'`
+    );
+
+    if (query.length === 0)
+      return res.json({
+        error: "Aucun compte n'est associé à cette adresse email.",
+      });
+
+    if (query[0].SecurityQuestionAnswer !== response)
+      return res.json({ error: "La réponse est incorrecte." });
+
+    return res.json({ success: true });
+  } catch (e) {
+    return res.json({
+      error: "Une erreur est survenue lors de la vérification de la réponse.",
+    });
+  }
+});
+
+router.post(
+  "/changepassword",
+  async (req, res, next) => {
+    if (!req.body.email || !req.body.response)
+      return res.json({ error: "Veuillez remplir tous les champs." });
+
+    const email = req.body.email;
+    const response = req.body.response;
+
+    try {
+      const query = await executeQuery(
+        `SELECT SecurityQuestionAnswer from Users WHERE EmailAddress = '${email}'`
+      );
+
+      if (query.length === 0)
+        return res.json({
+          error: "Aucun compte n'est associé à cette adresse email.",
+        });
+
+      if (query[0].SecurityQuestionAnswer !== response)
+        return res.json({ error: "La réponse est incorrecte." });
+
+      next();
+    } catch (e) {
+      return res.json({
+        error: "Une erreur est survenue lors de la vérification de la réponse.",
+      });
+    }
+  },
+  async (req, res) => {
+    if (!req.body.email || !req.body.response || !req.body.password)
+      return res.json({ error: "Veuillez remplir tous les champs." });
+
+    const { email, response, password } = req.body;
+
+    try {
+      await executeQuery(
+        `UPDATE Users SET Password = '${CryptoJS.AES.encrypt(
+          password,
+          CRYPTO_KEY
+        )}' WHERE EmailAddress = '${email}' AND SecurityQuestionAnswer = '${response}'`
+      );
+
+      return res.json({ success: true });
+    } catch (error) {
+      return res.json({
+        error:
+          "Une erreur est survenue lors de la modification de votre mot de passe.",
+      });
+    }
+  }
+);
 
 module.exports = { router, isAuthenticated, GetUser, CheckAge };

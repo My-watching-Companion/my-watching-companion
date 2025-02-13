@@ -7,7 +7,7 @@
 
   <link rel="stylesheet" href="styles/sign-in-up.css" />
 
-  <script src="scripts/sign-in-up.js" defer></script>
+  <script src="scripts/sign-up.js" defer></script>
 </head>
 
 <body>
@@ -36,6 +36,17 @@
         <input type="date" placeholder="Entrez votre date de naissance" name="birthdate" required />
       </div>
 
+      <label for="question"><b>Question de Sécurité</b></label>
+      <div class="container">
+        <select name="question" id="security-question" required>
+        </select>
+      </div>
+
+      <label for="answer"><b>Réponse à la Question de Sécurité</b></label>
+      <div class="container">
+        <input type="text" placeholder="La réponse à votre question de sécurité..." name="answer" required>
+      </div>
+
       <label for="username"><b>Nom d'Utilisateur</b></label>
       <div class="container">
         <input type="text" placeholder="Entrez votre nom d'utilisateur" name="username" required />
@@ -50,7 +61,7 @@
       <div class="container">
         <input id="password" type="password" placeholder="Entrez votre mot de passe" name="password" required />
 
-        <span id="visibility" class="material-symbols-rounded" onclick="toggleVisibility()">
+        <span class="visibility material-symbols-rounded" onclick="toggleVisibility(this, 'password')">
           visibility_off
         </span>
       </div>
