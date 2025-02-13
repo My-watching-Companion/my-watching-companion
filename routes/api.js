@@ -14,7 +14,7 @@ function isAuthenticated(req, res, next) {
 }
 
 async function CheckAge(username, age) {
-  const query = await executeQuery(`SELECT UsersBirthDate, GETDATE() AS Today from UsersGeneralInfos WHERE Username = '${username}'`)
+  const query = await executeQuery(`SELECT UsersBirthDate, GETDATE() AS Today from Users WHERE Username = '${username}'`)
   const Today = formatDate(query[0].Today)
   const UserBirthDate = formatDate(query[0].UsersBirthDate)
   
@@ -24,10 +24,8 @@ async function CheckAge(username, age) {
 async function GetUser(req, res, next) {
   if (req.session.user) {
     const user = await executeQuery(
-      `SELECT UGI.LastName, UGI.FirstName, UGI.Username, UGI.EmailAddress, UGI.UserProfilePicture from UsersLogin UL 
-      INNER JOIN Ref_UsersLogin RUL ON RUL.LoginID = UL.LoginID
-      INNER JOIN UsersGeneralInfos UGI ON RUL.UserID = UGI.UserID 
-      where UL.Login = 'Twisste' '${req.session.user}'`
+      `SELECT UGI.LastName, UGI.FirstName, UGI.Username, UGI.EmailAddress, UGI.UserProfilePicture from Users
+      where Username = '${req.session.user}'`
     );
     return next({ user });
   } else {
@@ -66,7 +64,7 @@ router.post("/login/ok", async (req, res) => {
   const Password = req.body.password;
   try {
     const DBPass = await executeQuery(
-      `SELECT password from UsersLogin where Login = '${Username}'`
+      `SELECT password from Users where Username = '${Username}'`
     );
     if (
       Password ===
@@ -106,8 +104,8 @@ router.post("/register/ok", async (req, res) => {
   const Username = req.body.username;
   const Password = req.body.password;
   try {
-    const VerifMail = await executeQuery(`SELECT EmailAddress from UsersGeneralInfos where FirstName = '${FirstName}' and LastName = '${LastName}'`)
-    const VerifLogin = await executeQuery(`SELECT Login FROM UsersLogin WHERE Login = '${Username}'`)
+    const VerifMail = await executeQuery(`SELECT EmailAddress from Users where FirstName = '${FirstName}' and LastName = '${LastName}'`)
+    const VerifLogin = await executeQuery(`SELECT Username FROM Users WHERE Username = '${Username}'`)
     if (
       (VerifMail[0] !== undefined)
     ) {
@@ -118,11 +116,7 @@ router.post("/register/ok", async (req, res) => {
     }
     else {
       await executeQuery(
-        `INSERT INTO Users VALUES(0, GETDATE(), GETDATE()) 
-         INSERT INTO UsersGeneralInfos  VALUES('${Username}','${FirstName}','${LastName}','${BirthDate}','${Mail}','Default',1,'0',0) 
-         INSERT INTO UsersLogin VALUES('${Username}','${CryptoJS.AES.encrypt(`${Password}`,CRYPTO_KEY)}',0)
-         INSERT INTO Ref_UsersLogin VALUES((SELECT UserID FROM UsersGeneralInfos where Username = '${Username}'),(SELECT UserID FROM UsersGeneralInfos where Username = '${Username}'))` 
-      );
+        `INSERT INTO Users VALUES(GETDATE(), GETDATE(), '${Username}', '${LastName}', '${BirthDate}','${Mail}', 'Default', '${Password}', '${FirstName}', 0, 0, 0, NULL, NULL)`      );
       res.redirect('/signin') ///+ {message: 'Utilisateur créé avec succès'})
     }
   } catch (e) {
@@ -137,7 +131,7 @@ router.get("/addfriends/:user/:friends", async(req,res)=>{
   const user = req.params["user"]
   const friends = req.params["friends"]
   try{
-    await executeQuery(`INSERT INTO Ref_Friends VALUES((SELECT UserID From UsersGeneralInfos where Username = '${user}'), (SELECT UserID From UsersGeneralInfos where Username = '${friends}'))`)
+    await executeQuery(`INSERT INTO Friend VALUES((SELECT UserID From Users where Username = '${user}'), (SELECT UserID From Users where Username = '${friends}'))`)
     res.redirect("/settings/confidentiality/friends")
   }
   catch(e){
@@ -152,8 +146,8 @@ router.get("/removefriends/:user/:friend", async(req,res)=>{
   const user = req.params["user"]
   const friend = req.params["friend"]
   try{
-    await executeQuery(`DELETE FROM Ref_Friends
-                        WHERE UserID = (SELECT UserID from UsersGeneralInfos where Username = '${user}') AND FriendsUserID = (SELECT UserID from UsersGeneralInfos where Username = '${friend}')`)
+    await executeQuery(`DELETE FROM Friend
+                        WHERE UserID = (SELECT UserID from Users where Username = '${user}') AND FriendsUserID = (SELECT UserID from Users where Username = '${friend}')`)
     res.redirect("/settings/confidentiality/friends")
   }
   catch(e){
@@ -171,9 +165,9 @@ router.post("/changePP/:user", async (req, res) => {
     const base64Image = req.body.ProfilePicture; 
 
     const image = `data:${user}/png;base64,${base64Image}`
-    const query =  executeQuery(`UPDATE UsersGeneralInfos
+    const query =  executeQuery(`UPDATE Users
       SET UserProfilePicture = '${image}'
-      where UserID = (SELECT UserID FROM UsersGeneralInfos where Username = '${user}')`)
+      where UserID = (SELECT UserID FROM Users where Username = '${user}')`)
 
       res.json({
       status: "OK",
@@ -196,11 +190,8 @@ router.get("/getuserswithoutfriends/:user", async (req,res)=>{
     const user = req.params['user']
     const query = await executeQuery(`
       SELECT UGI.UserID, UGI.Username, UGI.FirstName, UGI.LastName, U.CreationDate, U.UpdatedDate, UGI.UsersBirthDate, UGI.UserProfilePicture  from Users U
-      INNER JOIN UsersGeneralInfos UGI ON UGI.UserID = U.UserID
-      INNER JOIN Ref_UsersLogin RUL ON RUL.UserID = U.UserID
-      INNER JOIN UsersLogin UL ON UL.LoginID = RUL.LoginID
-	    WHERE U.UserID NOT IN (SELECT FriendsUserID FROM Ref_Friends where UserID = 
-							(SELECT UserID from UsersGeneralInfos WHERE Username = '${user}'))
+	    WHERE U.UserID NOT IN (SELECT FriendsUserID FROM Friend where UserID = 
+							(SELECT UserID from Users WHERE Username = '${user}'))
       `)
 
     res.json({
@@ -230,11 +221,8 @@ router.get("/users/:u", async (req, res) => {
   const SearchUser = req.param("u");
   try {
     const query = await executeQuery(
-      `SELECT U.UserID, UGI.FirstName, UGI.LastName, U.CreationDate, U.UpdatedDate, UGI.UsersBirthDate, UL.RoleID, UGI.UserProfilePicture from Users U 
-      LEFT JOIN UsersGeneralInfos UGI ON U.UserID = UGI.UserID 
-      LEFT JOIN Ref_UsersLogin RUL ON RUL.UserID = U.UserID
-      LEFT JOIN UsersLogin UL ON UL.LoginID = RUL.LoginID 
-      where Login = '${SearchUser}'`
+      `SELECT U.UserID, UGI.FirstName, UGI.LastName, U.CreationDate, U.UpdatedDate, UGI.UsersBirthDate, UL.RoleID, UGI.UserProfilePicture from Users U
+      where Username = '${SearchUser}'`
     );
     if (query.length === 0) {
       res.json({ 
@@ -267,10 +255,9 @@ router.get("/users/:u/watchlists", async (req, res) => {
       `SELECT U.UserID, UL.ListsID, UL.ListsName, UL.UpdatedDate
       from Users U
 		    INNER JOIN Ref_UsersLogin RUL ON RUL.UserID = U.UserID 
-        INNER JOIN UsersLogin ULog ON RUL.LoginID = ULog.LoginID
-        LEFT JOIN Ref_UsersLists RULi ON U.UserID = RULi.UserID 
-        LEFT JOIN UsersLists UL ON RULi.ListsID = UL.ListsID
-        WHERE ULog.Login = '${SearchUser}'`
+        LEFT JOIN Ref_UsersList RULi ON U.UserID = RULi.UserID 
+        LEFT JOIN List UL ON RULi.ListsID = UL.ListsID
+        WHERE U.Username = '${SearchUser}'`
     );
     res.json({
       User: { UserID: query[0].UserID, UserURL: `/api/users/${SearchUser}` },
@@ -294,10 +281,9 @@ router.get("/users/:u/watchlists/:w", async (req, res) => {
   try {
     const query = await executeQuery(`SELECT U.UserID, UL.ListsID, UL.ListsName, UL.UpdatedDate, A.ArtworkID, A.ArtworkName, RN.NatureLabel, RT.TypeName 
                                       from Users U 
-                                      INNER JOIN UserGeneralInfos UGI ON UGI.UserID = U.UserID
                                       LEFT JOIN Ref_UsersLists RUL ON U.UserID = RUL.UserID 
-                                      LEFT JOIN UsersLists UL ON RUL.ListsID = UL.ListsID 
-                                      LEFT JOIN Ref_UsersListsArtwork RULA ON RULA.ListsID = UL.ListsID
+                                      LEFT JOIN List UL ON RUL.ListsID = UL.ListsID 
+                                      LEFT JOIN Ref_ListArtwork RULA ON RULA.ListsID = UL.ListsID
                                       LEFT JOIN Artwork A ON A.ArtworkID = RULA.ArtworkID
                                       LEFT JOIN Ref_ArtworkType RAT ON RAT.ArtworkID = A.ArtworkID
                                       LEFT JOIN Ref_ArtworkNature RAN ON RAN.ArtworkID = A.ArtworkID
@@ -370,7 +356,7 @@ router.get("/modifyconfidentiality/:conf/:user", isAuthenticated, async (req,res
           message: `Confidentiality dosn't exist`
         })
       }
-      await executeQuery(`UPDATE UsersGeneralInfos
+      await executeQuery(`UPDATE Users
                           SET Confidentiality = '${nbconf}'
                           WHERE Username = '${user}'`)
       res.json({
@@ -391,10 +377,9 @@ router.get("/modifyconfidentiality/:conf/:user", isAuthenticated, async (req,res
 router.get('/friends/:user', async (req,res)=>{
   const user = req.params['user']
   try{
-    const friendslist = await executeQuery(`SELECT RF.FriendsUserID, UGI.Username, UGI.FirstName, UGI.LastName, UGI.UserProfilePicture, UGI.Confidentiality from Ref_Friends RF
+    const friendslist = await executeQuery(`SELECT RF.FriendsUserID, UGI.Username, UGI.FirstName, UGI.LastName, UGI.UserProfilePicture, UGI.Confidentiality from Friend RF
                                             INNER JOIN Users U ON RF.FriendsUserID = U.UserID
-                                            INNER JOIN UsersGeneralInfos UGI ON UGI.UserID = U.UserID
-                                            WHERE RF.UserID = (SELECT UserID from UsersGeneralInfos where Username = '${user}')`)
+                                            WHERE RF.UserID = (SELECT UserID from Users where Username = '${user}')`)
       res.json({
       Friends : friendslist.map((element) => ({
         UserID: element.FriendsUserID,
