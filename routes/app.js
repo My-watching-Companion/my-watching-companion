@@ -29,6 +29,8 @@ router.get("/settings/:cat/:sett", isAuthenticated, async(req,res)=>{
       friends = await fetch(`http://localhost:3000/api/friends/${req.session.user}`)
                           .then((resp) => resp.json())
 
+      console.log(friends)
+
       allusers = await fetch(`http://localhost:3000/api/getuserswithoutfriends/${req.session.user}`)
                           .then((resp)=> resp.json())
     }
