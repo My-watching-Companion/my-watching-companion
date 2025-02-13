@@ -1,0 +1,67 @@
+.img_accueil_1 {
+    width: 100%;
+}
+
+
+/* TENDANCE */
+h3 {
+    margin-left: 40px;
+}
+
+.bloc_tendance {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+}
+
+.barbie {
+    width: 170px;
+    border-radius: 40px;
+    margin-left: 20px;
+}
+
+/* INFO 1 */
+.sec_info1 {
+    margin-top: 80px;
+}
+
+h1 {
+    text-align: center;
+}
+
+h6 {
+    text-align: center;
+}
+
+
+/* COMMENTAIRE POP */
+/* Barbie */
+.title_comm_pop {
+    margin-top: 70px;
+}
+
+.bloc_comm_pop {
+    display: flex;
+    flex-direction: column;
+    margin-top: 30px;
+}
+
+.div_barbie_comm_pop {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 40px;
+}
+
+
+.user_comm_pop {
+    margin-left: 70px;
+}
+
+.text_barbie_comm_pop {
+    margin-left: 100px;
+}
+
+.like_barbie_comm_pop {
+    margin-left: 70px;
+}
+

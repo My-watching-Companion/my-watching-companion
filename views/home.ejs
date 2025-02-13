@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 
 <html lang="en">
-
 <head>
   <%- include('components/head', { selected }) %>
+  <link rel="stylesheet" href="styles/home.css">
 </head>
 
 <body>
@@ -12,6 +12,60 @@
   </header>
 
   <%- include('components/sidebar') %>
-</body>
+  
+  <section class="section_img_accueil">
+    <img src="assets/img_accueil_1.png" alt="Image d'Accueil" class="img_accueil_1">
+  </section>
 
+  <section class="sec_tendances">
+    <h3> Les tendances </h3>
+    <div class="bloc_tendance">
+      <a href=""><img src="assets/barbie.png" alt="cover_barbie" class="barbie"></a>
+      <a href=""><img src="assets/barbie.png" alt="cover_barbie" class="barbie"></a>
+      <img src="assets/barbie.png" alt="cover_barbie" class="barbie">
+      <img src="assets/barbie.png" alt="cover_barbie" class="barbie">
+    </div>
+  </section>
+
+  <section class="sec_info1">
+    <h1>
+      Ecrivez et partagez des critiques. Compilez vos propres listes. Partagez <br>
+      votre vie au cinéma.
+    </h1>
+    <h6>
+      Vous trouverez ci-dessous quelques critiques et listes populaires de cette semaine. <a href="http://localhost:3000/signup">Inscrivez-vous</a> pour créer la vôtre.
+    </h6>
+  </section>
+
+  <section>
+    <h3 class="title_comm_pop"> Commentaire populaire cette semaine </h3>
+    <div class="bloc_comm_pop">
+      
+      <div class="div_barbie_comm_pop">
+        <a href=""><img src="assets/barbie.png" alt="cover_barbie" class="barbie"></a>
+        <div class="barbie_comm_pop">
+          <h3> <strong>Barbie</strong> <em>2023</em> </h3>
+          <p class="user_comm_pop"> <u>jarod</u> ✯✯✯✯ &nbsp; &nbsp; &nbsp; &nbsp; ♡75 &nbsp; &nbsp; &nbsp; &nbsp; 🙍🏻</p>
+          <br>
+          <p class="text_barbie_comm_pop"> Incroyable ! Super film.</p>
+          <br>
+          <h4 class="like_barbie_comm_pop"> <strong><u>24,600 likes</u></strong> &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; ❤ </h4>
+        </div>
+      </div>
+
+      <div class="div_barbie_comm_pop">
+        <a href=""><img src="assets/barbie.png" alt="cover_barbie" class="barbie"></a>
+        <div class="barbie_comm_pop">
+          <h3> <strong>Barbie</strong> <em>2023</em> </h3>
+          <p class="user_comm_pop"> <u>vasco</u> ✯ &nbsp; &nbsp; &nbsp; &nbsp; ♡500 &nbsp; &nbsp; &nbsp; &nbsp; 🙍🏻</p>
+          <br>
+          <p class="text_barbie_comm_pop"> Nul, personne n'a compris pas l'histoire.</p>
+          <br>
+          <h4 class="like_barbie_comm_pop"> <strong><u> -2,200 likes</u></strong> &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; ❤ </h4>
+        </div>
+      </div>
+    
+    </div>
+  </section>
+</body>
 </html>
