@@ -35,7 +35,7 @@ async function CheckAge(username, age) {
 async function GetUser(req, res, next) {
   if (req.session.user) {
     const user = await executeQuery(
-      `SELECT UGI.LastName, UGI.FirstName, UGI.Username, UGI.EmailAddress, UGI.UserProfilePicture from Users
+      `SELECT U.LastName, U.FirstName, U.Username, U.EmailAddress, U.UserProfilePicture from Users
       where Username = '${req.session.user}'`
     );
     return next({ user });
@@ -135,7 +135,10 @@ router.post("/register/ok", async (req, res) => {
       res.redirect("/signup"); ///+ {message: 'Pseudonyme déjà utilisé'})
     } else {
       await executeQuery(
-        `INSERT INTO Users VALUES(GETDATE(), GETDATE(), '${Username}', '${LastName}', '${BirthDate}','${Mail}', 'Default', '${Password}', '${FirstName}', 0, 0, 0, NULL, NULL)`
+        `INSERT INTO Users VALUES(GETDATE(), GETDATE(), '${Username}', '${LastName}', '${BirthDate}','${Mail}', 'Default', '${CryptoJS.AES.encrypt(
+          Password,
+          CRYPTO_KEY
+        )}', '${FirstName}', 0, 0, 0, NULL, NULL)`
       );
       res.redirect("/signin"); ///+ {message: 'Utilisateur créé avec succès'})
     }
@@ -206,7 +209,7 @@ router.get("/getuserswithoutfriends/:user", async (req, res) => {
   try {
     const user = req.params["user"];
     const query = await executeQuery(`
-      SELECT UGI.UserID, UGI.Username, UGI.FirstName, UGI.LastName, U.CreationDate, U.UpdatedDate, UGI.UsersBirthDate, UGI.UserProfilePicture  from Users U
+      SELECT U.UserID, U.Username, U.FirstName, U.LastName, U.CreationDate, U.UpdatedDate, U.UsersBirthDate, U.UserProfilePicture  from Users U
 	    WHERE U.UserID NOT IN (SELECT FriendsUserID FROM Friend where UserID = 
 							(SELECT UserID from Users WHERE Username = '${user}'))
       `);
@@ -235,7 +238,7 @@ router.get("/users/:u", async (req, res) => {
   const SearchUser = req.param("u");
   try {
     const query = await executeQuery(
-      `SELECT U.UserID, UGI.FirstName, UGI.LastName, U.CreationDate, U.UpdatedDate, UGI.UsersBirthDate, UL.RoleID, UGI.UserProfilePicture from Users U
+      `SELECT U.UserID, U.FirstName, U.LastName, U.CreationDate, U.UpdatedDate, U.UsersBirthDate, U.RoleID, U.UserProfilePicture from Users U
       where Username = '${SearchUser}'`
     );
     if (query.length === 0) {
@@ -267,11 +270,11 @@ router.get("/users/:u/watchlists", async (req, res) => {
   const SearchUser = req.param("u");
   try {
     const query = await executeQuery(
-      `SELECT U.UserID, UL.ListsID, UL.ListsName, UL.UpdatedDate
+      `SELECT U.UserID, U.ListsID, U.ListsName, U.UpdatedDate
       from Users U
 		    INNER JOIN Ref_UsersLogin RUL ON RUL.UserID = U.UserID 
         LEFT JOIN Ref_UsersList RULi ON U.UserID = RULi.UserID 
-        LEFT JOIN List UL ON RULi.ListsID = UL.ListsID
+        LEFT JOIN List U ON RULi.ListsID = U.ListsID
         WHERE U.Username = '${SearchUser}'`
     );
     res.json({
@@ -296,17 +299,17 @@ router.get("/users/:u/watchlists/:w", async (req, res) => {
   const SearchList = req.param("w");
   try {
     const query =
-      await executeQuery(`SELECT U.UserID, UL.ListsID, UL.ListsName, UL.UpdatedDate, A.ArtworkID, A.ArtworkName, RN.NatureLabel, RT.TypeName 
+      await executeQuery(`SELECT U.UserID, U.ListsID, U.ListsName, U.UpdatedDate, A.ArtworkID, A.ArtworkName, RN.NatureLabel, RT.TypeName 
                                       from Users U 
                                       LEFT JOIN Ref_UsersLists RUL ON U.UserID = RUL.UserID 
-                                      LEFT JOIN List UL ON RUL.ListsID = UL.ListsID 
-                                      LEFT JOIN Ref_ListArtwork RULA ON RULA.ListsID = UL.ListsID
+                                      LEFT JOIN List U ON RUL.ListsID = U.ListsID 
+                                      LEFT JOIN Ref_ListArtwork RULA ON RULA.ListsID = U.ListsID
                                       LEFT JOIN Artwork A ON A.ArtworkID = RULA.ArtworkID
                                       LEFT JOIN Ref_ArtworkType RAT ON RAT.ArtworkID = A.ArtworkID
                                       LEFT JOIN Ref_ArtworkNature RAN ON RAN.ArtworkID = A.ArtworkID
                                       LEFT JOIN Ref_ArtworkCreator RAC ON RAC.ArtworkID = A.ArtworkID
                                       LEFT JOIN Ref_Creator RC ON RC.CreatorID = RAC.CreatorID
-                                      WHERE UGI.Username = '${SearchUser}' AND UL.ListsName = '${SearchList}'`);
+                                      WHERE U.Username = '${SearchUser}' AND U.ListsName = '${SearchList}'`);
 
     res.json({
       User: { UserID: query[0].UserID, UserURL: `/api/users/${SearchUser}` },
@@ -394,7 +397,7 @@ router.get("/friends/:user", async (req, res) => {
   const user = req.params["user"];
   try {
     const friendslist =
-      await executeQuery(`SELECT RF.FriendsUserID, UGI.Username, UGI.FirstName, UGI.LastName, UGI.UserProfilePicture, UGI.Confidentiality from Friend RF
+      await executeQuery(`SELECT RF.FriendsUserID, U.Username, U.FirstName, U.LastName, U.UserProfilePicture, U.Confidentiality from Friend RF
                                             INNER JOIN Users U ON RF.FriendsUserID = U.UserID
                                             WHERE RF.UserID = (SELECT UserID from Users where Username = '${user}')`);
     res.json({
@@ -535,5 +538,14 @@ router.post(
     }
   }
 );
+
+// Définition de la route erreur 404
+router.get("*", (req, res) => {
+  res.status(404);
+  res.json({
+    status: "ERROR",
+    message: "Page not found",
+  });
+});
 
 module.exports = { router, isAuthenticated, GetUser, CheckAge };
