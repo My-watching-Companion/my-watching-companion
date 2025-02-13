@@ -6,8 +6,6 @@
   <%- include('components/head', { selected }) %>
 
   <link rel="stylesheet" href="styles/sign-in-up.css" />
-
-  <script src="scripts/sign-in-up.js" defer></script>
 </head>
 
 <body>
@@ -30,7 +28,7 @@
       <div class="container">
         <input id="password" type="password" placeholder="Entrez votre mot de passe" name="password" required />
 
-        <span id="visibility" class="material-symbols-rounded" onclick="toggleVisibility()">
+        <span class="visibility material-symbols-rounded" onclick="toggleVisibility(this, 'password')">
           visibility_off
         </span>
       </div>
@@ -42,7 +40,7 @@
           <input type="checkbox" checked="checked" name="remember" /> Rester
           connecté
         </label>
-        <span class="password"><a href="#">Mot de passe oublié ?</a></span>
+        <span class="password"><a href="/forgot-password">Mot de passe oublié ?</a></span>
       </div>
 
       <p id="sign-in-up-switcher">Pas encore de compte ? <a href="/signup">Inscrivez-vous</a>.</p>
