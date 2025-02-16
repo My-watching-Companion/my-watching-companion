@@ -36,7 +36,7 @@ async function GetUser(req, res, next) {
   if (req.session.user) {
     const user = await executeQuery(
       `SELECT U.LastName, U.FirstName, U.Username, U.EmailAddress, U.UserProfilePicture from Users
-      where Username = '${req.session.user}'`
+      where Username = '${req.session.user.username}'`
     );
     return next({ user });
   } else {
@@ -78,16 +78,25 @@ router.post("/login/ok", async (req, res) => {
   const Username = req.body.username;
   const Password = req.body.password;
   try {
-    const DBPass = await executeQuery(
-      `SELECT password from Users where Username = '${Username}'`
+    const query = await executeQuery(
+      `SELECT * from Users where Username = '${Username}'`
     );
+
+    const user = query[0];
+
     if (
       Password ===
-      CryptoJS.AES.decrypt(DBPass[0].password, CRYPTO_KEY).toString(
+      CryptoJS.AES.decrypt(user.Password, CRYPTO_KEY).toString(
         CryptoJS.enc.Utf8
       )
     ) {
-      req.session.user = Username;
+      req.session.user = {
+        username: user.Username,
+        avatar_url: user.UserProfilePicture,
+        email: user.EmailAddress,
+        firstname: user.FirstName,
+        lastname: user.LastName,
+      };
       req.session.cookie.expires = new Date(Date.now() + hour);
       req.session.cookie.maxAge = hour;
 
