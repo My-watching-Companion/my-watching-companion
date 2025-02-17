@@ -15,37 +15,43 @@
 
   <%- include('components/sidebar') %>
 
-  <section>
-    <h1>CONNEXION</h1>
+  <main>
+    <section>
+      <h1>CONNEXION</h1>
 
-    <form action="/api/login/ok" method="post">
-      <label for="username"><b>Nom d'Utilisateur</b></label>
-      <div class="container">
-        <input type="text" placeholder="Entrez votre nom d'utilisateur" name="username" required />
-      </div>
+      <form action="/api/login/ok" method="post">
+        <label for="username"><b>Nom d'Utilisateur</b></label>
+        <div class="container">
+          <input type="text" placeholder="Entrez votre nom d'utilisateur" name="username" required />
+        </div>
 
-      <label for="password"><b>Mot de Passe</b></label>
-      <div class="container">
-        <input id="password" type="password" placeholder="Entrez votre mot de passe" name="password" required />
+        <label for="password"><b>Mot de Passe</b></label>
+        <div class="container">
+          <input id="password" type="password" placeholder="Entrez votre mot de passe" name="password" required />
 
-        <span class="visibility material-symbols-rounded" onclick="toggleVisibility(this, 'password')">
-          visibility_off
-        </span>
-      </div>
+          <span class="visibility material-symbols-rounded" onclick="toggleVisibility(this, 'password')">
+            visibility_off
+          </span>
+        </div>
 
-      <button type="submit">Me Connecter</button>
+        <button type="submit">Me Connecter</button>
 
-      <div class="signin-utilities">
-        <label>
-          <input type="checkbox" checked="checked" name="remember" /> Rester
-          connecté
-        </label>
-        <span class="password"><a href="/forgot-password">Mot de passe oublié ?</a></span>
-      </div>
+        <div class="signin-utilities">
+          <label>
+            <input type="checkbox" checked="checked" name="remember" /> Rester
+            connecté
+          </label>
+          <span class="password"><a href="/forgot-password">Mot de passe oublié ?</a></span>
+        </div>
 
-      <p id="sign-in-up-switcher">Pas encore de compte ? <a href="/signup">Inscrivez-vous</a>.</p>
-    </form>
-  </section>
+        <p id="sign-in-up-switcher">Pas encore de compte ? <a href="/signup">Inscrivez-vous</a>.</p>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <%- include('components/footer') %>
+  </footer>
 </body>
 
 </html>
