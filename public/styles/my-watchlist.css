@@ -1,0 +1,320 @@
+.container {
+  display: flex;
+  align-items: center;
+}
+
+/* Watchlist Header */
+#watchlist-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+#watchlist-header h1 {
+  color: #a6a6a6;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+#watchlist-header h1 span.selected {
+  color: black;
+  font-weight: 800;
+}
+
+#watchlist-header input[type="text"] {
+  border: none;
+  outline: none;
+  border-radius: 10px;
+  padding: 1rem 3rem 1rem 1rem;
+  width: clamp(200px, 20rem, 100%);
+  max-width: 100%;
+  box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.25);
+  transition: box-shadow 0.1s ease-in-out;
+  background-image: url("/assets/search-icon.png");
+  background-position: calc(100% - 10px);
+  background-size: 1.75rem;
+  background-repeat: no-repeat;
+  font-size: 1rem;
+}
+
+#watchlist-header input[type="text"]:hover {
+  box-shadow: 0px 5px 10px 2.5px rgba(0, 0, 0, 0.25);
+}
+
+#watchlist-header button {
+  display: flex;
+  align-items: center;
+  border: none;
+  border-radius: 10px;
+  padding: 0.75rem;
+  font-size: 1rem;
+  font-weight: bolder;
+  color: white;
+  background-color: #f7384a;
+  box-shadow: 0px 5px 10px 0px #f7384a;
+  transition: box-shadow 0.1s ease-in-out;
+}
+
+#watchlist-header button span {
+  font-size: 2rem;
+}
+
+#watchlist-header button:hover {
+  box-shadow: 0px 5px 10px 2.5px #f7384a;
+  cursor: pointer;
+}
+
+/* Media Queries */
+@media screen and (max-width: 768px) {
+  #watchlist-header {
+    padding: 1rem;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #watchlist-header input[type="text"] {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  #watchlist-header button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* List Selection */
+#list-selection {
+  position: fixed;
+  background-color: white;
+  display: none;
+  flex-direction: column;
+  padding: 1rem;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+  box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.25);
+  width: fit-content;
+  z-index: 1000;
+}
+
+#list-selection #user-lists {
+  display: flex;
+  flex-direction: column;
+}
+
+#list-selection #user-lists .list {
+  padding: 1rem;
+  text-align: center;
+  border-radius: 10px;
+  box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.25);
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+#list-selection #user-lists .list.selected {
+  font-weight: bolder;
+  color: white;
+  background-color: #f7384a;
+  box-shadow: 0px 5px 10px 0px #f7384a;
+}
+
+/* Add Artwork */
+#add-artwork {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+#add-artwork-container {
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  width: fit-content;
+  max-width: 90%;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.25);
+}
+
+#add-artwork-container #texts {
+  display: flex;
+  justify-content: space-between;
+}
+
+#add-artwork-container #texts #add-selected-lists {
+  display: flex;
+  color: grey;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  gap: 0.2rem;
+}
+
+#add-artwork-container #texts #add-selected-lists span.selected {
+  color: black;
+  font-weight: bolder;
+}
+
+#add-artwork-container input[type="text"] {
+  border: none;
+  outline: none;
+  border-radius: 10px;
+  padding: 1rem 3rem 1rem 1rem;
+  width: clamp(250px, 30vw, 500px);
+  box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.25);
+  transition: box-shadow 0.1s ease-in-out;
+  background-image: url("/assets/search-icon.png");
+  background-position: calc(100% - 10px);
+  background-size: 1.75rem;
+  background-repeat: no-repeat;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+#add-artwork-container input[type="text"]:hover {
+  box-shadow: 0px 5px 10px 2.5px rgba(0, 0, 0, 0.25);
+}
+
+/* Artworks */
+#artworks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  max-width: 25rem;
+  gap: 1rem;
+  padding: 2rem;
+  max-width: 2000px;
+  margin: 0 auto;
+}
+
+.artwork-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.artwork-card img {
+  width: 100%;
+  height: auto;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+/* Searched Artworks */
+#searched-artworks {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  max-height: 60vh;
+  width: 100%;
+  max-width: clamp(250px, 30vw, 500px);
+  padding: 0 1rem;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.searched-artwork {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.25);
+  box-sizing: border-box;
+  margin-bottom: 1.5rem;
+}
+
+.searched-artwork img {
+  width: auto;
+  height: 8rem;
+  border-radius: 5px;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+.searched-artwork .info {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.searched-artwork .info .title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.searched-artwork .info h3 {
+  font-size: 1.5rem;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.searched-artwork .info .metadata {
+  color: #666;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.searched-artwork .info .description {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.searched-artwork .info button {
+  align-self: flex-end;
+  border: none;
+  border-radius: 5px;
+  padding: 0.5rem 1rem;
+  font-weight: bold;
+  color: white;
+  background-color: #f7384a;
+  box-shadow: 0px 5px 10px 0px #f7384a;
+  transition: box-shadow 0.1s ease-in-out;
+  cursor: pointer;
+}
+
+.searched-artwork .info button:hover {
+  box-shadow: 0px 5px 10px 2.5px #f7384a;
+}
+
+@media screen and (max-width: 768px) {
+  #add-artwork-container {
+    width: 75%;
+    max-width: 75%;
+    margin: 0 auto;
+  }
+
+  #add-artwork-container input[type="text"] {
+    width: 100%;
+  }
+
+  #searched-artworks {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .searched-artwork img {
+    height: auto;
+    max-height: 150px;
+    object-fit: contain;
+  }
+}

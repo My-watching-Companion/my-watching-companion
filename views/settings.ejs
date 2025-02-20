@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+    <link rel="stylesheet" href="/styles/settings.css">
+    
+<head>
+    <%- include("components/head", { selected }) %>
+</head>
+<body>
+    <header>
+        <%- include("components/header" , { selected }) %>
+    </header>
+    <div class="all-container">
+        <div class="container">
+            <div class="comments">
+                <div class="modif-profil list">
+                    <p class="comment-sidebar">Paramètre du profil</p>
+                    <h2 class="text-sidebar" onclick="location.href='/settings/profile/modifyprofile'"><span class="material-symbols-rounded">person</span> Modifier le Profil</h2>
+                    <h2 class="text-sidebar" onclick="location.href='/settings/profile/notifications'"><span class="material-symbols-rounded">notifications</span> Notifications</h2>
+                </div>
+                <div class="confidentiality list">
+                    <p class="comment-sidebar">Qui peut voir votre contenu</p>
+                    <h2 class="text-sidebar" onclick="location.href='/settings/confidentiality/account'"><span class="material-symbols-rounded">lock</span>Confidentialité du compte</h2>
+                    <h2 class="text-sidebar" onclick="location.href='/settings/confidentiality/friends'"><span class="material-symbols-rounded">stars</span>Ami(e)s</h2>
+                    <h2 class="text-sidebar" onclick="location.href='/settings/confidentiality/lockperson'"><span class="material-symbols-rounded">block</span>Bloqués</h2>
+                </div>
+                <div class="watchlists list">
+                    <p class="comment-sidebar">Paramètres relatifs aux watchlists</p>
+                    <h2 class="text-sidebar" onclick="location.href='/settings/watchlists/confidentiality'"><span class="material-symbols-rounded">lock</span>Confidentialité des Watchlists</h2>
+                    <h2 class="text-sidebar" onclick="location.href='/settings/watchlists/preferences'"><span class="material-symbols-rounded">favorite</span>Préférences films</h2>
+                    <h2 class="text-sidebar" onclick="location.href='/settings/watchlists/autorisations'"><span class="material-symbols-rounded">encrypted</span>Autorisations</h2>
+                </div>
+            </div>
+        </div>
+        <% if(choice === 'profile/modifyprofile'){ %>
+        <div class="settings-container">
+            <div class="div-container">
+                    <h1 class="title">Modifier le Profil</h1>
+                        <div class="profile">
+                            <form action="/api/changePP" method="POST" enctype="multipart/form-data">
+                                <input type="file" name="file" accept="image/*">
+                                <button type="submit">Changer la photo</button>
+                            </form>
+                            <span class="profile-span"><p>Username</p></span>
+                            <button class="button-change-pp">Modifier la photo</button>
+                        </div>  
+            </div>
+                
+        </div>
+        <%}%>
+        <% if(choice === 'confidentiality/account'){ %>
+            <div class="settings-container">
+                <h1>Confidentialité du compte</h1>
+                <div class="conf-div">
+                    <div class="conf-text">
+                        <h1>Compte</h1>
+                        <p>Avec <strong>MyWatchingCompanion</strong>, le niveau de confidentialité de votre profil et de vos listes peut être ajusté selon vos préférences :</p>
+                            <ul>
+                                <li><strong>Public</strong> : Votre profil et vos watchlists sont visibles par tout le monde.</li> <br>
+                                <li><strong>Privé</strong> : Personne ne peut voir votre profil ni vos watchlists</li> <br>
+                                <li><strong>Amis uniquement</strong> : Seuls vos amis peuvent consulter vos watchlists et votre profil complet. Cela permet de partager vos découvertes uniquement avec les personnes de confiance.</li>
+                            </ul>
+                        <p>Choisissez le niveau de confidentialité qui vous convient et profitez d’une expérience personnalisée et sécurisée !</p>
+                    </div>
+                    <div class="conf-select">
+                        <select name="confselect" id="confselect" onchange="(ChangeConf(event,'<%=user%>'))">
+                            <option value="public" class="confoptions">Privé</option>
+                            <option value="private" class="confoptions">Publique</option>
+                            <option value="friends" class="confoptions">Amis uniquement</option>
+                        </select>
+                    </div>
+                    
+                </div>
+            </div>
+        <%}%>    
+        <% if (choice === 'confidentiality/friends'){%>
+            <div class="settings-container">
+                <div class="friend-search">
+                    <h1>Rechercher un ami :</h1>
+                    <input type="text" id="friends-tab">
+                </div>
+                <button id="AddFriends" onclick="SeeAddFriends()">Ajouter</button> 
+                <div class="friends-tab">
+                    <% friends.Friends.forEach(element => {%>
+                        <div class="friends">
+                            <img src="<%= element.UserProfilePicture === "Default" ? 'https://img.freepik.com/vecteurs-premium/icone-profil-avatar-par-defaut-image-utilisateur-medias-sociaux-icone-avatar-gris-silhouette-profil-vierge-illustration-vectorielle_561158-3467.jpg' : element.UserProfilePicture%>" alt="">
+                            <h1> <%= element.Username %> </h1>
+                            <h2> <%= element.FirstName %> <%= element.LastName %></h2>
+                            <a onclick="location.href='/api/removefriends/<%=user%>/<%=element.Username%>'"> <span class="material-symbols-rounded">person_remove</span> </a>
+                        </div>
+                    <%});%>
+                </div>
+                <div class="ContainerAddFriends" id="AddingFriendsList">
+                    <div class="AddFriends">
+                        <h1>Ajouter un ami :</h1>
+                        <input type="text" id="adding-friends">
+                        <span class="material-symbols-rounded" onclick="SeeAddFriends()">close</span>
+                        <div class="listgrid">
+                            <% allusers.Users.forEach(element => {%>
+                                <% if (element.Username === user) {%>
+                                    
+                                <%} else {%>
+                                    <div class="userslist">
+                                        <img src="<%= element.ProfilePicture === "Default" ? 'https://img.freepik.com/vecteurs-premium/icone-profil-avatar-par-defaut-image-utilisateur-medias-sociaux-icone-avatar-gris-silhouette-profil-vierge-illustration-vectorielle_561158-3467.jpg' : element.ProfilePicture%>" alt="">
+                                        <h1> <%= element.Username %> </h1>
+                                        <h2> <%= element.FirstName %> <%= element.LastName %></h2>
+                                        <a onclick="location.href='/api/AddFriends/<%=user%>/<%=element.Username%>'"> <span class="material-symbols-rounded">person_add</span> </a>
+                                    </div>
+                                <%}%>
+                            <%});%>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <%}%>
+        
+    </div>
+    
+</body>
+</html>

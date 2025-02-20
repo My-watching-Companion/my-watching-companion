@@ -1,5 +1,5 @@
 <a id="logo" href="/">
-  <img src="assets/transparent_logo.png" alt="Logo My Watching Companion" />
+  <img src="/assets/transparent_logo.png" alt="Logo My Watching Companion" />
 
   <h1>MY WATCHING<br />COMPANION</h1>
 </a>
@@ -12,10 +12,14 @@
   <a href="/settings" class="nav-item <% if (selected === "Paramètres") { %>selected<% } %>">Paramètres</a>
 </nav>
 
+<% if (typeof user !== "undefined") { %>
+<a class="sign" href="/account"><img id="user-profile-picture" <% if (user.avatar_url !== "Default") { %> src="<%= user.avatar_url %>" <% } else { %> src="https://img.freepik.com/vecteurs-premium/icone-profil-avatar-par-defaut-image-utilisateur-medias-sociaux-icone-avatar-gris-silhouette-profil-vierge-illustration-vectorielle_561158-3467.jpg" <% } %> alt="<%= user.username %>'s profile picture."></img></a>
+<% } else { %>
 <% if (selected === "Connexion") { %>
 <button class="sign" id="sign-up" onclick="location.href='/signup'">INSCRIPTION</button>
 <% } else { %>
 <button class="sign" id="sign-in" onclick="location.href='/signin'">CONNEXION</button>
+<% } %>
 <% } %>
 
 <span id="open-sidebar" class="material-symbols-rounded" onclick="openSidebar()">

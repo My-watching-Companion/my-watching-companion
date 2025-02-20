@@ -7,7 +7,11 @@
   font-family: "Lato", serif;
 }
 
+html,
 body {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   margin: 0;
 }
 
@@ -61,6 +65,13 @@ nav {
   font-weight: bold;
 }
 
+/* User Profile Picture */
+#user-profile-picture {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 3rem;
+}
+
 /* Header Connection */
 button.sign {
   color: white;
@@ -73,9 +84,15 @@ button.sign {
   transition: box-shadow 0.1s ease-in-out;
 }
 
-button.sign {
+button.sign:hover {
   box-shadow: 0px 5px 10px -2.5px #f7384a;
   cursor: pointer;
+}
+
+a.sign {
+  text-decoration: none;
+  color: black;
+  font-weight: bolder;
 }
 
 /* Sidebar */
@@ -134,6 +151,55 @@ button.sign {
   margin-bottom: 2rem;
 }
 
+#user-box {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.25);
+  border-radius: 10px;
+  padding: 1rem;
+  max-width: 40vw;
+}
+
+#user-box #user-profile-picture {
+  width: 5rem;
+  height: 5rem;
+  border-radius: 5rem;
+}
+
+#user-box #informations-box {
+  font-size: smaller;
+}
+
+/* Main Content */
+main {
+  flex: 1;
+}
+
+/* Footer */
+footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* REUSABLE BUTTONS */
+button.main-button {
+  color: white;
+  font-weight: bolder;
+  background-color: #f7384a;
+  box-shadow: 0px 5px 10px -5px #f7384a;
+  border: none;
+  border-radius: 10px;
+  padding: 1rem;
+  transition: box-shadow 0.1s ease-in-out;
+}
+
+button.main-button:hover {
+  box-shadow: 0px 5px 10px -2.5px #f7384a;
+  cursor: pointer;
+}
+
 /* Responsiveness */
 @media screen and (max-width: 900px) {
   /* Header */
@@ -149,10 +215,10 @@ button.sign {
   }
 
   /* User Information */
-  button.sign {
+  .sign {
     display: none;
   }
-  .user button.sign {
+  .user .sign {
     display: flex;
   }
 
