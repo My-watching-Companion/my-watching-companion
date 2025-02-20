@@ -160,7 +160,7 @@ router.get("/addfriends/:user/:friends", async (req, res) => {
   const friends = req.params["friends"];
   try {
     await executeQuery(
-      `INSERT INTO Friend VALUES((SELECT UserID From Users where Username = '${user}'), (SELECT UserID From Users where Username = '${friends}'))`
+      `INSERT INTO Friend VALUES((SELECT UserID From Users where Username = '${friends}'), (SELECT UserID From Users where Username = '${user}'))`
     );
     res.redirect("/settings/confidentiality/friends");
   } catch (e) {
