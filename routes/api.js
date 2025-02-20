@@ -3,10 +3,25 @@ const { executeQuery } = require("../db");
 const CryptoJS = require("crypto-js");
 const session = require("express-session");
 const { CRYPTO_KEY, TMDB_API_KEY } = require("../config");
+const download = require("download");
+const path = require("path");
+const multer = require("multer");
 var hour = 1000 * 60 * 20;
 
 const express = require("express");
 router.use(express.json());
+router.use(express.static("uploads"));
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, `${path.join("public/UsersProfilePicture/")}`); // Assure-toi que le dossier "uploads" existe
+  },
+  filename: (req, file, cb) => {
+    cb(null, req.session.user.id + ".png");
+  },
+});
+
+const uploads = multer({ storage: storage });
 
 function isAuthenticated(req, res, next) {
   if (req.session.user) {
@@ -89,6 +104,7 @@ router.post("/login/ok", async (req, res) => {
       req.session.user = {
         id: user.UserID,
         username: user.Username,
+        id: user.UserID,
         avatar_url: user.UserProfilePicture,
         email: user.EmailAddress,
         firstname: user.FirstName,
@@ -163,7 +179,7 @@ router.get("/addfriends/:user/:friends", async (req, res) => {
     await executeQuery(
       `INSERT INTO Friend VALUES((SELECT UserID From Users where Username = '${friends}'), (SELECT UserID From Users where Username = '${user}'))`
     );
-    res.redirect("/settings/confidentiality/friends");
+    res.redirect("/discovery");
   } catch (e) {
     res.json({
       status: "KO",
@@ -178,7 +194,7 @@ router.get("/removefriends/:user/:friend", async (req, res) => {
   try {
     await executeQuery(`DELETE FROM Friend
                         WHERE UserID = (SELECT UserID from Users where Username = '${user}') AND FriendsUserID = (SELECT UserID from Users where Username = '${friend}')`);
-    res.redirect("/settings/confidentiality/friends");
+    res.redirect("/discovery");
   } catch (e) {
     res.json({
       status: "KO",
@@ -187,27 +203,38 @@ router.get("/removefriends/:user/:friend", async (req, res) => {
   }
 });
 
-router.post("/changePP/:user", async (req, res) => {
-  try {
-    const user = req.params["user"];
-    const base64Image = req.body.ProfilePicture;
+router.post(
+  "/changePP",
+  uploads.single("file"),
+  isAuthenticated,
+  async (req, res) => {
+    try {
+      console.log(req.file);
+      if (!req.file) {
+        return res.send("Aucun fichier sélectionné.");
+      }
 
-    const image = `data:${user}/png;base64,${base64Image}`;
-    const query = executeQuery(`UPDATE Users
-      SET UserProfilePicture = '${image}'
-      where UserID = (SELECT UserID FROM Users where Username = '${user}')`);
+      const filePath = path.join(
+        "/UsersProfilePicture/",
+        req.session.user.id + ".png"
+      );
+      await executeQuery(
+        `UPDATE Users SET UserProfilePicture = '${filePath}' WHERE UserID = ${req.session.user.id}`
+      );
+      console.log("Download Completed");
 
-    res.json({
-      status: "OK",
-      message: "Profile Picture of user was modified with success",
-    });
-  } catch (e) {
-    res.json({
-      status: "KO",
-      message: `Internal Server Error ${e}`,
-    });
+      res.json({
+        status: "OK",
+        message: "Profile Picture of user was modified with success",
+      });
+    } catch (e) {
+      res.json({
+        status: "KO",
+        message: `Internal Server Error ${e}`,
+      });
+    }
   }
-});
+);
 
 //! Route API pour chercher des choses
 
@@ -282,7 +309,6 @@ router.get("/users/:u/watchlists", async (req, res) => {
         LEFT JOIN List L ON RULi.ListsID = L.ListsID
         WHERE U.Username = '${SearchUser}'`
     );
-    console.log(query);
     if (query.length === 0) {
       return res.json({
         Watchlist: null,
