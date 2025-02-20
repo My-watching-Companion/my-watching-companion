@@ -46,14 +46,14 @@ async function GetUser(req, res, next) {
 
 async function TraceLogs(req, res, message) {
   await executeQuery(
-    `INSERT INTO TraceLogs VALUES (GETDATE(), 1, '${message}', 0)`
-  ); /// A MODIF LE USERID
+    `INSERT INTO TraceLogs VALUES (GETDATE(), (SELECT UserID FROM Users where Username = '${req.session.user.username}'), '${message}', 0)`
+  );
 }
 
 async function TraceError(req, res, message) {
   await executeQuery(
-    `INSERT INTO TraceLogs VALUES (GETDATE(), 1, '${message}', 1)`
-  ); /// A MODIF LE USERID
+    `INSERT INTO TraceLogs VALUES (GETDATE(), (SELECT UserID FROM Users where Username = '${req.session.user.username}'), '${message}', 1)`
+  );
 }
 
 function formatDate(dateString) {
@@ -69,10 +69,6 @@ function formatDate(dateString) {
 }
 
 //! Route API pour Insérer / modifier en base
-
-router.get("/", (req, res) => {
-  res.json({ message: "Bienvenue sur l'API de MyWatchingCompanion" });
-});
 
 router.post("/login/ok", async (req, res) => {
   const Username = req.body.username;
@@ -164,7 +160,11 @@ router.get("/addfriends/:user/:friends", async (req, res) => {
   const friends = req.params["friends"];
   try {
     await executeQuery(
+<<<<<<< Updated upstream
       `INSERT INTO Friend VALUES((SELECT UserID From Users where Username = '${friends}'),(SELECT UserID From Users where Username = '${user}'))`
+=======
+      `INSERT INTO Friend VALUES((SELECT UserID From Users where Username = '${friends}'), (SELECT UserID From Users where Username = '${user}'))`
+>>>>>>> Stashed changes
     );
     res.redirect("/settings/confidentiality/friends");
   } catch (e) {
@@ -370,6 +370,23 @@ router.get("/artwork/:a/creator", async (req, res) => {
     });
   }
 });
+
+router.get('/getallnature', async (req, res) => {
+  try {
+    const query = await executeQuery(`SELECT * from Ref_Nature order by NatureID`);
+    res.json({
+      Nature: query.map((element) => ({
+        NatureID: element.NatureID,
+        NatureLabel: element.NatureLabel,
+      })),
+    });
+  } catch (e) {
+    res.json({
+      status: "KO",
+      message: `Internal Server Error ${e}`,
+    });
+  }
+})
 
 router.get(
   "/modifyconfidentiality/:conf/:user",

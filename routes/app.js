@@ -19,7 +19,7 @@ router.get("/settings", isAuthenticated, (req, res) => {
   res.render("settings", {
     selected: "Paramètres",
     choice: null,
-    user: req.session.user,
+    user: req.session.user.username,
   });
 });
 
@@ -28,24 +28,35 @@ router.get("/settings/:cat/:sett", isAuthenticated, async (req, res) => {
   const page = req.params["sett"];
   let friends = null;
   let allusers = null;
+  let nature = null;
+  console.log(categories, page)
   if (categories !== undefined && page !== undefined) {
     if (categories === "confidentiality" && page === "friends") {
       friends = await fetch(
-        `http://localhost:3000/api/friends/${req.session.user}`
+        `http://localhost:3000/api/friends/${req.session.user.username}`
       ).then((resp) => resp.json());
 
       allusers = await fetch(
-        `http://localhost:3000/api/getuserswithoutfriends/${req.session.user}`
+        `http://localhost:3000/api/getuserswithoutfriends/${req.session.user.username}`
       ).then((resp) => resp.json());
+    }else if(categories === "watchlists" && page === "preferences") {
+      nature = await fetch("http://localhost:3000/api/getallnature").then((resp) => resp.json());
+      console.log(nature)
     }
-    res.render("settings", {
-      selected: "Paramètres",
-      choice: `${categories}/${page}`,
-      user: req.session.user,
-      friends: friends,
-      allusers: allusers,
-    });
+      res.render("settings", {
+        selected: "Paramètres",
+        choice: `${categories}/${page}`,
+        user: req.session.user.username,
+        friends: friends,
+        allusers: allusers,
+        nature: nature,
+      });
+    } 
   }
+);
+
+router.get("discover", isAuthenticated, async (req, res) => {
+  res.render("discover", { selected: "Découvrir" });
 });
 
 router.get("/discovery", isAuthenticated, async (req, res) => {
