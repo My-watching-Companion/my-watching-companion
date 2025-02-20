@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
     <link rel="stylesheet" href="/styles/settings.css">
-    <script src="../../../scripts/settings.js" defer></script>
+    
 <head>
     <%- include("components/head", { selected }) %>
 </head>
@@ -36,7 +36,10 @@
             <div class="div-container">
                     <h1 class="title">Modifier le Profil</h1>
                         <div class="profile">
-                            <img src="https://www.leroidufer.fr/344-home_default/tube-carre-acier-45-mm.jpg" class="profil-image">
+                            <form action="/api/changePP" method="POST" enctype="multipart/form-data">
+                                <input type="file" name="file" accept="image/*">
+                                <button type="submit">Changer la photo</button>
+                            </form>
                             <span class="profile-span"><p>Username</p></span>
                             <button class="button-change-pp">Modifier la photo</button>
                         </div>  
