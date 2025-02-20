@@ -62,7 +62,7 @@
                         <p>Choisissez le niveau de confidentialité qui vous convient et profitez d’une expérience personnalisée et sécurisée !</p>
                     </div>
                     <div class="conf-select">
-                        <select name="confselect" id="confselect" onchange="(ChangeConf(event,'<%=user%>'))">
+                        <select name="confselect" id="confselect" onchange="(ChangeConf(event,'<%=user.Username%>'))">
                             <option value="public" class="confoptions">Privé</option>
                             <option value="private" class="confoptions">Publique</option>
                             <option value="friends" class="confoptions">Amis uniquement</option>
@@ -72,46 +72,7 @@
                 </div>
             </div>
         <%}%>    
-        <% if (choice === 'confidentiality/friends'){%>
-            <div class="settings-container">
-                <div class="friend-search">
-                    <h1>Rechercher un ami :</h1>
-                    <input type="text" id="friends-tab">
-                </div>
-                <button id="AddFriends" onclick="SeeAddFriends()">Ajouter</button> 
-                <div class="friends-tab">
-                    <% friends.Friends.forEach(element => {%>
-                        <div class="friends">
-                            <img src="<%= element.UserProfilePicture === "Default" ? 'https://img.freepik.com/vecteurs-premium/icone-profil-avatar-par-defaut-image-utilisateur-medias-sociaux-icone-avatar-gris-silhouette-profil-vierge-illustration-vectorielle_561158-3467.jpg' : element.UserProfilePicture%>" alt="">
-                            <h1> <%= element.Username %> </h1>
-                            <h2> <%= element.FirstName %> <%= element.LastName %></h2>
-                            <a onclick="location.href='/api/removefriends/<%=user%>/<%=element.Username%>'"> <span class="material-symbols-rounded">person_remove</span> </a>
-                        </div>
-                    <%});%>
-                </div>
-                <div class="ContainerAddFriends" id="AddingFriendsList">
-                    <div class="AddFriends">
-                        <h1>Ajouter un ami :</h1>
-                        <input type="text" id="adding-friends">
-                        <span class="material-symbols-rounded" onclick="SeeAddFriends()">close</span>
-                        <div class="listgrid">
-                            <% allusers.Users.forEach(element => {%>
-                                <% if (element.Username === user) {%>
-                                    
-                                <%} else {%>
-                                    <div class="userslist">
-                                        <img src="<%= element.ProfilePicture === "Default" ? 'https://img.freepik.com/vecteurs-premium/icone-profil-avatar-par-defaut-image-utilisateur-medias-sociaux-icone-avatar-gris-silhouette-profil-vierge-illustration-vectorielle_561158-3467.jpg' : element.ProfilePicture%>" alt="">
-                                        <h1> <%= element.Username %> </h1>
-                                        <h2> <%= element.FirstName %> <%= element.LastName %></h2>
-                                        <a onclick="location.href='/api/AddFriends/<%=user%>/<%=element.Username%>'"> <span class="material-symbols-rounded">person_add</span> </a>
-                                    </div>
-                                <%}%>
-                            <%});%>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        <%}%>
+        
         
     </div>
     
