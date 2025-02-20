@@ -55,9 +55,6 @@ router.get("/settings/:cat/:sett", isAuthenticated, async (req, res) => {
   }
 );
 
-router.get("discover", isAuthenticated, async (req, res) => {
-  res.render("discover", { selected: "Découvrir" });
-});
 
 router.get("/discovery", isAuthenticated, async (req, res) => {
   const user = req.session.user;
