@@ -48,6 +48,34 @@ router.get("/settings/:cat/:sett", isAuthenticated, async (req, res) => {
   }
 });
 
+router.get("/discovery", isAuthenticated, async (req, res) => {
+  const user = req.session.user;
+  const friends = await fetch(
+    `http://localhost:3000/api/friends/${req.session.user}`
+  ).then((resp) => resp.json());
+
+  let wloffriends = {};
+  
+  for (const element of friends.Friends) {
+    const watchlists = await fetch(
+      `http://localhost:3000/api/users/${element.Username}/watchlists`
+    ).then((resp) => resp.json());
+    if (watchlists.Watchlist === null) {
+      continue;
+    }
+    else{
+      wloffriends[element.Username] = watchlists;   
+    }
+  }
+
+
+  res.render("discover", {
+    selected: "Découverte",
+    friends: friends,
+    wloffriends: wloffriends,
+  });
+});
+
 router.get("/forgot-password", (req, res) => {
   res.render("forgot-password", { selected: "Mot de Passe Oublié" });
 });

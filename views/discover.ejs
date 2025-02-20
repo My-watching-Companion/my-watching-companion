@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+  <%- include('components/head', { selected }) %>
+  <link rel="stylesheet" href="styles/discover.css">
+</head>
+
+<body>
+  <header>
+    <%- include('components/header', { selected }) %>
+  </header>
+
+  <%- include('components/sidebar') %>
+  <div class="container-carrou">
+    <div class="carrou-friends-wl">
+        <h1 class="h1-carrou">
+            WatchList des Amis :
+        </h1>
+        <div class="container-friends-wl">
+          <% if (friends.Friends[0] === undefined) { %>
+            <h2>
+                Vous n'avez pas d'amis mais vous pouvez en ajouter ici : (mettre le lien hp)
+            </h2>
+          <% } else if (wloffriends.Watchlist === undefined) { %>
+            <h2>
+              Vos amis n'ont pas de watchlists, dites-leur d'en créer afin de les voir ici.
+            </h2>
+          <% } else { %>
+            <div class="container-affiche">
+              <% friends.Friends.forEach(f => { %>
+                <% if (wloffriends[f.Username] && wloffriends[f.Username].Watchlist.length > 0) { %>
+                  <% wloffriends[f.Username].Watchlist.forEach(element => { %>
+                    <a href="<%= element.ListURL %>">
+                      <div class="affiche">
+                          <h1><%= element.ListName %></h1>
+                          <h3><%= element.Updated %></h3>
+                      </div>
+                    </a>
+                  <% }); %>
+                <% } %>
+              <% }); %>
+            </div>
+          <% } %>
+        </div>
+      </div>
+  </div>
+  
+
+</body>
+
+</html>
