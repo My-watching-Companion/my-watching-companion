@@ -46,14 +46,14 @@ async function GetUser(req, res, next) {
 
 async function TraceLogs(req, res, message) {
   await executeQuery(
-    `INSERT INTO TraceLogs VALUES (GETDATE(), 1, '${message}', 0)`
-  ); /// A MODIF LE USERID
+    `INSERT INTO TraceLogs VALUES (GETDATE(), (SELECT UserID FROM Users where Username = '${req.session.user.username}'), '${message}', 0)`
+  );
 }
 
 async function TraceError(req, res, message) {
   await executeQuery(
-    `INSERT INTO TraceLogs VALUES (GETDATE(), 1, '${message}', 1)`
-  ); /// A MODIF LE USERID
+    `INSERT INTO TraceLogs VALUES (GETDATE(), (SELECT UserID FROM Users where Username = '${req.session.user.username}'), '${message}', 1)`
+  );
 }
 
 function formatDate(dateString) {
@@ -69,10 +69,6 @@ function formatDate(dateString) {
 }
 
 //! Route API pour Insérer / modifier en base
-
-router.get("/", (req, res) => {
-  res.json({ message: "Bienvenue sur l'API de MyWatchingCompanion" });
-});
 
 router.post("/login/ok", async (req, res) => {
   const Username = req.body.username;
@@ -148,7 +144,7 @@ router.post("/register/ok", async (req, res) => {
         `INSERT INTO Users VALUES(GETDATE(), GETDATE(), '${Username}', '${LastName}', '${BirthDate}','${Mail}', 'Default', '${CryptoJS.AES.encrypt(
           Password,
           CRYPTO_KEY
-        )}', '${FirstName}', 0, 0, 0, NULL, NULL)`
+        )}', '${FirstName}', 0, 0, 0, '${SecurityAnswer}','${SecurityQuestion}')`
       );
       res.redirect("/signin"); ///+ {message: 'Utilisateur créé avec succès'})
     }
@@ -165,7 +161,7 @@ router.get("/addfriends/:user/:friends", async (req, res) => {
   const friends = req.params["friends"];
   try {
     await executeQuery(
-      `INSERT INTO Friend VALUES((SELECT UserID From Users where Username = '${user}'), (SELECT UserID From Users where Username = '${friends}'))`
+      `INSERT INTO Friend VALUES((SELECT UserID From Users where Username = '${friends}'), (SELECT UserID From Users where Username = '${user}'))`
     );
     res.redirect("/settings/confidentiality/friends");
   } catch (e) {
@@ -245,7 +241,7 @@ router.get("/getuserswithoutfriends/:user", async (req, res) => {
 });
 
 router.get("/users/:u", async (req, res) => {
-  const SearchUser = req.param("u");
+  const SearchUser = req.params["u"];
   try {
     const query = await executeQuery(
       `SELECT U.UserID, U.FirstName, U.LastName, U.CreationDate, U.UpdatedDate, U.UsersBirthDate, U.RoleID, U.UserProfilePicture from Users U
@@ -277,23 +273,28 @@ router.get("/users/:u", async (req, res) => {
 });
 
 router.get("/users/:u/watchlists", async (req, res) => {
-  const SearchUser = req.param("u");
+  const SearchUser = req.params["u"];
   try {
     const query = await executeQuery(
-      `SELECT U.UserID, U.ListsID, U.ListsName, U.UpdatedDate
+      `SELECT U.UserID, L.ListsID, L.ListsName, U.UpdatedDate
       from Users U
-		    INNER JOIN Ref_UsersLogin RUL ON RUL.UserID = U.UserID 
-        LEFT JOIN Ref_UsersList RULi ON U.UserID = RULi.UserID 
-        LEFT JOIN List U ON RULi.ListsID = U.ListsID
+        INNER JOIN Ref_UsersList RULi ON U.UserID = RULi.UserID 
+        LEFT JOIN List L ON RULi.ListsID = L.ListsID
         WHERE U.Username = '${SearchUser}'`
     );
+    console.log(query);
+    if (query.length === 0) {
+      return res.json({
+        Watchlist: null,
+      });
+    }
     res.json({
       User: { UserID: query[0].UserID, UserURL: `/api/users/${SearchUser}` },
-      Watchlist: query.recordsets.map((element) => ({
+      Watchlist: query.map((element) => ({
         ListsID: element.ListsID,
         ListName: element.ListsName,
         Updated: element.UpdatedDate,
-        ListURL: `/api/${u}/watchlists/${element.ListName}`,
+        ListURL: `/api/${SearchUser}/watchlists/${element.ListsName}`,
       })),
     });
   } catch (e) {
@@ -305,8 +306,8 @@ router.get("/users/:u/watchlists", async (req, res) => {
 });
 
 router.get("/users/:u/watchlists/:w", async (req, res) => {
-  const SearchUser = req.param("u");
-  const SearchList = req.param("w");
+  const SearchUser = req.params["u"];
+  const SearchList = req.params["w"];
   try {
     const query =
       await executeQuery(`SELECT U.UserID, U.ListsID, U.ListsName, U.UpdatedDate, A.ArtworkID, A.ArtworkName, RN.NatureLabel, RT.TypeName 
@@ -345,7 +346,7 @@ router.get("/users/:u/watchlists/:w", async (req, res) => {
 });
 
 router.get("/artwork/:a/creator", async (req, res) => {
-  const SearchArtwork = req.param("a");
+  const SearchArtwork = req.params["a"];
   try {
     const query =
       await executeQuery(`SELECT RAC.CreatorID, RC.CreatorName from Artowrk
@@ -357,6 +358,25 @@ router.get("/artwork/:a/creator", async (req, res) => {
       ArtworkCreator: query[0].map((creator) => ({
         CreatorID: creator.CreatorID,
         CreatorName: creator.CreatorName,
+      })),
+    });
+  } catch (e) {
+    res.json({
+      status: "KO",
+      message: `Internal Server Error ${e}`,
+    });
+  }
+});
+
+router.get("/getallnature", async (req, res) => {
+  try {
+    const query = await executeQuery(
+      `SELECT * from Ref_Nature order by NatureID`
+    );
+    res.json({
+      Nature: query.map((element) => ({
+        NatureID: element.NatureID,
+        NatureLabel: element.NatureLabel,
       })),
     });
   } catch (e) {

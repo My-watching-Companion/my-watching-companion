@@ -19,7 +19,7 @@ router.get("/settings", isAuthenticated, (req, res) => {
   res.render("settings", {
     selected: "Paramètres",
     choice: null,
-    user: req.session.user,
+    user: req.session.user.username,
   });
 });
 
@@ -28,24 +28,60 @@ router.get("/settings/:cat/:sett", isAuthenticated, async (req, res) => {
   const page = req.params["sett"];
   let friends = null;
   let allusers = null;
+  let nature = null;
+  console.log(categories, page)
   if (categories !== undefined && page !== undefined) {
     if (categories === "confidentiality" && page === "friends") {
       friends = await fetch(
-        `http://localhost:3000/api/friends/${req.session.user}`
+        `http://localhost:3000/api/friends/${req.session.user.username}`
       ).then((resp) => resp.json());
 
       allusers = await fetch(
-        `http://localhost:3000/api/getuserswithoutfriends/${req.session.user}`
+        `http://localhost:3000/api/getuserswithoutfriends/${req.session.user.username}`
       ).then((resp) => resp.json());
+    }else if(categories === "watchlists" && page === "preferences") {
+      nature = await fetch("http://localhost:3000/api/getallnature").then((resp) => resp.json());
+      console.log(nature)
     }
-    res.render("settings", {
-      selected: "Paramètres",
-      choice: `${categories}/${page}`,
-      user: req.session.user,
-      friends: friends,
-      allusers: allusers,
-    });
+      res.render("settings", {
+        selected: "Paramètres",
+        choice: `${categories}/${page}`,
+        user: req.session.user.username,
+        friends: friends,
+        allusers: allusers,
+        nature: nature,
+      });
+    } 
   }
+);
+
+
+router.get("/discovery", isAuthenticated, async (req, res) => {
+  const user = req.session.user;
+  const friends = await fetch(
+    `http://localhost:3000/api/friends/${req.session.user}`
+  ).then((resp) => resp.json());
+
+  let wloffriends = {};
+  
+  for (const element of friends.Friends) {
+    const watchlists = await fetch(
+      `http://localhost:3000/api/users/${element.Username}/watchlists`
+    ).then((resp) => resp.json());
+    if (watchlists.Watchlist === null) {
+      continue;
+    }
+    else{
+      wloffriends[element.Username] = watchlists;   
+    }
+  }
+
+
+  res.render("discover", {
+    selected: "Découverte",
+    friends: friends,
+    wloffriends: wloffriends,
+  });
 });
 
 router.get("/my-watchlist", isAuthenticated, (req, res) => {
