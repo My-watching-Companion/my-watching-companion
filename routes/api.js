@@ -2,7 +2,7 @@ const router = require("express").Router();
 const { executeQuery } = require("../db");
 const CryptoJS = require("crypto-js");
 const session = require("express-session");
-const { CRYPTO_KEY } = require("../config");
+const { CRYPTO_KEY, TMDB_API_KEY } = require("../config");
 var hour = 1000 * 60 * 20;
 
 const express = require("express");
@@ -91,6 +91,7 @@ router.post("/login/ok", async (req, res) => {
       )
     ) {
       req.session.user = {
+        id: user.UserID,
         username: user.Username,
         avatar_url: user.UserProfilePicture,
         email: user.EmailAddress,
@@ -547,6 +548,152 @@ router.post(
     }
   }
 );
+
+router.get("/getuserartworks", isAuthenticated, async (req, res) => {
+  try {
+    const user = req.session.user;
+
+    const query =
+      await executeQuery(`SELECT L.ListsID AS list_id, L.ListsName AS list_name, 
+                          A.ArtworkID AS artwork_id, A.ArtworkName AS artwork_name, A.ArtworkAPILink AS artwork_api, A.ArtworkPosterImage AS artwork_poster
+                          FROM Users U
+                          LEFT JOIN Ref_UsersList RUL ON U.UserID = RUL.UserID 
+                          LEFT JOIN List L ON RUL.ListsID = L.ListsID 
+                          LEFT JOIN Ref_ListArtwork RLA ON RLA.ListsID = L.ListsID
+                          LEFT JOIN Artwork A ON A.ArtworkID = RLA.ArtworkID
+                          WHERE U.UserID = ${user.id}`);
+
+    res.status(200);
+    return res.json(query);
+  } catch (error) {
+    res.status(400);
+    return res.json({
+      error:
+        "Une erreur est survenue lors de la récupération des titres de l'utilisateur.",
+    });
+  }
+});
+
+router.get("/getuserlists", isAuthenticated, async (req, res) => {
+  try {
+    const user = req.session.user;
+
+    const query =
+      await executeQuery(`SELECT L.ListsID AS list_id, L.ListsName AS list_name
+                          FROM Users U
+                          LEFT JOIN Ref_UsersList RUL ON U.UserID = RUL.UserID 
+                          LEFT JOIN List L ON RUL.ListsID = L.ListsID 
+                          WHERE U.UserID = ${user.id}`);
+
+    res.status(200);
+    return res.json(query);
+  } catch (error) {
+    res.status(400);
+    return res.json({
+      error: "Une erreur est survenue lors de la récupération des listes.",
+    });
+  }
+});
+
+router.post("/searchartworks", async (req, res) => {
+  try {
+    const { search } = req.body;
+
+    let movies = await fetch(
+      `https://api.themoviedb.org/3/search/movie?query=${search}`,
+      {
+        method: "GET",
+        headers: {
+          accept: "application/json",
+          Authorization: `Bearer ${TMDB_API_KEY}`,
+        },
+      }
+    );
+    movies = await movies.json();
+    movies = movies.results;
+
+    let categories = await fetch(
+      "https://api.themoviedb.org/3/genre/movie/list?language=fr",
+      {
+        method: "GET",
+        headers: {
+          accept: "application/json",
+          Authorization: `Bearer ${TMDB_API_KEY}`,
+        },
+      }
+    );
+    categories = await categories.json();
+
+    movies = movies.map((movie) => {
+      movie.genres = movie.genre_ids
+        .map((genre) => {
+          const category = categories.genres.find(
+            (category) => category.id === genre
+          );
+          return category ? category.name : "";
+        })
+        .filter((genre) => genre);
+
+      return movie;
+    });
+
+    res.status(200);
+    return res.json(movies);
+  } catch (error) {
+    res.status(400);
+    return res.json({
+      error: "Une erreur est survenue lors de la recherche.",
+    });
+  }
+});
+
+router.post("/addartworktolists", isAuthenticated, async (req, res) => {
+  try {
+    const { artwork, lists } = req.body;
+    const user = req.session.user;
+
+    // Checks
+    if (!artwork) {
+      res.status(400);
+      return res.json({
+        error: "Veuillez renseigner un titre.",
+      });
+    }
+
+    if (!lists || lists.length === 0) {
+      res.status(400);
+      return res.json({
+        error: "Veuillez sélectionner au moins une liste.",
+      });
+    }
+
+    // Check if the artwork is already in the database
+    const artworkAPILink = `https://api.themoviedb.org/3/movie/${artwork.id}`;
+
+    await executeQuery(
+      `IF NOT EXISTS (SELECT * FROM Artwork WHERE ArtworkAPILink = '${artworkAPILink}') INSERT INTO Artwork VALUES ('${artwork.title}', '${artworkAPILink}', '${artwork.poster_path}')`
+    );
+
+    // Add artwork to lists
+    for (const list of lists)
+      await executeQuery(
+        `INSERT INTO Ref_ListArtwork VALUES (
+          (SELECT ArtworkID FROM Artwork WHERE ArtworkAPILink = '${artworkAPILink}'), 
+          (SELECT L.ListsID FROM List L INNER JOIN Ref_UsersList UL ON UL.ListsID = L.ListsID WHERE L.ListsName = '${list}' AND UL.UserID = ${user.id})
+        )`
+      );
+
+    res.status(200);
+    return res.json({
+      success: "Le titre a été ajouté à la/aux liste(s) avec succès.",
+    });
+  } catch (error) {
+    res.status(400);
+    return res.json({
+      error: "Une erreur est survenue lors de la recherche.",
+    });
+  }
+});
 
 // Définition de la route erreur 404
 router.get("*", (req, res) => {

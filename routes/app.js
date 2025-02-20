@@ -48,6 +48,13 @@ router.get("/settings/:cat/:sett", isAuthenticated, async (req, res) => {
   }
 });
 
+router.get("/my-watchlist", isAuthenticated, (req, res) => {
+  res.render("my-watchlist", {
+    selected: "Ma Watchlist",
+    user: req.session.user,
+  });
+});
+
 router.get("/forgot-password", (req, res) => {
   res.render("forgot-password", { selected: "Mot de Passe Oublié" });
 });
