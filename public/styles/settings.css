@@ -1,12 +1,9 @@
-.text-sidebar{
-    text-align: start;
-}
-
 .all-container{
     display: flex;
 }
 
 .container{
+    position: sticky;
     margin-left: 10px;
     width: 15vw;
     height: 90vh;
@@ -27,6 +24,11 @@
     gap: 5px;
     padding: 5px;
     font-size: 1vw;
+    text-align: start;
+}
+
+.text-sidebar > .material-symbols-rounded{
+    font-size: 1.8vw;
 }
 
 .comment-sidebar{
@@ -126,7 +128,140 @@
     position: relative;
   }
 
-/* ---- AMIS ---- */
+/* ---- MODIFY PROFILE ---- */
 
 
+.profile{
+    background-color: #262626;
+    display: flex;
+    flex-direction: row;
+    color: white;
+    align-items: center;
+    height: 18vh;
+    width: 70vw;
+    border-radius: 25px;
+    justify-content: center;
+}
 
+.profile-info{
+    display: flex;
+    flex-direction: row;
+    width: 40%;
+    margin-left: 15px;
+    align-items: center;
+}
+
+.profile-text{
+    display: flex;
+    flex-direction: column;
+    margin-left: 20px;
+    height: 70%;
+}
+
+
+.profile-pic{
+    display: flex;
+    width: 40%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-pic > button{
+    border-radius: 25px;
+}
+
+.pp{
+    width: 100px;
+    height: 100px;
+    border-radius: 50px;
+}
+
+.custom-file-upload, button {
+    color: white;
+    background-color: #f7384a;
+    box-shadow: 0px 5px 10px 0px #f7384a;
+    transition: box-shadow 0.1s ease-in-out;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: inline-block;
+    border-color: transparent;
+}
+
+.custom-file-upload:hover, button:hover {
+    box-shadow: 0px 5px 10px 2.5px #f7384a;
+    cursor: pointer;
+    transition: box-shadow 0.1s ease-in-out;
+}
+
+.settings-bio{
+    display: flex;
+    width: 70vw;
+    height: 15vh;
+    resize: none;
+    border-radius: 15px;
+    margin-bottom: 10px;
+}
+
+#gender {
+    appearance: none;
+    cursor: pointer;
+    color: white;
+    font-weight: bolder;
+    background-color: #f7384a;
+    box-shadow: 0px 5px 10px -5px #f7384a;
+    border: none;
+    border-radius: 10px;
+    padding: 1rem;
+    transition: box-shadow 0.1s ease-in-out, background-color 0.3s ease-in,color 0.3s ease-in;
+}
+
+#gender:hover{
+    background-color: white;
+    color: #f7384a;
+    transition: box-shadow 0.1s ease-in-out, background-color 0.3s ease-in,color 0.3s ease-in;
+}
+
+#gender:focus {
+    border-color: #f7384a; 
+    box-shadow: 0 0 8px rgba(247, 56, 74, 0.6); 
+}
+  
+  #gender option {
+    padding: 10px;
+    background-color: #fff;
+    color: #333; /* Texte gris foncé */
+    border: none;
+    font-size: 16px;
+  }
+  
+  /* Style de l'option sélectionnée */
+  #gender option:checked {
+    background-color: #f7384a; /* Fond rouge */
+    color: #fff; /* Texte blanc */
+  }
+  
+  /* Flèche personnalisée pour le select */
+  #gender::-ms-expand {
+    display: none; /* Retirer la flèche par défaut sur Internet Explorer */
+  }
+  
+  #gender::before {
+    content: ' ▼'; /* Flèche vers le bas */
+    font-size: 16px;
+    color: #f7384a;
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+  }
+  
+  /* Style pour le container du select pour éviter que la flèche chevauche le texte */
+  #gender {
+    position: relative;
+  }
+
+  .div-container > #gender-title{
+    align-items: start;
+  }

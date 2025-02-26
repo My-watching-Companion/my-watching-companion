@@ -31,6 +31,20 @@ function isAuthenticated(req, res, next) {
   }
 }
 
+function ChangeSession(req,UserID,Username,UserProfilePicture,EmailAddress,FirstName,LastName,Confidentiality,Bio, Gender){
+  req.session.user = {
+    id: UserID,
+    username: Username,
+    avatar_url: UserProfilePicture,
+    email: EmailAddress,
+    firstname: FirstName,
+    lastname: LastName,
+    confidentiality: Confidentiality,
+    bio: Bio,
+    gender: Gender
+  };
+}
+
 async function CheckAge(username, age) {
   const query = await executeQuery(
     `SELECT UsersBirthDate, GETDATE() AS Today from Users WHERE Username = '${username}'`
@@ -101,15 +115,7 @@ router.post("/login/ok", async (req, res) => {
         CryptoJS.enc.Utf8
       )
     ) {
-      req.session.user = {
-        id: user.UserID,
-        username: user.Username,
-        id: user.UserID,
-        avatar_url: user.UserProfilePicture,
-        email: user.EmailAddress,
-        firstname: user.FirstName,
-        lastname: user.LastName,
-      };
+      ChangeSession(req,user.UserID,user.Username,user.UserProfilePicture,user.EmailAddress,user.FirstName,user.LastName,user.Confidentiality,user.Bio, user.Gender)
       req.session.cookie.expires = new Date(Date.now() + hour);
       req.session.cookie.maxAge = hour;
 
@@ -156,12 +162,14 @@ router.post("/register/ok", async (req, res) => {
     } else if (VerifLogin[0] !== undefined) {
       res.redirect("/signup"); ///+ {message: 'Pseudonyme déjà utilisé'})
     } else {
-      await executeQuery(
-        `INSERT INTO Users VALUES(GETDATE(), GETDATE(), '${Username}', '${LastName}', '${BirthDate}','${Mail}', 'Default', '${CryptoJS.AES.encrypt(
+      const userid = await executeQuery(
+        `INSERT INTO Users OUTPUT inserted.UserID VALUES(GETDATE(), GETDATE(), '${Username}', '${LastName}', '${BirthDate}','${Mail}', '\\UsersProfilePicture\\Default.png', '${CryptoJS.AES.encrypt(
           Password,
           CRYPTO_KEY
-        )}', '${FirstName}', 0, 0, 0, '${SecurityAnswer}','${SecurityQuestion}')`
-      );
+        )}', '${FirstName}', 0, 0, 0, '${SecurityAnswer}','${SecurityQuestion}')`);
+      const listid = await executeQuery("INSERT INTO List OUTPUT inserted.ListsID VALUES ('Ma Liste',GETDATE())")
+      console.log(listid)
+      await executeQuery(`INSERT INTO Ref_UsersList VALUES (${userid[0].UserID}, ${listid[0].ListsID})`);
       res.redirect("/signin"); ///+ {message: 'Utilisateur créé avec succès'})
     }
   } catch (e) {
@@ -179,8 +187,10 @@ router.get("/addfriends/:user/:friends", async (req, res) => {
     await executeQuery(
       `INSERT INTO Friend VALUES((SELECT UserID From Users where Username = '${friends}'), (SELECT UserID From Users where Username = '${user}'))`
     );
+    TraceLogs(req,res,`User ${req.session.user.username} has adding friend : ${friends}`)
     res.redirect("/discovery");
   } catch (e) {
+    TraceError(req,res,`An error has occured with : ${e}`)
     res.json({
       status: "KO",
       message: `Internal Server Error ${e}`,
@@ -194,8 +204,11 @@ router.get("/removefriends/:user/:friend", async (req, res) => {
   try {
     await executeQuery(`DELETE FROM Friend
                         WHERE UserID = (SELECT UserID from Users where Username = '${user}') AND FriendsUserID = (SELECT UserID from Users where Username = '${friend}')`);
+    
+    TraceLogs(req,res,`User ${req.session.user.username} has remove friend : ${friend}`)
     res.redirect("/discovery");
   } catch (e) {
+    TraceError(req,res,`An error has occured with : ${e}`)
     res.json({
       status: "KO",
       message: `Internal Server Error ${e}`,
@@ -203,13 +216,29 @@ router.get("/removefriends/:user/:friend", async (req, res) => {
   }
 });
 
+router.get('/modifybio/:newbio', isAuthenticated, async (req,res)=>{
+  const newbio = req.params["newbio"]
+  try{
+    await executeQuery(`UPDATE Users SET Bio = '${newbio}' WHERE Username = '${req.session.user.username}'`)
+    TraceLogs(req,res,`User ${req.session.user.username} changed his bio`)
+    ChangeSession(req, req.session.user.id, req.session.user.username, req.session.user.avatar_url, req.session.user.email, req.session.user.firstname, req.session.user.lastname, req.session.user.confidentiality, newbio, req.session.user.gender)
+    res.redirect("/settings/profile/modifyprofile")
+  }
+  catch(e){
+    TraceError(req,res,`An error occured when attempted to changed bio : ${e}`)
+    res.json({
+      status: "KO",
+      message: `Internal Server Error ${e}`,
+    })
+  }
+})
+
 router.post(
   "/changePP",
   uploads.single("file"),
   isAuthenticated,
   async (req, res) => {
     try {
-      console.log(req.file);
       if (!req.file) {
         return res.send("Aucun fichier sélectionné.");
       }
@@ -221,13 +250,11 @@ router.post(
       await executeQuery(
         `UPDATE Users SET UserProfilePicture = '${filePath}' WHERE UserID = ${req.session.user.id}`
       );
-      console.log("Download Completed");
+      TraceLogs(req, res, `User ${req.session.user.username} successfully change his profile picture`);
 
-      res.json({
-        status: "OK",
-        message: "Profile Picture of user was modified with success",
-      });
+      res.redirect("/settings/profile/modifyprofile")
     } catch (e) {
+      TraceError(req,res,`KO by user ${req.session.user.username} : ${e}`)
       res.json({
         status: "KO",
         message: `Internal Server Error ${e}`,
@@ -236,15 +263,36 @@ router.post(
   }
 );
 
+router.get("/modifygender/:gender",isAuthenticated, async (req,res)=>{
+  let gender = req.params["gender"]
+  gender = (gender === "men" ? 0 : 1)
+  try{
+    await executeQuery(`UPDATE Users SET Gender = ${gender} WHERE UserID = ${req.session.user.id}`)
+    ChangeSession(req, req.session.user.id, req.session.user.username, req.session.user.avatar_url, req.session.user.email, req.session.user.firstname, req.session.user.lastname, req.session.user.confidentiality, req.session.user.bio, gender)
+    TraceLogs(req, res, `User ${req.session.user.username} successfully change his gender`);
+    res.redirect("/settings/profile/modifyprofile")
+  }
+  catch(e){
+    TraceError(req,res,`KO by user ${req.session.user.username} : ${e}`)
+      res.json({
+        status: "KO",
+        message: `Internal Server Error ${e}`,
+      });
+  }
+})
+
 //! Route API pour chercher des choses
 
 router.get("/getuserswithoutfriends/:user", async (req, res) => {
   try {
     const user = req.params["user"];
     const query = await executeQuery(`
-      SELECT U.UserID, U.Username, U.FirstName, U.LastName, U.CreationDate, U.UpdatedDate, U.UsersBirthDate, U.UserProfilePicture  from Users U
-	    WHERE U.UserID NOT IN (SELECT FriendsUserID FROM Friend where UserID = 
-							(SELECT UserID from Users WHERE Username = '${user}'))
+      SELECT U.UserID, U.Username, U.FirstName, U.LastName, U.CreationDate, U.UpdatedDate, U.UsersBirthDate, U.UserProfilePicture from Users U
+      WHERE Username not in (
+      SELECT U.Username from Friend F 
+      INNER JOIN Users U ON U.UserID = FriendsUserID
+      where F.UserID = (SELECT UserID FROM Users where Username = '${user}'))
+      AND U.Username != '${user}'
       `);
 
     res.json({
@@ -292,6 +340,7 @@ router.get("/users/:u", async (req, res) => {
       });
     }
   } catch (e) {
+    TraceError(req,res,`An error occured ${e}`)
     res.json({
       status: "KO",
       message: `Internal server error : ${e}`,
@@ -307,7 +356,7 @@ router.get("/users/:u/watchlists", async (req, res) => {
       from Users U
         INNER JOIN Ref_UsersList RULi ON U.UserID = RULi.UserID 
         LEFT JOIN List L ON RULi.ListsID = L.ListsID
-        WHERE U.Username = '${SearchUser}'`
+        WHERE U.Username = '${SearchUser}' AND U.Confidentiality != 1`
     );
     if (query.length === 0) {
       return res.json({
@@ -324,6 +373,7 @@ router.get("/users/:u/watchlists", async (req, res) => {
       })),
     });
   } catch (e) {
+    TraceError(req,res,`An error occured ${e}`)
     res.json({
       status: "KO",
       message: `Internal server error : ${e}`,
@@ -364,12 +414,30 @@ router.get("/users/:u/watchlists/:w", async (req, res) => {
       },
     });
   } catch (e) {
+    TraceError(req,res,`An error occured ${e}`)
     res.json({
       status: "KO",
       message: `Internal server error : ${e}`,
     });
   }
 });
+
+router.get("/getconfidentiality/:user", async (req,res)=>{
+  const user = req.params["user"];
+  try{
+    const query = await executeQuery(`SELECT Confidentiality FROM Users where Username = '${user}'`)
+    res.json({
+      confidentiality: query[0]
+    })
+  }
+  catch{
+    TraceError(req,res,`An error occured ${e}`)
+    res.json({
+      status: "KO",
+      message: `Internal Server Error ${e}`,
+    });
+  }
+})
 
 router.get("/artwork/:a/creator", async (req, res) => {
   const SearchArtwork = req.params["a"];
@@ -387,6 +455,7 @@ router.get("/artwork/:a/creator", async (req, res) => {
       })),
     });
   } catch (e) {
+    TraceError(req,res,`An error occured ${e}`)
     res.json({
       status: "KO",
       message: `Internal Server Error ${e}`,
@@ -406,6 +475,7 @@ router.get("/getallnature", async (req, res) => {
       })),
     });
   } catch (e) {
+    TraceError(req,res,`An error occured ${e}`)
     res.json({
       status: "KO",
       message: `Internal Server Error ${e}`,
@@ -436,11 +506,15 @@ router.get(
       await executeQuery(`UPDATE Users
                           SET Confidentiality = '${nbconf}'
                           WHERE Username = '${user}'`);
+      
+      TraceLogs(req,res,`User ${req.session.user.username} has modify his confidentiality`)
+      ChangeSession(req,req.session.user.id,req.session.user.username,req.session.user.avatar_url,req.session.user.email,req.session.user.firstname,req.session.user.lastname, nbconf,req.session.user.bio, req.session.user.gender)
       res.json({
         status: "OK",
         message: "Query executed with successed",
       });
     } catch (e) {
+      TraceError(req,res,`An error occured ${e}`)
       res.json({
         status: "KO",
         message: `Internal Server Error ${e}`,
@@ -467,6 +541,7 @@ router.get("/friends/:user", async (req, res) => {
       })),
     });
   } catch (e) {
+    TraceError(req,res,`An error occured ${e}`)
     res.json({
       status: "KO",
       message: `Internal Server Error ${e}`,
@@ -485,6 +560,7 @@ router.get("/securityquestions", async (req, res) => {
 
     return res.json({ questions });
   } catch (e) {
+    TraceError(req,res,`An error occured ${e}`)
     return res.json({ error: `Internal server error : ${e}` });
   }
 });

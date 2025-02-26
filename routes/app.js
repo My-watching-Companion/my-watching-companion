@@ -31,12 +31,12 @@ router.get("/settings/:cat/:sett", isAuthenticated, async (req, res) => {
   let nature = null;
   if (categories !== undefined && page !== undefined) {
     if (categories === "profile" && page === "modifyprofile") {
-    } else if (categories === "confidentiality" && page === "friends") {
     } else if (categories === "watchlists" && page === "preferences") {
       nature = await fetch("http://localhost:3000/api/getallnature").then(
         (resp) => resp.json()
       );
     }
+    console.log(req.session.user)
     res.render("settings", {
       selected: "Paramètres",
       choice: `${categories}/${page}`,
@@ -82,7 +82,6 @@ router.get("/discovery", isAuthenticated, async (req, res) => {
       }
     }
   }
-
   res.render("discover", {
     selected: "Découverte",
     friends: friends,
