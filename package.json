@@ -1,22 +1,12 @@
 {
   "name": "my-watching-companion",
   "version": "1.0.0",
-  "description": "A Watchlist project including books, movies, tv series, mangas and animes.",
+  "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node .",
-    "dev": "node --watch ."
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "semanavasco, guillaume-4, baptistefaouen",
-  "license": "ISC",
-  "dependencies": {
-    "crypto-js": "^4.2.0",
-    "dotenv": "^16.4.5",
-    "download": "^8.0.0",
-    "ejs": "^3.1.10",
-    "express": "^4.21.1",
-    "express-session": "^1.18.1",
-    "mssql": "^11.0.1",
-    "multer": "^1.4.5-lts.1"
-  }
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }

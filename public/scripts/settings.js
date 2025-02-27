@@ -46,3 +46,21 @@ function SeeAddFriends() {
         enabled = false;
     }
 }
+
+async function GetUserConfidentiality(user) {
+  const response = await fetch(`http://localhost:3000/api/getconfidentiality/${user}`).then((resp)=>resp.json())
+  return response.confidentiality
+  
+}
+
+function ModifyBio(){
+  const newbio = document.getElementById('bio').value
+  fetch(`http://localhost:3000/api/modifybio`, {headers:{"Content-Type": "application/json",}, body: JSON.stringify({newbio}), method: 'POST'})
+  alert("La Bio a été changé avec Succès")
+}
+
+function ModifyGender(){
+  const newgender = document.getElementById('gender').value
+  fetch(`http://localhost:3000/api/modifygender/${newgender}`)
+  alert("Le Genre a été changé avec Succès")
+}
