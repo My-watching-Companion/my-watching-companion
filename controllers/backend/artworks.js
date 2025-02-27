@@ -1,5 +1,6 @@
 const { executeQuery } = require("../../db");
 const { TMDB_API_KEY } = require("../../config");
+const { TraceError } = require("../functions");
 
 exports.getCreatorOfArtwork = async (req, res) => {
   const SearchArtwork = req.params["a"];
@@ -59,11 +60,9 @@ exports.getUsersArtworks = async (req, res) => {
                             LEFT JOIN Artwork A ON A.ArtworkID = RLA.ArtworkID
                             WHERE U.UserID = ${user.id}`);
 
-    res.status(200);
-    return res.json(query);
+    res.status(200).json(query);
   } catch (error) {
-    res.status(400);
-    return res.json({
+    res.status(400).json({
       error:
         "Une erreur est survenue lors de la récupération des titres de l'utilisateur.",
     });
@@ -112,8 +111,7 @@ exports.searchArtworks = async (req, res) => {
       return movie;
     });
 
-    res.status(200);
-    return res.json(movies);
+    res.status(200).json(movies);
   } catch (error) {
     res.status(400);
     return res.json({

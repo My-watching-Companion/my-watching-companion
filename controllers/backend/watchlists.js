@@ -86,11 +86,9 @@ exports.getUsersLists = async (req, res) => {
                             LEFT JOIN List L ON RUL.ListsID = L.ListsID 
                             WHERE U.UserID = ${user.id}`);
 
-    res.status(200);
-    return res.json(query);
+    res.status(200).json(query);
   } catch (error) {
-    res.status(400);
-    return res.json({
+    res.status(400).json({
       error: "Une erreur est survenue lors de la récupération des listes.",
     });
   }
@@ -109,12 +107,10 @@ exports.addArtworkToList = async (req, res) => {
       });
     }
 
-    if (!lists || lists.length === 0) {
-      res.status(400);
-      return res.json({
+    if (!lists || lists.length === 0)
+      return res.status(400).json({
         error: "Veuillez sélectionner au moins une liste.",
       });
-    }
 
     // Check if the artwork is already in the database
     const artworkAPILink = `https://api.themoviedb.org/3/movie/${artwork.id}`;
@@ -132,13 +128,11 @@ exports.addArtworkToList = async (req, res) => {
           )`
       );
 
-    res.status(200);
-    return res.json({
+    res.status(200).json({
       success: "Le titre a été ajouté à la/aux liste(s) avec succès.",
     });
   } catch (error) {
-    res.status(400);
-    return res.json({
+    res.status(400).json({
       error: "Une erreur est survenue lors de la recherche.",
     });
   }
