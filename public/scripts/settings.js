@@ -55,7 +55,7 @@ async function GetUserConfidentiality(user) {
 
 function ModifyBio(){
   const newbio = document.getElementById('bio').value
-  fetch(`http://localhost:3000/api/modifybio/${newbio}`)
+  fetch(`http://localhost:3000/api/modifybio`, {headers:{"Content-Type": "application/json",}, body: JSON.stringify({newbio}), method: 'POST'})
   alert("La Bio a été changé avec Succès")
 }
 

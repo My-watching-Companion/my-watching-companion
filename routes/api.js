@@ -3,12 +3,57 @@ const { executeQuery } = require("../db");
 const CryptoJS = require("crypto-js");
 const session = require("express-session");
 const { CRYPTO_KEY, TMDB_API_KEY } = require("../config");
-const download = require("download");
 const path = require("path");
 const multer = require("multer");
-var hour = 1000 * 60 * 20;
+
+const {
+  isAuthenticated,
+  ChangeSession,
+  CheckAge,
+  GetUser,
+  TraceLogs,
+  TraceError,
+} = require("../controllers/functions");
 
 const express = require("express");
+const {
+  loginOK,
+  registerOK,
+  modifyBio,
+  changePP,
+  changeGender,
+  getUsersByUsername,
+  getConfidentialityByUsername,
+  changeConfidentialityUser,
+} = require("../controllers/backend/users");
+
+const {
+  addFriends,
+  removeFriends,
+  getUsersWithoutFriends,
+  getFriendsByUser,
+} = require("../controllers/backend/friends");
+
+const {
+  getWatchlistsByUsername,
+  getWatchlistByUsernameAndListname,
+  getUsersLists,
+  addArtworkToList,
+} = require("../controllers/backend/watchlists");
+
+const {
+  getCreatorOfArtwork,
+  getAllNatures,
+  getUsersArtworks,
+  searchArtworks,
+} = require("../controllers/backend/artworks");
+
+const {
+  getSecurityQuestions,
+  getAllSecurityQuestions,
+  checkSecurityAnswer,
+} = require("../controllers/backend/security");
+
 router.use(express.json());
 router.use(express.static("uploads"));
 
@@ -23,600 +68,47 @@ const storage = multer.diskStorage({
 
 const uploads = multer({ storage: storage });
 
-function isAuthenticated(req, res, next) {
-  if (req.session.user) {
-    return next();
-  } else {
-    res.redirect("/signin");
-  }
-}
-
-function ChangeSession(req,UserID,Username,UserProfilePicture,EmailAddress,FirstName,LastName,Confidentiality,Bio, Gender){
-  req.session.user = {
-    id: UserID,
-    username: Username,
-    avatar_url: UserProfilePicture,
-    email: EmailAddress,
-    firstname: FirstName,
-    lastname: LastName,
-    confidentiality: Confidentiality,
-    bio: Bio,
-    gender: Gender
-  };
-}
-
-async function CheckAge(username, age) {
-  const query = await executeQuery(
-    `SELECT UsersBirthDate, GETDATE() AS Today from Users WHERE Username = '${username}'`
-  );
-  const Today = formatDate(query[0].Today);
-  const UserBirthDate = formatDate(query[0].UsersBirthDate);
-
-  return Today - UserBirthDate >
-    Today -
-      formatDate(
-        `${Today.getFullYear() - age}-${Today.getMonth()}-${Today.getDay()}`
-      )
-    ? true
-    : false;
-}
-
-async function GetUser(req, res, next) {
-  if (req.session.user) {
-    const user = await executeQuery(
-      `SELECT U.LastName, U.FirstName, U.Username, U.EmailAddress, U.UserProfilePicture from Users
-      where Username = '${req.session.user.username}'`
-    );
-    return next({ user });
-  } else {
-    return next({ user: undefined });
-  }
-}
-
-async function TraceLogs(req, res, message) {
-  await executeQuery(
-    `INSERT INTO TraceLogs VALUES (GETDATE(), (SELECT UserID FROM Users where Username = '${req.session.user.username}'), '${message}', 0)`
-  );
-}
-
-async function TraceError(req, res, message) {
-  await executeQuery(
-    `INSERT INTO TraceLogs VALUES (GETDATE(), (SELECT UserID FROM Users where Username = '${req.session.user.username}'), '${message}', 1)`
-  );
-}
-
-function formatDate(dateString) {
-  const date = new Date(dateString);
-
-  // Récupération du jour, mois, et année
-  const day = String(date.getDate()).padStart(2, "0"); // JJ
-  const month = String(date.getMonth() + 1).padStart(2, "0"); // MM (mois commence à 0, donc +1)
-  const year = date.getFullYear(); // AAAA
-
-  // Format JJ-MM-AAAA
-  return new Date(year, month, day);
-}
-
 //! Route API pour Insérer / modifier en base
 
-router.post("/login/ok", async (req, res) => {
-  const Username = req.body.username;
-  const Password = req.body.password;
-  try {
-    const query = await executeQuery(
-      `SELECT * from Users where Username = '${Username}'`
-    );
+router.post("/login/ok", loginOK);
 
-    const user = query[0];
+router.post("/register/ok", registerOK);
 
-    if (
-      Password ===
-      CryptoJS.AES.decrypt(user.Password, CRYPTO_KEY).toString(
-        CryptoJS.enc.Utf8
-      )
-    ) {
-      ChangeSession(req,user.UserID,user.Username,user.UserProfilePicture,user.EmailAddress,user.FirstName,user.LastName,user.Confidentiality,user.Bio, user.Gender)
-      req.session.cookie.expires = new Date(Date.now() + hour);
-      req.session.cookie.maxAge = hour;
+router.get("/addfriends/:user/:friends", addFriends);
 
-      TraceLogs(req, res, `User ${Username} successfully login`);
+router.get("/removefriends/:user/:friend", removeFriends);
 
-      res.redirect("/");
-    } else {
-      TraceError(req, res, `Users use wrong password`);
+router.post("/modifybio", isAuthenticated, modifyBio);
 
-      res.json({
-        status: "ERROR",
-        message: "Mot de passe incorrect",
-      });
-    }
-  } catch (e) {
-    TraceError(req, res, `Internal Server Error ${e}`);
+router.post("/changePP", uploads.single("file"), isAuthenticated, changePP);
 
-    res.json({
-      status: "KO",
-      message: `Internal Server Error ${e}`,
-    });
-  }
-});
-
-router.post("/register/ok", async (req, res) => {
-  const LastName = req.body.lastname;
-  const FirstName = req.body.firstname;
-  const BirthDate = req.body.birthdate;
-  const Mail = req.body.email;
-  const Username = req.body.username;
-  const Password = req.body.password;
-  const SecurityQuestion = req.body.question;
-  const SecurityAnswer = req.body.answer;
-
-  try {
-    const VerifMail = await executeQuery(
-      `SELECT EmailAddress from Users where FirstName = '${FirstName}' and LastName = '${LastName}'`
-    );
-    const VerifLogin = await executeQuery(
-      `SELECT Username FROM Users WHERE Username = '${Username}'`
-    );
-    if (VerifMail[0] !== undefined) {
-      res.redirect("/signup"); ///+ {message: "L'email est déjà utilisé pour un compte"})
-    } else if (VerifLogin[0] !== undefined) {
-      res.redirect("/signup"); ///+ {message: 'Pseudonyme déjà utilisé'})
-    } else {
-      const userid = await executeQuery(
-        `INSERT INTO Users OUTPUT inserted.UserID VALUES(GETDATE(), GETDATE(), '${Username}', '${LastName}', '${BirthDate}','${Mail}', '\\UsersProfilePicture\\Default.png', '${CryptoJS.AES.encrypt(
-          Password,
-          CRYPTO_KEY
-        )}', '${FirstName}', 0, 0, 0, '${SecurityAnswer}','${SecurityQuestion}')`);
-      const listid = await executeQuery("INSERT INTO List OUTPUT inserted.ListsID VALUES ('Ma Liste',GETDATE())")
-      console.log(listid)
-      await executeQuery(`INSERT INTO Ref_UsersList VALUES (${userid[0].UserID}, ${listid[0].ListsID})`);
-      res.redirect("/signin"); ///+ {message: 'Utilisateur créé avec succès'})
-    }
-  } catch (e) {
-    res.json({
-      status: "KO",
-      message: `Internal Server Error ${e}`,
-    });
-  }
-});
-
-router.get("/addfriends/:user/:friends", async (req, res) => {
-  const user = req.params["user"];
-  const friends = req.params["friends"];
-  try {
-    await executeQuery(
-      `INSERT INTO Friend VALUES((SELECT UserID From Users where Username = '${friends}'), (SELECT UserID From Users where Username = '${user}'))`
-    );
-    TraceLogs(req,res,`User ${req.session.user.username} has adding friend : ${friends}`)
-    res.redirect("/discovery");
-  } catch (e) {
-    TraceError(req,res,`An error has occured with : ${e}`)
-    res.json({
-      status: "KO",
-      message: `Internal Server Error ${e}`,
-    });
-  }
-});
-
-router.get("/removefriends/:user/:friend", async (req, res) => {
-  const user = req.params["user"];
-  const friend = req.params["friend"];
-  try {
-    await executeQuery(`DELETE FROM Friend
-                        WHERE UserID = (SELECT UserID from Users where Username = '${user}') AND FriendsUserID = (SELECT UserID from Users where Username = '${friend}')`);
-    
-    TraceLogs(req,res,`User ${req.session.user.username} has remove friend : ${friend}`)
-    res.redirect("/discovery");
-  } catch (e) {
-    TraceError(req,res,`An error has occured with : ${e}`)
-    res.json({
-      status: "KO",
-      message: `Internal Server Error ${e}`,
-    });
-  }
-});
-
-router.get('/modifybio/:newbio', isAuthenticated, async (req,res)=>{
-  const newbio = req.params["newbio"]
-  try{
-    await executeQuery(`UPDATE Users SET Bio = '${newbio}' WHERE Username = '${req.session.user.username}'`)
-    TraceLogs(req,res,`User ${req.session.user.username} changed his bio`)
-    ChangeSession(req, req.session.user.id, req.session.user.username, req.session.user.avatar_url, req.session.user.email, req.session.user.firstname, req.session.user.lastname, req.session.user.confidentiality, newbio, req.session.user.gender)
-    res.redirect("/settings/profile/modifyprofile")
-  }
-  catch(e){
-    TraceError(req,res,`An error occured when attempted to changed bio : ${e}`)
-    res.json({
-      status: "KO",
-      message: `Internal Server Error ${e}`,
-    })
-  }
-})
-
-router.post(
-  "/changePP",
-  uploads.single("file"),
-  isAuthenticated,
-  async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.send("Aucun fichier sélectionné.");
-      }
-
-      const filePath = path.join(
-        "/UsersProfilePicture/",
-        req.session.user.id + ".png"
-      );
-      await executeQuery(
-        `UPDATE Users SET UserProfilePicture = '${filePath}' WHERE UserID = ${req.session.user.id}`
-      );
-      TraceLogs(req, res, `User ${req.session.user.username} successfully change his profile picture`);
-
-      res.redirect("/settings/profile/modifyprofile")
-    } catch (e) {
-      TraceError(req,res,`KO by user ${req.session.user.username} : ${e}`)
-      res.json({
-        status: "KO",
-        message: `Internal Server Error ${e}`,
-      });
-    }
-  }
-);
-
-router.get("/modifygender/:gender",isAuthenticated, async (req,res)=>{
-  let gender = req.params["gender"]
-  gender = (gender === "men" ? 0 : 1)
-  try{
-    await executeQuery(`UPDATE Users SET Gender = ${gender} WHERE UserID = ${req.session.user.id}`)
-    ChangeSession(req, req.session.user.id, req.session.user.username, req.session.user.avatar_url, req.session.user.email, req.session.user.firstname, req.session.user.lastname, req.session.user.confidentiality, req.session.user.bio, gender)
-    TraceLogs(req, res, `User ${req.session.user.username} successfully change his gender`);
-    res.redirect("/settings/profile/modifyprofile")
-  }
-  catch(e){
-    TraceError(req,res,`KO by user ${req.session.user.username} : ${e}`)
-      res.json({
-        status: "KO",
-        message: `Internal Server Error ${e}`,
-      });
-  }
-})
+router.get("/modifygender/:gender", isAuthenticated, changeGender);
 
 //! Route API pour chercher des choses
 
-router.get("/getuserswithoutfriends/:user", async (req, res) => {
-  try {
-    const user = req.params["user"];
-    const query = await executeQuery(`
-      SELECT U.UserID, U.Username, U.FirstName, U.LastName, U.CreationDate, U.UpdatedDate, U.UsersBirthDate, U.UserProfilePicture from Users U
-      WHERE Username not in (
-      SELECT U.Username from Friend F 
-      INNER JOIN Users U ON U.UserID = FriendsUserID
-      where F.UserID = (SELECT UserID FROM Users where Username = '${user}'))
-      AND U.Username != '${user}'
-      `);
+router.get("/getuserswithoutfriends/:user", getUsersWithoutFriends);
 
-    res.json({
-      Users: query.map((element) => ({
-        UserID: `${element.UserID}`,
-        Username: `${element.Username}`,
-        FirstName: `${element.FirstName}`,
-        LastName: `${element.LastName}`,
-        CreationDate: `${formatDate(element.CreationDate)}`,
-        UpdatedDate: `${formatDate(element.UpdatedDate)}`,
-        BirthDate: `${formatDate(element.UsersBirthDate)}`,
-        ProfilePicture: element.UserProfilePicture,
-      })),
-    });
-  } catch (e) {
-    res.json({
-      status: "KO",
-      message: `Internal Server Error ${e}`,
-    });
-  }
-});
+router.get("/users/:u", getUsersByUsername);
 
-router.get("/users/:u", async (req, res) => {
-  const SearchUser = req.params["u"];
-  try {
-    const query = await executeQuery(
-      `SELECT U.UserID, U.FirstName, U.LastName, U.CreationDate, U.UpdatedDate, U.UsersBirthDate, U.RoleID, U.UserProfilePicture from Users U
-      where Username = '${SearchUser}'`
-    );
-    if (query.length === 0) {
-      res.json({
-        status: "ERROR",
-        message: "User dosn't exists",
-      });
-    } else {
-      res.json({
-        UserID: `${query[0].UserID}`,
-        FirstName: `${query[0].FirstName}`,
-        LastName: `${query[0].LastName}`,
-        CreationDate: `${formatDate(query[0].CreationDate)}`,
-        UpdatedDate: `${formatDate(query[0].UpdatedDate)}`,
-        BirthDate: `${formatDate(query[0].UsersBirthDate)}`,
-        ProfilePicture: query[0].UserProfilePicture,
-        Role: `${query[0].RoleID === 1 ? "Admin" : "User"}`,
-      });
-    }
-  } catch (e) {
-    TraceError(req,res,`An error occured ${e}`)
-    res.json({
-      status: "KO",
-      message: `Internal server error : ${e}`,
-    });
-  }
-});
+router.get("/users/:u/watchlists", getWatchlistsByUsername);
 
-router.get("/users/:u/watchlists", async (req, res) => {
-  const SearchUser = req.params["u"];
-  try {
-    const query = await executeQuery(
-      `SELECT U.UserID, L.ListsID, L.ListsName, U.UpdatedDate
-      from Users U
-        INNER JOIN Ref_UsersList RULi ON U.UserID = RULi.UserID 
-        LEFT JOIN List L ON RULi.ListsID = L.ListsID
-        WHERE U.Username = '${SearchUser}' AND U.Confidentiality != 1`
-    );
-    if (query.length === 0) {
-      return res.json({
-        Watchlist: null,
-      });
-    }
-    res.json({
-      User: { UserID: query[0].UserID, UserURL: `/api/users/${SearchUser}` },
-      Watchlist: query.map((element) => ({
-        ListsID: element.ListsID,
-        ListName: element.ListsName,
-        Updated: element.UpdatedDate,
-        ListURL: `/api/${SearchUser}/watchlists/${element.ListsName}`,
-      })),
-    });
-  } catch (e) {
-    TraceError(req,res,`An error occured ${e}`)
-    res.json({
-      status: "KO",
-      message: `Internal server error : ${e}`,
-    });
-  }
-});
+router.get("/users/:u/watchlists/:w", getWatchlistByUsernameAndListname);
 
-router.get("/users/:u/watchlists/:w", async (req, res) => {
-  const SearchUser = req.params["u"];
-  const SearchList = req.params["w"];
-  try {
-    const query =
-      await executeQuery(`SELECT U.UserID, U.ListsID, U.ListsName, U.UpdatedDate, A.ArtworkID, A.ArtworkName, RN.NatureLabel, RT.TypeName 
-                                      from Users U 
-                                      LEFT JOIN Ref_UsersLists RUL ON U.UserID = RUL.UserID 
-                                      LEFT JOIN List U ON RUL.ListsID = U.ListsID 
-                                      LEFT JOIN Ref_ListArtwork RULA ON RULA.ListsID = U.ListsID
-                                      LEFT JOIN Artwork A ON A.ArtworkID = RULA.ArtworkID
-                                      LEFT JOIN Ref_ArtworkType RAT ON RAT.ArtworkID = A.ArtworkID
-                                      LEFT JOIN Ref_ArtworkNature RAN ON RAN.ArtworkID = A.ArtworkID
-                                      LEFT JOIN Ref_ArtworkCreator RAC ON RAC.ArtworkID = A.ArtworkID
-                                      LEFT JOIN Ref_Creator RC ON RC.CreatorID = RAC.CreatorID
-                                      WHERE U.Username = '${SearchUser}' AND U.ListsName = '${SearchList}'`);
+router.get("/getconfidentiality/:user", getConfidentialityByUsername);
 
-    res.json({
-      User: { UserID: query[0].UserID, UserURL: `/api/users/${SearchUser}` },
-      WatchListInfo: {
-        ListsID: element.ListsID,
-        ListName: element.ListsName,
-        Updated: element.UpdatedDate,
-        Artwork: query[0].map((element) => ({
-          ArtworkID: element.ArtworkID,
-          ArtworkName: element.ArtworkName,
-          ArtworkNature: element.NatureLabel,
-          ArtworkType: element.Ref_ArtworkType,
-          ArtworkCreatorURL: `/api/artwork/${element.ArtworkName}/creator`,
-        })),
-      },
-    });
-  } catch (e) {
-    TraceError(req,res,`An error occured ${e}`)
-    res.json({
-      status: "KO",
-      message: `Internal server error : ${e}`,
-    });
-  }
-});
+router.get("/artwork/:a/creator", getCreatorOfArtwork);
 
-router.get("/getconfidentiality/:user", async (req,res)=>{
-  const user = req.params["user"];
-  try{
-    const query = await executeQuery(`SELECT Confidentiality FROM Users where Username = '${user}'`)
-    res.json({
-      confidentiality: query[0]
-    })
-  }
-  catch{
-    TraceError(req,res,`An error occured ${e}`)
-    res.json({
-      status: "KO",
-      message: `Internal Server Error ${e}`,
-    });
-  }
-})
+router.get("/modifyconfidentiality/:conf/:user",isAuthenticated,changeConfidentialityUser);
 
-router.get("/artwork/:a/creator", async (req, res) => {
-  const SearchArtwork = req.params["a"];
-  try {
-    const query =
-      await executeQuery(`SELECT RAC.CreatorID, RC.CreatorName from Artowrk
-                                      LEFT JOIN Ref_ArtworkCreator RAC ON RAC.ArtworkID = A.ArtworkID
-                                      LEFT JOIN Ref_Creator RC ON RC.CreatorID = RAC.CreatorID
-                                      WHERE A.ArtworkName = '${SearchArtwork}'`);
-    res.json({
-      ArtworkName: SearchArtwork,
-      ArtworkCreator: query[0].map((creator) => ({
-        CreatorID: creator.CreatorID,
-        CreatorName: creator.CreatorName,
-      })),
-    });
-  } catch (e) {
-    TraceError(req,res,`An error occured ${e}`)
-    res.json({
-      status: "KO",
-      message: `Internal Server Error ${e}`,
-    });
-  }
-});
+router.get("/friends/:user", getFriendsByUser);
 
-router.get("/getallnature", async (req, res) => {
-  try {
-    const query = await executeQuery(
-      `SELECT * from Ref_Nature order by NatureID`
-    );
-    res.json({
-      Nature: query.map((element) => ({
-        NatureID: element.NatureID,
-        NatureLabel: element.NatureLabel,
-      })),
-    });
-  } catch (e) {
-    TraceError(req,res,`An error occured ${e}`)
-    res.json({
-      status: "KO",
-      message: `Internal Server Error ${e}`,
-    });
-  }
-});
+router.get("/securityquestions", getAllSecurityQuestions);
 
-router.get(
-  "/modifyconfidentiality/:conf/:user",
-  isAuthenticated,
-  async (req, res) => {
-    const conf = req.params["conf"];
-    const user = req.params["user"];
-    let nbconf = 0;
-    try {
-      if (conf === "public") {
-        nbconf = 0;
-      } else if (conf === "private") {
-        nbconf = 1;
-      } else if (conf === "friends") {
-        nbconf = 2;
-      } else {
-        res.json({
-          status: "ERROR",
-          message: `Confidentiality dosn't exist`,
-        });
-      }
-      await executeQuery(`UPDATE Users
-                          SET Confidentiality = '${nbconf}'
-                          WHERE Username = '${user}'`);
-      
-      TraceLogs(req,res,`User ${req.session.user.username} has modify his confidentiality`)
-      ChangeSession(req,req.session.user.id,req.session.user.username,req.session.user.avatar_url,req.session.user.email,req.session.user.firstname,req.session.user.lastname, nbconf,req.session.user.bio, req.session.user.gender)
-      res.json({
-        status: "OK",
-        message: "Query executed with successed",
-      });
-    } catch (e) {
-      TraceError(req,res,`An error occured ${e}`)
-      res.json({
-        status: "KO",
-        message: `Internal Server Error ${e}`,
-      });
-    }
-  }
-);
+router.get("/getallnature", getAllNatures);
 
-router.get("/friends/:user", async (req, res) => {
-  const user = req.params["user"];
-  try {
-    const friendslist =
-      await executeQuery(`SELECT RF.FriendsUserID, U.Username, U.FirstName, U.LastName, U.UserProfilePicture, U.Confidentiality from Friend RF
-                                            INNER JOIN Users U ON RF.FriendsUserID = U.UserID
-                                            WHERE RF.UserID = (SELECT UserID from Users where Username = '${user}')`);
-    res.json({
-      Friends: friendslist.map((element) => ({
-        UserID: element.FriendsUserID,
-        Username: element.Username,
-        FirstName: element.FirstName,
-        LastName: element.LastName,
-        UserProfilePicture: element.UserProfilePicture,
-        Confidentiality: element.Confidentiality,
-      })),
-    });
-  } catch (e) {
-    TraceError(req,res,`An error occured ${e}`)
-    res.json({
-      status: "KO",
-      message: `Internal Server Error ${e}`,
-    });
-  }
-});
+router.post("/getsecurityquestion", getSecurityQuestions);
 
-router.get("/securityquestions", async (req, res) => {
-  try {
-    const query = await executeQuery(`SELECT * FROM SecurityQuestion`);
-
-    const questions = query.map((question) => ({
-      SecurityQuestionID: question.SecurityQuestionID,
-      SecurityQuestion: question.Question,
-    }));
-
-    return res.json({ questions });
-  } catch (e) {
-    TraceError(req,res,`An error occured ${e}`)
-    return res.json({ error: `Internal server error : ${e}` });
-  }
-});
-
-router.post("/getsecurityquestion", async (req, res) => {
-  if (!req.body.email)
-    return res.json({ error: "Veuillez entrer une adresse email valide." });
-
-  const email = req.body.email;
-
-  try {
-    const query = await executeQuery(
-      `SELECT U.SecurityQuestionID, SQ.Question as SecurityQuestion from Users AS U INNER JOIN SecurityQuestions AS SQ ON U.SecurityQuestionID = SQ.SecurityQuestionID WHERE U.EmailAddress = '${email}'`
-    );
-
-    if (query.length === 0)
-      return res.json({
-        error: "Aucun compte n'est associé à cette adresse email.",
-      });
-
-    return res.json({ securityQuestion: query[0].SecurityQuestion });
-  } catch (e) {
-    return res.json({
-      error:
-        "Une erreur est survenue lors de la vérification de votre adresse email.",
-    });
-  }
-});
-
-router.post("/checksecurityanswer", async (req, res) => {
-  if (!req.body.email || !req.body.response)
-    return res.json({ error: "Veuillez remplir tous les champs." });
-
-  const email = req.body.email;
-  const response = req.body.response;
-
-  try {
-    const query = await executeQuery(
-      `SELECT SecurityQuestionAnswer from Users WHERE EmailAddress = '${email}'`
-    );
-
-    if (query.length === 0)
-      return res.json({
-        error: "Aucun compte n'est associé à cette adresse email.",
-      });
-
-    if (query[0].SecurityQuestionAnswer !== response)
-      return res.json({ error: "La réponse est incorrecte." });
-
-    return res.json({ success: true });
-  } catch (e) {
-    return res.json({
-      error: "Une erreur est survenue lors de la vérification de la réponse.",
-    });
-  }
-});
+router.post("/checksecurityanswer", checkSecurityAnswer);
 
 router.post(
   "/changepassword",
@@ -671,159 +163,12 @@ router.post(
   }
 );
 
-router.get("/getuserartworks", isAuthenticated, async (req, res) => {
-  try {
-    const user = req.session.user;
+router.get("/getuserartworks", isAuthenticated, getUsersArtworks);
 
-    const query =
-      await executeQuery(`SELECT L.ListsID AS list_id, L.ListsName AS list_name, 
-                          A.ArtworkID AS artwork_id, A.ArtworkName AS artwork_name, A.ArtworkAPILink AS artwork_api, A.ArtworkPosterImage AS artwork_poster
-                          FROM Users U
-                          LEFT JOIN Ref_UsersList RUL ON U.UserID = RUL.UserID 
-                          LEFT JOIN List L ON RUL.ListsID = L.ListsID 
-                          LEFT JOIN Ref_ListArtwork RLA ON RLA.ListsID = L.ListsID
-                          LEFT JOIN Artwork A ON A.ArtworkID = RLA.ArtworkID
-                          WHERE U.UserID = ${user.id}`);
+router.get("/getuserlists", isAuthenticated, getUsersLists);
 
-    res.status(200);
-    return res.json(query);
-  } catch (error) {
-    res.status(400);
-    return res.json({
-      error:
-        "Une erreur est survenue lors de la récupération des titres de l'utilisateur.",
-    });
-  }
-});
+router.post("/searchartworks", searchArtworks);
 
-router.get("/getuserlists", isAuthenticated, async (req, res) => {
-  try {
-    const user = req.session.user;
-
-    const query =
-      await executeQuery(`SELECT L.ListsID AS list_id, L.ListsName AS list_name
-                          FROM Users U
-                          LEFT JOIN Ref_UsersList RUL ON U.UserID = RUL.UserID 
-                          LEFT JOIN List L ON RUL.ListsID = L.ListsID 
-                          WHERE U.UserID = ${user.id}`);
-
-    res.status(200);
-    return res.json(query);
-  } catch (error) {
-    res.status(400);
-    return res.json({
-      error: "Une erreur est survenue lors de la récupération des listes.",
-    });
-  }
-});
-
-router.post("/searchartworks", async (req, res) => {
-  try {
-    const { search } = req.body;
-
-    let movies = await fetch(
-      `https://api.themoviedb.org/3/search/movie?query=${search}`,
-      {
-        method: "GET",
-        headers: {
-          accept: "application/json",
-          Authorization: `Bearer ${TMDB_API_KEY}`,
-        },
-      }
-    );
-    movies = await movies.json();
-    movies = movies.results;
-
-    let categories = await fetch(
-      "https://api.themoviedb.org/3/genre/movie/list?language=fr",
-      {
-        method: "GET",
-        headers: {
-          accept: "application/json",
-          Authorization: `Bearer ${TMDB_API_KEY}`,
-        },
-      }
-    );
-    categories = await categories.json();
-
-    movies = movies.map((movie) => {
-      movie.genres = movie.genre_ids
-        .map((genre) => {
-          const category = categories.genres.find(
-            (category) => category.id === genre
-          );
-          return category ? category.name : "";
-        })
-        .filter((genre) => genre);
-
-      return movie;
-    });
-
-    res.status(200);
-    return res.json(movies);
-  } catch (error) {
-    res.status(400);
-    return res.json({
-      error: "Une erreur est survenue lors de la recherche.",
-    });
-  }
-});
-
-router.post("/addartworktolists", isAuthenticated, async (req, res) => {
-  try {
-    const { artwork, lists } = req.body;
-    const user = req.session.user;
-
-    // Checks
-    if (!artwork) {
-      res.status(400);
-      return res.json({
-        error: "Veuillez renseigner un titre.",
-      });
-    }
-
-    if (!lists || lists.length === 0) {
-      res.status(400);
-      return res.json({
-        error: "Veuillez sélectionner au moins une liste.",
-      });
-    }
-
-    // Check if the artwork is already in the database
-    const artworkAPILink = `https://api.themoviedb.org/3/movie/${artwork.id}`;
-
-    await executeQuery(
-      `IF NOT EXISTS (SELECT * FROM Artwork WHERE ArtworkAPILink = '${artworkAPILink}') INSERT INTO Artwork VALUES ('${artwork.title}', '${artworkAPILink}', '${artwork.poster_path}')`
-    );
-
-    // Add artwork to lists
-    for (const list of lists)
-      await executeQuery(
-        `INSERT INTO Ref_ListArtwork VALUES (
-          (SELECT ArtworkID FROM Artwork WHERE ArtworkAPILink = '${artworkAPILink}'), 
-          (SELECT L.ListsID FROM List L INNER JOIN Ref_UsersList UL ON UL.ListsID = L.ListsID WHERE L.ListsName = '${list}' AND UL.UserID = ${user.id})
-        )`
-      );
-
-    res.status(200);
-    return res.json({
-      success: "Le titre a été ajouté à la/aux liste(s) avec succès.",
-    });
-  } catch (error) {
-    res.status(400);
-    return res.json({
-      error: "Une erreur est survenue lors de la recherche.",
-    });
-  }
-});
-
-// Définition de la route erreur 404
-router.get("*", (req, res) => {
-  res.status(404);
-  res.json({
-    status: "ERROR",
-    message: "Page not found",
-  });
-});
+router.post("/addartworktolists", isAuthenticated, addArtworkToList);
 
 module.exports = { router, isAuthenticated, GetUser, CheckAge };
