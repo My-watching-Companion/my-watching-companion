@@ -70,7 +70,7 @@
                     <img src="<%= element.UserProfilePicture === "Default" ? 'https://img.freepik.com/vecteurs-premium/icone-profil-avatar-par-defaut-image-utilisateur-medias-sociaux-icone-avatar-gris-silhouette-profil-vierge-illustration-vectorielle_561158-3467.jpg' : element.UserProfilePicture%>" alt="">
                     <h1> <%= element.Username %> </h1>
                     <h2> <%= element.FirstName %> <%= element.LastName %></h2>
-                    <a onclick="location.href='/api/removefriends/<%=user%>/<%=element.Username%>'"> <span class="material-symbols-rounded">person_remove</span> </a>
+                    <a onclick="location.href='/api/removefriends/<%=user.Username%>/<%=element.Username%>'"> <span class="material-symbols-rounded">person_remove</span> </a>
                 </div>
             <%});%>
         </div>
@@ -81,14 +81,14 @@
                 <span class="material-symbols-rounded" onclick="SeeAddFriends()">close</span>
                 <div class="listgrid">
                     <% allusers.Users.forEach(element => {%>
-                        <% if (element.Username === user) {%>
+                        <% if (element.Username === user.Username) {%>
                             
                         <%} else {%>
                             <div class="userslist">
                                 <img src="<%= element.ProfilePicture === "Default" ? 'https://img.freepik.com/vecteurs-premium/icone-profil-avatar-par-defaut-image-utilisateur-medias-sociaux-icone-avatar-gris-silhouette-profil-vierge-illustration-vectorielle_561158-3467.jpg' : element.ProfilePicture%>" alt="">
                                 <h1> <%= element.Username %> </h1>
                                 <h2> <%= element.FirstName %> <%= element.LastName %></h2>
-                                <a onclick="location.href='/api/AddFriends/<%=user%>/<%=element.Username%>'"> <span class="material-symbols-rounded">person_add</span> </a>
+                                <a onclick="location.href='/api/AddFriends/<%=user.Username%>/<%=element.Username%>'"> <span class="material-symbols-rounded">person_add</span> </a>
                             </div>
                         <%}%>
                     <%});%>

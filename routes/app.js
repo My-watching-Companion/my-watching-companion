@@ -19,7 +19,7 @@ router.get("/settings", isAuthenticated, (req, res) => {
   res.render("settings", {
     selected: "Paramètres",
     choice: null,
-    user: req.session.user.username,
+    user: req.session.user,
   });
 });
 
@@ -29,8 +29,6 @@ router.get("/settings/:cat/:sett", isAuthenticated, async (req, res) => {
   let friends = null;
   let allusers = null;
   let nature = null;
-  console.log(req.session.user);
-  console.log(categories, page);
   if (categories !== undefined && page !== undefined) {
     if (categories === "profile" && page === "modifyprofile") {
     } else if (categories === "confidentiality" && page === "friends") {
@@ -76,7 +74,6 @@ router.get("/discovery", isAuthenticated, async (req, res) => {
       wloffriends[element.Username] = watchlists;
     }
   }
-  console.log(wloffriends);
   for (const user of Object.keys(wloffriends)) {
     for (const wl of wloffriends[user].Watchlist) {
       if (wl !== null || wl !== undefined || wl.length !== 0) {
@@ -92,7 +89,7 @@ router.get("/discovery", isAuthenticated, async (req, res) => {
     wloffriends: wloffriends,
     isfriends: isfriends,
     iswl: iswl,
-    user: req.session.user.username,
+    user: req.session.user,
     allusers: allusers,
   });
 });
