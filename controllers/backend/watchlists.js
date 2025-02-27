@@ -1,3 +1,6 @@
+const { executeQuery } = require("../../db");
+const { TraceError } = require("../functions");
+
 exports.getWatchlistsByUsername = async (req, res) => {
   const SearchUser = req.params["u"];
   try {

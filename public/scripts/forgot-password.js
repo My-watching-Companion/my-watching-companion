@@ -7,7 +7,7 @@ async function checkEmail() {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ email: email }),
+    body: JSON.stringify({ email }),
   });
 
   checkEmail = await checkEmail.json();
@@ -47,7 +47,7 @@ async function checkResponse() {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ email: email, response: response }),
+    body: JSON.stringify({ email, response }),
   });
 
   checkReponse = await checkReponse.json();
@@ -111,6 +111,23 @@ async function changePassword() {
   if (passwordNecessities.some((p) => !p)) {
     errorBox.innerHTML =
       "Votre mot de passe ne répond pas aux critères de validation.";
+    errorBox.classList.remove("invisible");
+    errorBox.classList.add("visible");
+    return;
+  }
+
+  let checkReponse = await fetch("/api/checksecurityanswer", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email, response }),
+  });
+
+  checkReponse = await checkReponse.json();
+
+  if (checkReponse.error) {
+    errorBox.innerHTML = checkReponse.error;
     errorBox.classList.remove("invisible");
     errorBox.classList.add("visible");
     return;

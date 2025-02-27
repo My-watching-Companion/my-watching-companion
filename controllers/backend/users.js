@@ -1,24 +1,28 @@
 const CryptoJS = require("crypto-js");
 const { executeQuery } = require("../../db");
-const { ChangeSession, TraceError, TraceLogs, formatDate } = require("../functions");
-const { CRYPTO_KEY, TMDB_API_KEY } = require("../../config");
+const {
+  ChangeSession,
+  TraceError,
+  TraceLogs,
+  formatDate,
+} = require("../functions");
+const { CRYPTO_KEY } = require("../../config");
 const path = require("path");
 
 const HOUR = 1000 * 60 * 20;
 
-
 exports.loginOK = async (req, res) => {
-  const Username = req.body.username;
-  const Password = req.body.password;
+  const { username, password } = req.body;
+
   try {
     const query = await executeQuery(
-      `SELECT * from Users where Username = '${Username}'`
+      `SELECT * from Users where Username = '${username}'`
     );
 
     const user = query[0];
 
     if (
-      Password ===
+      password ===
       CryptoJS.AES.decrypt(user.Password, CRYPTO_KEY).toString(
         CryptoJS.enc.Utf8
       )
@@ -38,7 +42,7 @@ exports.loginOK = async (req, res) => {
       req.session.cookie.expires = new Date(Date.now() + HOUR);
       req.session.cookie.maxAge = HOUR;
 
-      TraceLogs(req, res, `User ${Username} successfully login`);
+      TraceLogs(req, res, `User ${username} successfully login`);
 
       res.redirect("/");
     } else {
@@ -60,21 +64,23 @@ exports.loginOK = async (req, res) => {
 };
 
 exports.registerOK = async (req, res) => {
-  const LastName = req.body.lastname;
-  const FirstName = req.body.firstname;
-  const BirthDate = req.body.birthdate;
-  const Mail = req.body.email;
-  const Username = req.body.username;
-  const Password = req.body.password;
-  const SecurityQuestion = req.body.question;
-  const SecurityAnswer = req.body.answer;
+  const {
+    lastname,
+    firstname,
+    birthdate,
+    email,
+    username,
+    password,
+    question,
+    answer,
+  } = req.body;
 
   try {
     const VerifMail = await executeQuery(
-      `SELECT EmailAddress from Users where FirstName = '${FirstName}' and LastName = '${LastName}'`
+      `SELECT EmailAddress from Users where FirstName = '${firstname}' and LastName = '${lastname}'`
     );
     const VerifLogin = await executeQuery(
-      `SELECT Username FROM Users WHERE Username = '${Username}'`
+      `SELECT Username FROM Users WHERE Username = '${username}'`
     );
     if (VerifMail[0] !== undefined) {
       res.redirect("/signup"); ///+ {message: "L'email est déjà utilisé pour un compte"})
@@ -82,10 +88,10 @@ exports.registerOK = async (req, res) => {
       res.redirect("/signup"); ///+ {message: 'Pseudonyme déjà utilisé'})
     } else {
       const userid = await executeQuery(
-        `INSERT INTO Users OUTPUT inserted.UserID VALUES(GETDATE(), GETDATE(), '${Username}', '${LastName}', '${BirthDate}','${Mail}', '\\UsersProfilePicture\\Default.png', '${CryptoJS.AES.encrypt(
-          Password,
+        `INSERT INTO Users OUTPUT inserted.UserID VALUES(GETDATE(), GETDATE(), '${username}', '${lastname}', '${birthdate}','${email}', '\\UsersProfilePicture\\Default.png', '${CryptoJS.AES.encrypt(
+          password,
           CRYPTO_KEY
-        )}', '${FirstName}', 0, 0, 0, '${SecurityAnswer}','${SecurityQuestion}')`
+        )}', '${firstname}', 0, 0, 0, '${answer}','${question}')`
       );
       const listid = await executeQuery(
         "INSERT INTO List OUTPUT inserted.ListsID VALUES ('Ma Liste',GETDATE())"
@@ -104,99 +110,69 @@ exports.registerOK = async (req, res) => {
   }
 };
 
-exports.modifyBio = async (req, res) => {
-  const newbio = req.body.newbio;
-  console.log(newbio);
+exports.updateUser = async (req, res) => {
+  const user = req.session.user;
+
+  const { username, password, confidentiality, bio, gender } = req.body;
+
+  const avatar_url = req.file
+    ? path.join("/UsersProfilePicture/", req.session.user.id + ".png")
+    : undefined;
+
+  const options = {
+    Username: username,
+    Password: password,
+    Confidentiality: confidentiality,
+    Bio: bio,
+    Gender: gender ? (gender === "men" ? 0 : 1) : undefined,
+    UserProfilePicture: avatar_url,
+  };
+
   try {
     await executeQuery(
-      `UPDATE Users SET Bio = '${newbio}' WHERE Username = '${req.session.user.username}'`
+      `UPDATE Users SET ${Object.keys(options)
+        .filter((key) => options[key] !== undefined)
+        .map(
+          (key) =>
+            `${key} = ${
+              typeof options[key] === "string"
+                ? `'${options[key]}'`
+                : options[key]
+            }`
+        )
+        .join(", ")} WHERE UserID = ${user.id}`
     );
-    TraceLogs(req, res, `User ${req.session.user.username} changed his bio`);
-    ChangeSession(
-      req,
-      req.session.user.id,
-      req.session.user.username,
-      req.session.user.avatar_url,
-      req.session.user.email,
-      req.session.user.firstname,
-      req.session.user.lastname,
-      req.session.user.confidentiality,
-      newbio,
-      req.session.user.gender
-    );
-    res.redirect("/settings/profile/modifyprofile");
-  } catch (e) {
-    TraceError(
-      req,
-      res,
-      `An error occured when attempted to changed bio : ${e}`
-    );
-    res.json({
-      status: "KO",
-      message: `Internal Server Error ${e}`,
-    });
-  }
-};
 
-exports.changePP = async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.send("Aucun fichier sélectionné.");
-    }
-
-    const filePath = path.join(
-      "/UsersProfilePicture/",
-      req.session.user.id + ".png"
-    );
-    await executeQuery(
-      `UPDATE Users SET UserProfilePicture = '${filePath}' WHERE UserID = ${req.session.user.id}`
-    );
     TraceLogs(
       req,
       res,
-      `User ${req.session.user.username} successfully change his profile picture`
+      `User ${req.session.user.username} changed his ${Object.keys(options)
+        .filter((key) => options[key])
+        .map((key) => key)
+        .join(", ")}`
     );
 
-    res.redirect("/settings/profile/modifyprofile");
-  } catch (e) {
-    TraceError(req, res, `KO by user ${req.session.user.username} : ${e}`);
-    res.json({
-      status: "KO",
-      message: `Internal Server Error ${e}`,
-    });
-  }
-};
-
-exports.changeGender = async (req, res) => {
-  let gender = req.params["gender"];
-  gender = gender === "men" ? 0 : 1;
-  try {
-    await executeQuery(
-      `UPDATE Users SET Gender = ${gender} WHERE UserID = ${req.session.user.id}`
-    );
     ChangeSession(
       req,
       req.session.user.id,
-      req.session.user.username,
-      req.session.user.avatar_url,
+      options.Username ? options.Username : req.session.user.username,
+      options.UserProfilePicture
+        ? options.UserProfilePicture
+        : req.session.user.avatar_url,
       req.session.user.email,
       req.session.user.firstname,
       req.session.user.lastname,
-      req.session.user.confidentiality,
-      req.session.user.bio,
-      gender
+      options.Confidentiality
+        ? options.Confidentiality
+        : req.session.user.confidentiality,
+      options.Bio ? options.Bio : req.session.user.bio,
+      options.Gender === undefined ? req.session.user.gender : options.Gender
     );
-    TraceLogs(
-      req,
-      res,
-      `User ${req.session.user.username} successfully change his gender`
-    );
-    res.redirect("/settings/profile/modifyprofile");
-  } catch (e) {
-    TraceError(req, res, `KO by user ${req.session.user.username} : ${e}`);
-    res.json({
-      status: "KO",
-      message: `Internal Server Error ${e}`,
+
+    res.status(200).redirect("/settings/profile/modifyprofile");
+  } catch (error) {
+    res.status(500).json({
+      error: "Internal server error.",
     });
   }
 };

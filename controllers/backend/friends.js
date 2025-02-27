@@ -1,3 +1,6 @@
+const { executeQuery } = require("../../db");
+const { TraceLogs, TraceError } = require("../functions");
+
 exports.addFriends = async (req, res) => {
   const user = req.params["user"];
   const friends = req.params["friends"];
@@ -75,27 +78,27 @@ exports.getUsersWithoutFriends = async (req, res) => {
 };
 
 exports.getFriendsByUser = async (req, res) => {
-    const user = req.params["user"];
-    try {
-      const friendslist =
-        await executeQuery(`SELECT RF.FriendsUserID, U.Username, U.FirstName, U.LastName, U.UserProfilePicture, U.Confidentiality from Friend RF
+  const user = req.params["user"];
+  try {
+    const friendslist =
+      await executeQuery(`SELECT RF.FriendsUserID, U.Username, U.FirstName, U.LastName, U.UserProfilePicture, U.Confidentiality from Friend RF
                                               INNER JOIN Users U ON RF.FriendsUserID = U.UserID
                                               WHERE RF.UserID = (SELECT UserID from Users where Username = '${user}')`);
-      res.json({
-        Friends: friendslist.map((element) => ({
-          UserID: element.FriendsUserID,
-          Username: element.Username,
-          FirstName: element.FirstName,
-          LastName: element.LastName,
-          UserProfilePicture: element.UserProfilePicture,
-          Confidentiality: element.Confidentiality,
-        })),
-      });
-    } catch (e) {
-      TraceError(req, res, `An error occured ${e}`);
-      res.json({
-        status: "KO",
-        message: `Internal Server Error ${e}`,
-      });
-    }
-  };
+    res.json({
+      Friends: friendslist.map((element) => ({
+        UserID: element.FriendsUserID,
+        Username: element.Username,
+        FirstName: element.FirstName,
+        LastName: element.LastName,
+        UserProfilePicture: element.UserProfilePicture,
+        Confidentiality: element.Confidentiality,
+      })),
+    });
+  } catch (e) {
+    TraceError(req, res, `An error occured ${e}`);
+    res.json({
+      status: "KO",
+      message: `Internal Server Error ${e}`,
+    });
+  }
+};

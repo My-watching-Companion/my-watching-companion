@@ -1,3 +1,6 @@
+const { executeQuery } = require("../../db");
+const { TMDB_API_KEY } = require("../../config");
+
 exports.getCreatorOfArtwork = async (req, res) => {
   const SearchArtwork = req.params["a"];
   try {
@@ -68,53 +71,53 @@ exports.getUsersArtworks = async (req, res) => {
 };
 
 exports.searchArtworks = async (req, res) => {
-    try {
-      const { search } = req.body;
-  
-      let movies = await fetch(
-        `https://api.themoviedb.org/3/search/movie?query=${search}`,
-        {
-          method: "GET",
-          headers: {
-            accept: "application/json",
-            Authorization: `Bearer ${TMDB_API_KEY}`,
-          },
-        }
-      );
-      movies = await movies.json();
-      movies = movies.results;
-  
-      let categories = await fetch(
-        "https://api.themoviedb.org/3/genre/movie/list?language=fr",
-        {
-          method: "GET",
-          headers: {
-            accept: "application/json",
-            Authorization: `Bearer ${TMDB_API_KEY}`,
-          },
-        }
-      );
-      categories = await categories.json();
-  
-      movies = movies.map((movie) => {
-        movie.genres = movie.genre_ids
-          .map((genre) => {
-            const category = categories.genres.find(
-              (category) => category.id === genre
-            );
-            return category ? category.name : "";
-          })
-          .filter((genre) => genre);
-  
-        return movie;
-      });
-  
-      res.status(200);
-      return res.json(movies);
-    } catch (error) {
-      res.status(400);
-      return res.json({
-        error: "Une erreur est survenue lors de la recherche.",
-      });
-    }
+  try {
+    const { search } = req.body;
+
+    let movies = await fetch(
+      `https://api.themoviedb.org/3/search/movie?query=${search}`,
+      {
+        method: "GET",
+        headers: {
+          accept: "application/json",
+          Authorization: `Bearer ${TMDB_API_KEY}`,
+        },
+      }
+    );
+    movies = await movies.json();
+    movies = movies.results;
+
+    let categories = await fetch(
+      "https://api.themoviedb.org/3/genre/movie/list?language=fr",
+      {
+        method: "GET",
+        headers: {
+          accept: "application/json",
+          Authorization: `Bearer ${TMDB_API_KEY}`,
+        },
+      }
+    );
+    categories = await categories.json();
+
+    movies = movies.map((movie) => {
+      movie.genres = movie.genre_ids
+        .map((genre) => {
+          const category = categories.genres.find(
+            (category) => category.id === genre
+          );
+          return category ? category.name : "";
+        })
+        .filter((genre) => genre);
+
+      return movie;
+    });
+
+    res.status(200);
+    return res.json(movies);
+  } catch (error) {
+    res.status(400);
+    return res.json({
+      error: "Une erreur est survenue lors de la recherche.",
+    });
   }
+};

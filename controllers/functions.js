@@ -1,7 +1,5 @@
 const { executeQuery } = require("../db");
 
-
-
 function isAuthenticated(req, res, next) {
   if (req.session.user) {
     return next();
@@ -86,7 +84,6 @@ function formatDate(dateString) {
   // Format JJ-MM-AAAA
   return new Date(year, month, day);
 }
-
 
 module.exports = {
   isAuthenticated,

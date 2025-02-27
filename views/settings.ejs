@@ -1,120 +1,121 @@
 <!DOCTYPE html>
 <html lang="en">
-    <link rel="stylesheet" href="/styles/settings.css">
-    <script src="/scripts/settings.js" defer></script>
-    
+<link rel="stylesheet" href="/styles/settings.css">
+<script src="/scripts/settings.js" defer></script>
+
 <head>
-    <%- include("components/head", { selected }) %>
+  <%- include("components/head", { selected }) %>
 </head>
+
 <body>
-    <header>
-        <%- include("components/header" , { selected }) %>
-    </header>
-    <div class="all-container">
-        <div class="container">
-            <div class="comments">
-                <div class="modif-profil list">
-                    <p class="comment-sidebar">Paramètre du profil</p>
-                    <h2 class="text-sidebar" onclick="location.href='/settings/profile/modifyprofile'"><span class="material-symbols-rounded">person</span> Modifier le Profil</h2>
-                    <h2 class="text-sidebar" onclick="location.href='/settings/profile/notifications'"><span class="material-symbols-rounded">notifications</span> Notifications</h2>
-                </div>
-                <div class="confidentiality list">
-                    <p class="comment-sidebar">Qui peut voir votre contenu</p>
-                    <h2 class="text-sidebar" onclick="location.href='/settings/confidentiality/account'"><span class="material-symbols-rounded">lock</span>Confidentialité du compte</h2>
-                    <h2 class="text-sidebar" onclick="location.href='/settings/confidentiality/lockperson'"><span class="material-symbols-rounded">block</span>Bloqués</h2>
-                </div>
-                <div class="watchlists list">
-                    <p class="comment-sidebar">Paramètres relatifs aux watchlists</p>
-                    <h2 class="text-sidebar" onclick="location.href='/settings/watchlists/preferences'"><span class="material-symbols-rounded">favorite</span>Préférences films</h2>
-                    <h2 class="text-sidebar" onclick="location.href='/settings/watchlists/autorisations'"><span class="material-symbols-rounded">encrypted</span>Autorisations</h2>
-                </div>
-            </div>
+  <header>
+    <%- include("components/header" , { selected }) %>
+  </header>
+  <div class="all-container">
+    <div class="container">
+      <div class="comments">
+        <div class="modif-profil list">
+          <p class="comment-sidebar">Paramètre du profil</p>
+          <h2 class="text-sidebar" onclick="location.href='/settings/profile/modifyprofile'"><span class="material-symbols-rounded">person</span> Modifier le Profil</h2>
+          <h2 class="text-sidebar" onclick="location.href='/settings/profile/notifications'"><span class="material-symbols-rounded">notifications</span> Notifications</h2>
         </div>
-        <% if(choice === 'profile/modifyprofile'){ %>
-        <div class="settings-container">
-            <div class="div-container">
-                    <h1 class="title">Modifier le Profil</h1>
-                        <div class="profile">
-                            <div class="profile-info">
-                                <img src=<%= user.avatar_url %> alt=<%=user.avatar_url%> srcset=<%=user.avatar_url%> class="pp">
-                                <div class="profile-text">
-                                    <span class="profile-span">
-                                        <h1><%= user.username%></h1>
-                                        <h2><%= user.firstname%> <%= user.lastname%></h2>
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="profile-pic">
-                                <form action="/api/changePP" method="POST" enctype="multipart/form-data">
-                                    <input type="file" name="file" accept="image/*">
-                                    <button type="submit">Changer la photo</button>
-                                </form>
-                            </div>
-                        </div>  
+        <div class="confidentiality list">
+          <p class="comment-sidebar">Qui peut voir votre contenu</p>
+          <h2 class="text-sidebar" onclick="location.href='/settings/confidentiality/account'"><span class="material-symbols-rounded">lock</span>Confidentialité du compte</h2>
+          <h2 class="text-sidebar" onclick="location.href='/settings/confidentiality/lockperson'"><span class="material-symbols-rounded">block</span>Bloqués</h2>
+        </div>
+        <div class="watchlists list">
+          <p class="comment-sidebar">Paramètres relatifs aux watchlists</p>
+          <h2 class="text-sidebar" onclick="location.href='/settings/watchlists/preferences'"><span class="material-symbols-rounded">favorite</span>Préférences films</h2>
+          <h2 class="text-sidebar" onclick="location.href='/settings/watchlists/autorisations'"><span class="material-symbols-rounded">encrypted</span>Autorisations</h2>
+        </div>
+      </div>
+    </div>
+    <% if(choice === 'profile/modifyprofile'){ %>
+    <div class="settings-container">
+      <div class="div-container">
+        <h1 class="title">Modifier le Profil</h1>
+        <div class="profile">
+          <div class="profile-info">
+            <img src=<%= user.avatar_url %> alt=<%=user.avatar_url%> srcset=<%=user.avatar_url%> class="pp">
+            <div class="profile-text">
+              <span class="profile-span">
+                <h1><%= user.username%></h1>
+                <h2><%= user.firstname%> <%= user.lastname%></h2>
+              </span>
             </div>
-            <div class="div-container">
-                <h1 class="title">Bio</h1>
-                <textarea name="newbio" class="settings-bio" maxlength="255" id="bio"><%=user.bio%></textarea>
-                <button type="submit" onclick="ModifyBio()">Modifier la Bio</button>
-            </div>
+          </div>
+          <div class="profile-pic">
+            <form action="/api/updateuser" method="POST" enctype="multipart/form-data">
+              <input type="file" name="file" accept="image/*">
+              <button type="submit">Changer la photo</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="div-container">
+        <h1 class="title">Bio</h1>
+        <textarea name="newbio" class="settings-bio" maxlength="255" id="bio"><%=user.bio%></textarea>
+        <button type="submit" onclick="ModifyBio()">Modifier la Bio</button>
+      </div>
 
-            <div class="div-container">
-                <h1 class="title" id="gender-title">Genre</h1>
-                <select name="gender" id="gender" onchange="ModifyGender()"> 
-                    <option value="" <%= user.gender === false || user.gender === true || user.gender === 0 || user.gender === 1 ? "hidden" : "selected"%>>Non Divulgué </option>
-                    <option value="men" <%= user.gender === false || user.gender === 0 ? "selected" : ""%>>Homme</option>
-                    <option value="women" <%= user.gender === true || user.gender === 1 ? "selected" : ""%>>Femme</option>
-                </select>
-            </div>
-                
-        </div>
-        <%}%>
+      <div class="div-container">
+        <h1 class="title" id="gender-title">Genre</h1>
+        <select name="gender" id="gender" onchange="ModifyGender()">
+          <option value="" <%= user.gender === false || user.gender === true || user.gender === 0 || user.gender === 1 ? "hidden" : "selected"%>>Non Divulgué </option>
+          <option value="men" <%= user.gender === false || user.gender === 0 ? "selected" : ""%>>Homme</option>
+          <option value="women" <%= user.gender === true || user.gender === 1 ? "selected" : ""%>>Femme</option>
+        </select>
+      </div>
+
+    </div>
+    <%}%>
         <% if(choice === 'confidentiality/account'){ %>
-            <div class="settings-container">
-                <h1>Confidentialité du compte</h1>
-                <div class="conf-div">
-                    <div class="conf-text">
-                        <h1>Compte</h1>
-                        <p>Avec <strong>MyWatchingCompanion</strong>, le niveau de confidentialité de votre profil et de vos listes peut être ajusté selon vos préférences :</p>
-                            <ul>
-                                <li><strong>Public</strong> : Votre profil et vos watchlists sont visibles par tout le monde.</li> <br>
-                                <li><strong>Privé</strong> : Personne ne peut voir votre profil ni vos watchlists</li> <br>
-                                <li><strong>Amis uniquement</strong> : Seuls vos amis peuvent consulter vos watchlists et votre profil complet. Cela permet de partager vos découvertes uniquement avec les personnes de confiance.</li>
-                            </ul>
-                        <p>Choisissez le niveau de confidentialité qui vous convient et profitez d’une expérience personnalisée et sécurisée !</p>
-                    </div>
-                    <div class="conf-select">
-                        <select name="confselect" id="confselect" onchange="(ChangeConf(event,'<%=user.username%>'))">
+    <div class="settings-container">
+      <h1>Confidentialité du compte</h1>
+      <div class="conf-div">
+        <div class="conf-text">
+          <h1>Compte</h1>
+          <p>Avec <strong>MyWatchingCompanion</strong>, le niveau de confidentialité de votre profil et de vos listes peut être ajusté selon vos préférences :</p>
+          <ul>
+            <li><strong>Public</strong> : Votre profil et vos watchlists sont visibles par tout le monde.</li> <br>
+            <li><strong>Privé</strong> : Personne ne peut voir votre profil ni vos watchlists</li> <br>
+            <li><strong>Amis uniquement</strong> : Seuls vos amis peuvent consulter vos watchlists et votre profil complet. Cela permet de partager vos découvertes uniquement avec les personnes de confiance.</li>
+          </ul>
+          <p>Choisissez le niveau de confidentialité qui vous convient et profitez d’une expérience personnalisée et sécurisée !</p>
+        </div>
+        <div class="conf-select">
+          <select name="confselect" id="confselect" onchange="(ChangeConf(event,'<%=user.username%>'))">
 
-                        </select>
-                    </div>
-                    <script defer>
-                        async function loadConfidentiality(username) {
-                            try {
-                                const response = await fetch(`http://localhost:3000/api/getconfidentiality/${username}`);
-                                const data = await response.json();
-                        
-                                document.getElementById("confselect").innerHTML = `
+          </select>
+        </div>
+        <script defer>
+          async function loadConfidentiality(username) {
+            try {
+              const response = await fetch(`http://localhost:3000/api/getconfidentiality/${username}`);
+              const data = await response.json();
+
+              document.getElementById("confselect").innerHTML = `
                                     <option value="private" ${data.confidentiality.Confidentiality === "1" ? "selected" : ""}>Privé</option>
                                     <option value="public" ${data.confidentiality.Confidentiality === "0" ? "selected" : ""}>Publique</option>
                                     <option value="friends" ${data.confidentiality.Confidentiality === "2" ? "selected" : ""}>Amis uniquement</option>
                                 `;
-                            } catch (error) {
-                                console.error("Erreur lors du chargement :", error);
-                            }
-                        }
+            } catch (error) {
+              console.error("Erreur lors du chargement :", error);
+            }
+          }
 
-                        function ChangeConf(event, user){
-                            const response = fetch(`http://localhost:3000/api/modifyconfidentiality/${event.target.value}/${user}`)
-                            alert("La Confidentialité a été changé avec Succès")
-                        }
-                        
-                        loadConfidentiality("<%= user.username %>");
-                        </script>
-                    
-                </div>
-            </div>
-        <%}%>    
+          function ChangeConf(event, user) {
+            const response = fetch(`http://localhost:3000/api/modifyconfidentiality/${event.target.value}/${user}`)
+            alert("La Confidentialité a été changé avec Succès")
+          }
+
+          loadConfidentiality("<%= user.username %>");
+        </script>
+
+      </div>
+    </div>
+    <%}%>    
         
         
     </div>
