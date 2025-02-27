@@ -32,7 +32,7 @@ exports.getDiscovery = async (req, res) => {
       }
     }
   }
-  res.render("discover", {
+  res.render("discovery", {
     selected: "Découverte",
     friends: friends,
     wloffriends: wloffriends,

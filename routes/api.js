@@ -109,4 +109,4 @@ router.post(
   watchlistsController.addArtworkToList
 );
 
-module.exports = { router, isAuthenticated, GetUser, CheckAge };
+module.exports = router;
