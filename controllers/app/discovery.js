@@ -6,7 +6,7 @@ exports.getDiscovery = async (req, res) => {
     `http://localhost:3000/api/friends/${req.session.user.username}`
   ).then((resp) => resp.json());
 
-  allusers = await fetch(
+  let allusers = await fetch(
     `http://localhost:3000/api/getuserswithoutfriends/${req.session.user.username}`
   ).then((resp) => resp.json());
 

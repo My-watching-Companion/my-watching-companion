@@ -1,5 +1,5 @@
 const { executeQuery } = require("../../db");
-const { TraceLogs, TraceError } = require("../functions");
+const { TraceLogs, TraceError, formatDate } = require("../functions");
 
 exports.addFriends = async (req, res) => {
   const user = req.params["user"];

@@ -92,4 +92,5 @@ module.exports = {
   GetUser,
   TraceLogs,
   TraceError,
+  formatDate,
 };
