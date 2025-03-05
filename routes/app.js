@@ -1,41 +1,44 @@
 const router = require("express").Router();
-const { getAccount } = require("../controllers/app/account");
-const { getDiscovery } = require("../controllers/app/discovery");
-const { getError } = require("../controllers/app/error");
-const { getForgotPassword } = require("../controllers/app/forgot-password");
-const { getHome } = require("../controllers/app/home");
-const settingsControllers = require("../controllers/app/settings");
-const signControllers = require("../controllers/app/sign-in-up");
-const { getWatchlists } = require("../controllers/app/watchlists");
+const accountController = require("../controllers/app/account");
+const discoveryController = require("../controllers/app/discovery");
+const errorController = require("../controllers/app/error");
+const homeController = require("../controllers/app/home");
+const settingsController = require("../controllers/app/settings");
+const signController = require("../controllers/app/sign-in-up");
+const watchlistsController = require("../controllers/app/watchlists");
 const artworksController = require("../controllers/app/artworks");
 const { isAuthenticated } = require("../controllers/functions");
 
 // Définition de la route principale
-router.get("/", getHome);
+router.get("/", homeController.getHome);
 
-router.get("/signin", signControllers.getSignin);
+router.get("/signin", signController.getSignin);
 
-router.get("/signup", signControllers.getSignup);
+router.get("/signup", signController.getSignup);
 
-router.get("/settings", isAuthenticated, settingsControllers.getSettings);
+router.get("/settings", isAuthenticated, settingsController.getSettings);
 
 router.get(
   "/settings/:cat/:sett",
   isAuthenticated,
-  settingsControllers.getSettingsByCatAndPage
+  settingsController.getSettingsByCatAndPage
 );
 
-router.get("/discovery", isAuthenticated, getDiscovery);
+router.get("/discovery", isAuthenticated, discoveryController.getDiscovery);
 
-router.get("/my-watchlist", isAuthenticated, getWatchlists);
+router.get(
+  "/my-watchlist",
+  isAuthenticated,
+  watchlistsController.getWatchlists
+);
 
-router.get("/account", getAccount);
+router.get("/account", accountController.getAccount);
 
-router.get("/forgot-password", getForgotPassword);
+router.get("/forgot-password", signController.getForgotPassword);
 
 router.get("/artwork/:id", artworksController.getArtwork);
 
 // Définition de la route erreur 404
-router.get("*", getError);
+router.get("*", errorController.getError);
 
 module.exports = router;
