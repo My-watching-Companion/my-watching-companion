@@ -7,6 +7,7 @@ const { getHome } = require("../controllers/app/home");
 const settingsControllers = require("../controllers/app/settings");
 const signControllers = require("../controllers/app/sign-in-up");
 const { getWatchlists } = require("../controllers/app/watchlists");
+const artworksController = require("../controllers/app/artworks");
 const { isAuthenticated } = require("../controllers/functions");
 
 // Définition de la route principale
@@ -31,6 +32,8 @@ router.get("/my-watchlist", isAuthenticated, getWatchlists);
 router.get("/account", getAccount);
 
 router.get("/forgot-password", getForgotPassword);
+
+router.get("/artwork/:id", artworksController.getArtwork);
 
 // Définition de la route erreur 404
 router.get("*", getError);
