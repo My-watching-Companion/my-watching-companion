@@ -5,3 +5,7 @@ exports.getSignin = (req, res) => {
 exports.getSignup = (req, res) => {
   res.render("signup", { selected: "Inscription" });
 };
+
+exports.getForgotPassword = (req, res) => {
+  res.render("forgot-password", { selected: "Mot de Passe Oublié" });
+};
