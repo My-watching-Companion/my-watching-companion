@@ -25,6 +25,18 @@ async function toggleAddArtworkModal() {
 }
 
 // Load watchlists
+async function setLoadingArtworks(show) {
+  const status = document.getElementById("status-loading");
+  if (show) status.style.display = "flex";
+  else status.style.display = "none";
+}
+
+async function setEmptyArtworks(show) {
+  const status = document.getElementById("status-empty");
+  if (show) status.style.display = "flex";
+  else status.style.display = "none";
+}
+
 async function loadArtworks() {
   setLoadingArtworks(true);
   setEmptyArtworks(false);
@@ -38,6 +50,7 @@ async function loadArtworks() {
 
   if (watchlist.artworks.length === 0) {
     setEmptyArtworks(true);
+    setLoadingArtworks(false);
     return;
   }
 
@@ -75,18 +88,6 @@ async function loadArtworks() {
   });
 
   setLoadingArtworks(false);
-}
-
-async function setLoadingArtworks(show) {
-  const status = document.getElementById("status-loading");
-  if (show) status.style.display = "flex";
-  else status.style.display = "none";
-}
-
-async function setEmptyArtworks(show) {
-  const status = document.getElementById("status-empty");
-  if (show) status.style.display = "flex";
-  else status.style.display = "none";
 }
 
 loadArtworks();
