@@ -14,6 +14,10 @@ async function toggleAddArtworkModal() {
 
   const addArtworkContainer = document.getElementById("add-artwork-container");
 
+  const resultBox = document.getElementById("result-box");
+  resultBox.classList.remove("error", "success");
+  resultBox.classList.add("invisible");
+
   addArtworkModal.onclick = (event) => {
     if (!addArtworkContainer.contains(event.target))
       addArtworkModal.toggleAttribute("hidden");
@@ -184,20 +188,34 @@ async function addArtworkSearch() {
 const debouncedAddArtworkSearch = debounce(addArtworkSearch, 250);
 
 async function addArtworkToList(artwork) {
-  let result = await fetch("/api/addartworktolist", {
+  let response = await fetch(`/api/user/watchlists/${selectedList}/artworks`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      artwork: artwork,
-      list: selectedList,
+      artwork: {
+        id: artwork.id,
+        title: artwork.title,
+        poster_path: artwork.poster_path,
+      },
     }),
   });
 
-  result = await result.json();
+  response = await response.json();
 
-  // Close modal and refresh artworks
-  document.getElementById("add-artwork").toggleAttribute("hidden");
-  document.getElementById("add-artwork-search").value = "";
-  document.getElementById("searched-artworks").innerHTML = "";
-  loadArtworks();
+  // Display success or error message
+  const resultBox = document.getElementById("result-box");
+
+  if (response.error) {
+    resultBox.innerHTML = response.error;
+    resultBox.classList.remove("invisible", "success");
+    resultBox.classList.add("visible", "error");
+    return;
+  }
+
+  if (response.message) {
+    resultBox.innerHTML = response.message;
+    resultBox.classList.remove("invisible", "error");
+    resultBox.classList.add("visible", "success");
+    loadArtworks();
+  }
 }

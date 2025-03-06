@@ -6,7 +6,8 @@ async function toggleAddListModal() {
   const addListContainer = document.getElementById("add-list-container");
 
   const resultBox = document.getElementById("result-box");
-  resultBox.classList.remove("visible", "error", "success");
+  resultBox.classList.remove("error", "success");
+  resultBox.classList.add("invisible");
 
   addListModal.onclick = (event) => {
     if (!addListContainer.contains(event.target))

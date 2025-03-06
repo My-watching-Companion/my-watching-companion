@@ -3,6 +3,10 @@
   align-items: center;
 }
 
+.invisible {
+  display: none;
+}
+
 /* Watchlist Header */
 #watchlist-header {
   display: flex;
@@ -130,6 +134,26 @@
 #add-artwork-container #texts #add-selected-lists span.selected {
   color: black;
   font-weight: bolder;
+}
+
+#add-artwork-container #result-box {
+  color: black;
+  background-color: grey;
+  border: 1px solid black;
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+#add-artwork-container #result-box.error {
+  color: #f7384a;
+  background-color: #f7384a50;
+  border-color: #f7384a;
+}
+
+#add-artwork-container #result-box.success {
+  color: #4caf50;
+  background-color: #4caf5050;
+  border-color: #4caf50;
 }
 
 #add-artwork-container input[type="text"] {

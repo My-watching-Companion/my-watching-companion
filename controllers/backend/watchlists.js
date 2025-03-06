@@ -1,4 +1,4 @@
-const { executeQuery } = require("../../db");
+const { executeQuery, sql } = require("../../db");
 const { TraceError } = require("../functions");
 
 exports.getWatchlistsByUsername = async (req, res) => {
@@ -90,56 +90,6 @@ exports.getUsersLists = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       error: "Une erreur est survenue lors de la récupération des listes.",
-    });
-  }
-};
-
-exports.addArtworkToList = async (req, res) => {
-  try {
-    const user = req.session.user;
-
-    if (!user) {
-      res.status(400);
-      return res.json({
-        error: "Vous devez être connecté pour ajouter un titre à une liste.",
-      });
-    }
-
-    const { artwork, list } = req.body;
-
-    if (!artwork) {
-      res.status(400);
-      return res.json({
-        error: "Veuillez renseigner un titre.",
-      });
-    }
-
-    if (!list || list.length === 0)
-      return res.status(400).json({
-        error: "Veuillez sélectionner une liste.",
-      });
-
-    // Check if the artwork is already in the database
-    const artworkAPILink = `https://api.themoviedb.org/3/movie/${artwork.id}`;
-
-    await executeQuery(
-      `IF NOT EXISTS (SELECT * FROM Artwork WHERE ArtworkAPILink = '${artworkAPILink}') INSERT INTO Artwork VALUES ('${artwork.title}', '${artworkAPILink}', '${artwork.poster_path}')`
-    );
-
-    // Add artwork to list
-    await executeQuery(
-      `INSERT INTO Ref_ListArtwork VALUES (
-            (SELECT ArtworkID FROM Artwork WHERE ArtworkAPILink = '${artworkAPILink}'), 
-            (SELECT L.ListsID FROM List L INNER JOIN Ref_UsersList UL ON UL.ListsID = L.ListsID WHERE L.ListsName = '${list}' AND UL.UserID = ${user.id})
-          )`
-    );
-
-    res.status(201).json({
-      success: "Le titre a été ajouté à la liste avec succès.",
-    });
-  } catch (error) {
-    res.status(400).json({
-      error: "Une erreur est survenue lors de la recherche.",
     });
   }
 };
@@ -406,6 +356,108 @@ exports.deleteUserWatchlist = async (req, res) => {
     res.status(400).json({
       error:
         "Une erreur est survenue lors de la suppression de la liste.\n" + error,
+    });
+  }
+};
+
+exports.createUserArtworkByWatchlistName = async (req, res) => {
+  try {
+    const user = req.session.user;
+
+    if (!user)
+      return res.status(401).json({
+        error: "Vous devez être connecté pour ajouter un titre à une liste.",
+      });
+
+    const { artwork } = req.body;
+
+    if (!artwork || !artwork.id)
+      return res.status(400).json({
+        error: "Données du titre invalides.",
+      });
+
+    const { name: list } = req.params;
+
+    if (!list)
+      return res.status(400).json({
+        error: "Veuillez sélectionner une liste.",
+      });
+
+    // Get list ID
+    const listQuery = await executeQuery(
+      `SELECT L.ListsID 
+       FROM List L 
+       INNER JOIN Ref_UsersList UL ON UL.ListsID = L.ListsID 
+       WHERE L.ListsName = @listName AND UL.UserID = @userId`,
+      [
+        { name: "listName", type: sql.VarChar, value: list },
+        { name: "userId", type: sql.Int, value: user.id },
+      ]
+    );
+
+    if (listQuery.length === 0)
+      return res.status(404).json({
+        error: "Vous ne possédez pas cette liste.",
+      });
+
+    const listId = listQuery[0].ListsID;
+
+    // Check if artwork exists and get its ID, or insert if not exists
+    const artworkQuery = await executeQuery(
+      `IF NOT EXISTS (SELECT 1 FROM Artwork WHERE ArtworkAPILink = @apiLink)
+       BEGIN
+         INSERT INTO Artwork (ArtworkName, ArtworkAPILink, ArtworkPosterImage)
+         VALUES (@title, @apiLink, @poster);
+         SELECT SCOPE_IDENTITY() AS ArtworkID;
+       END
+       ELSE
+       BEGIN
+         SELECT ArtworkID FROM Artwork WHERE ArtworkAPILink = @apiLink;
+       END`,
+      [
+        {
+          name: "apiLink",
+          type: sql.VarChar,
+          value: `https://api.themoviedb.org/3/movie/${artwork.id}`,
+        },
+        { name: "title", type: sql.VarChar, value: artwork.title },
+        { name: "poster", type: sql.VarChar, value: artwork.poster_path },
+      ]
+    );
+
+    const artworkId = artworkQuery[0].ArtworkID;
+
+    // Check if artwork is already in list
+    const existingEntry = await executeQuery(
+      `SELECT 1 FROM Ref_ListArtwork 
+       WHERE ListsID = @listId AND ArtworkID = @artworkId`,
+      [
+        { name: "listId", type: sql.Int, value: listId },
+        { name: "artworkId", type: sql.Int, value: artworkId },
+      ]
+    );
+
+    if (existingEntry.length > 0)
+      return res.status(400).json({
+        error: "Ce titre est déjà dans votre liste.",
+      });
+
+    // Add artwork to list
+    await executeQuery(
+      `INSERT INTO Ref_ListArtwork (ArtworkID, ListsID) 
+       VALUES (@artworkId, @listId)`,
+      [
+        { name: "artworkId", type: sql.Int, value: artworkId },
+        { name: "listId", type: sql.Int, value: listId },
+      ]
+    );
+
+    res.status(201).json({
+      message: "Le titre a été ajouté à la liste avec succès.",
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: "Une erreur est survenue lors de l'ajout du titre.",
     });
   }
 };

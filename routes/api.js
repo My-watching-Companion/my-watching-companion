@@ -93,12 +93,6 @@ router.get(
 
 router.post("/searchartworks", artworksController.searchArtworks);
 
-router.post(
-  "/addartworktolist",
-  isAuthenticated,
-  watchlistsController.addArtworkToList
-);
-
 // Watchlists
 router.get(
   "/users/:u/watchlists",
@@ -139,6 +133,12 @@ router.delete(
   "/user/watchlists/:name",
   isAuthenticated,
   watchlistsController.deleteUserWatchlist
+);
+
+router.post(
+  "/user/watchlists/:name/artworks",
+  isAuthenticated,
+  watchlistsController.createUserArtworkByWatchlistName
 );
 
 module.exports = router;
