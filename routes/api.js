@@ -63,16 +63,6 @@ router.get(
 router.get("/users/:u", usersController.getUsersByUsername);
 
 router.get(
-  "/users/:u/watchlists",
-  watchlistsController.getWatchlistsByUsername
-);
-
-router.get(
-  "/users/:u/watchlists/:w",
-  watchlistsController.getWatchlistByUsernameAndListname
-);
-
-router.get(
   "/getconfidentiality/:user",
   usersController.getConfidentialityByUsername
 );
@@ -104,9 +94,51 @@ router.get(
 router.post("/searchartworks", artworksController.searchArtworks);
 
 router.post(
-  "/addartworktolists",
+  "/addartworktolist",
   isAuthenticated,
   watchlistsController.addArtworkToList
+);
+
+// Watchlists
+router.get(
+  "/users/:u/watchlists",
+  watchlistsController.getWatchlistsByUsername
+);
+
+router.get(
+  "/users/:u/watchlists/:w",
+  watchlistsController.getWatchlistByUsernameAndListname
+);
+
+// New watchlists routes
+router.get(
+  "/user/watchlists",
+  isAuthenticated,
+  watchlistsController.getUserWatchlists
+);
+
+router.get(
+  "/user/watchlists/:name",
+  isAuthenticated,
+  watchlistsController.getUserWatchlistByName
+);
+
+router.post(
+  "/user/watchlists",
+  isAuthenticated,
+  watchlistsController.createUserWatchlist
+);
+
+router.put(
+  "/user/watchlists/:name",
+  isAuthenticated,
+  watchlistsController.updateUserWatchlist
+);
+
+router.delete(
+  "/user/watchlists/:name",
+  isAuthenticated,
+  watchlistsController.deleteUserWatchlist
 );
 
 module.exports = router;
