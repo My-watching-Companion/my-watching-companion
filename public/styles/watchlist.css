@@ -198,7 +198,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
   max-width: 25rem;
-  gap: 1rem;
+  gap: 2rem;
   padding: 2rem;
   max-width: 2000px;
   margin: 0 auto;
