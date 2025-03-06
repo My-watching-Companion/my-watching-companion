@@ -165,7 +165,7 @@ async function addArtworkSearch() {
 
     const addButton = document.createElement("button");
     addButton.textContent = "Ajouter";
-    addButton.onclick = () => addArtworkToLists(artwork);
+    addButton.onclick = () => addArtworkToList(artwork);
 
     titleRow.appendChild(title);
     titleRow.appendChild(metadata);
@@ -180,22 +180,20 @@ async function addArtworkSearch() {
     searchResultsContainer.appendChild(artworkElement);
   }
 }
+
 const debouncedAddArtworkSearch = debounce(addArtworkSearch, 250);
 
-async function addArtworkToLists(artwork) {
-  const selectedLists = document
-    .getElementById("add-selected-lists")
-    .getAttribute("lists")
-    .split(", ");
-
-  await fetch("/api/addartworktolists", {
+async function addArtworkToList(artwork) {
+  let result = await fetch("/api/addartworktolist", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       artwork: artwork,
-      lists: selectedLists,
+      list: selectedList,
     }),
   });
+
+  result = await result.json();
 
   // Close modal and refresh artworks
   document.getElementById("add-artwork").toggleAttribute("hidden");

@@ -96,10 +96,17 @@ exports.getUsersLists = async (req, res) => {
 
 exports.addArtworkToList = async (req, res) => {
   try {
-    const { artwork, lists } = req.body;
     const user = req.session.user;
 
-    // Checks
+    if (!user) {
+      res.status(400);
+      return res.json({
+        error: "Vous devez être connecté pour ajouter un titre à une liste.",
+      });
+    }
+
+    const { artwork, list } = req.body;
+
     if (!artwork) {
       res.status(400);
       return res.json({
@@ -107,9 +114,9 @@ exports.addArtworkToList = async (req, res) => {
       });
     }
 
-    if (!lists || lists.length === 0)
+    if (!list || list.length === 0)
       return res.status(400).json({
-        error: "Veuillez sélectionner au moins une liste.",
+        error: "Veuillez sélectionner une liste.",
       });
 
     // Check if the artwork is already in the database
@@ -119,17 +126,16 @@ exports.addArtworkToList = async (req, res) => {
       `IF NOT EXISTS (SELECT * FROM Artwork WHERE ArtworkAPILink = '${artworkAPILink}') INSERT INTO Artwork VALUES ('${artwork.title}', '${artworkAPILink}', '${artwork.poster_path}')`
     );
 
-    // Add artwork to lists
-    for (const list of lists)
-      await executeQuery(
-        `INSERT INTO Ref_ListArtwork VALUES (
+    // Add artwork to list
+    await executeQuery(
+      `INSERT INTO Ref_ListArtwork VALUES (
             (SELECT ArtworkID FROM Artwork WHERE ArtworkAPILink = '${artworkAPILink}'), 
             (SELECT L.ListsID FROM List L INNER JOIN Ref_UsersList UL ON UL.ListsID = L.ListsID WHERE L.ListsName = '${list}' AND UL.UserID = ${user.id})
           )`
-      );
+    );
 
-    res.status(200).json({
-      success: "Le titre a été ajouté à la/aux liste(s) avec succès.",
+    res.status(201).json({
+      success: "Le titre a été ajouté à la liste avec succès.",
     });
   } catch (error) {
     res.status(400).json({

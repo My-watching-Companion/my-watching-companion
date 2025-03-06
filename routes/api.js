@@ -94,7 +94,7 @@ router.get(
 router.post("/searchartworks", artworksController.searchArtworks);
 
 router.post(
-  "/addartworktolists",
+  "/addartworktolist",
   isAuthenticated,
   watchlistsController.addArtworkToList
 );
