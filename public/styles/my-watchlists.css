@@ -1,0 +1,231 @@
+.container {
+  display: flex;
+  align-items: center;
+}
+
+.invisible {
+  display: none;
+}
+
+/* Watchlist Header */
+#watchlist-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+#watchlist-header button {
+  display: flex;
+  align-items: center;
+  border: none;
+  border-radius: 10px;
+  padding: 0.6rem;
+  font-size: 1rem;
+  font-weight: bolder;
+  color: white;
+  background-color: #f7384a;
+  box-shadow: 0px 5px 10px 0px #f7384a;
+  transition: box-shadow 0.1s ease-in-out;
+}
+
+#watchlist-header button span {
+  font-size: 2rem;
+}
+
+#watchlist-header button:hover {
+  box-shadow: 0px 5px 10px 2.5px #f7384a;
+  cursor: pointer;
+}
+
+#watchlist-header input[type="text"] {
+  border: none;
+  outline: none;
+  border-radius: 10px;
+  padding: 1rem 3rem 1rem 1rem;
+  width: clamp(200px, 20rem, 100%);
+  max-width: 100%;
+  box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.25);
+  transition: box-shadow 0.1s ease-in-out;
+  background-image: url("/assets/search-icon.png");
+  background-position: calc(100% - 10px);
+  background-size: 1.75rem;
+  background-repeat: no-repeat;
+  font-size: 1rem;
+}
+
+#watchlist-header input[type="text"]:hover {
+  box-shadow: 0px 5px 10px 2.5px rgba(0, 0, 0, 0.25);
+}
+
+/* Media Queries */
+@media screen and (max-width: 768px) {
+  #watchlist-header {
+    padding: 1rem;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #watchlist-header input[type="text"] {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  #watchlist-header button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Add List */
+#add-list {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+#add-list-container {
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  width: fit-content;
+  max-width: 90%;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.25);
+}
+
+#add-list-container #texts {
+  display: flex;
+  justify-content: space-between;
+}
+
+#add-list-container #texts h4 {
+  display: flex;
+  align-items: center;
+  user-select: none;
+  gap: 0.2rem;
+  color: black;
+}
+
+#add-list-container #result-box {
+  color: black;
+  background-color: grey;
+  border: 1px solid black;
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+#add-list-container #result-box.error {
+  color: #f7384a;
+  background-color: #f7384a50;
+  border-color: #f7384a;
+}
+
+#add-list-container #result-box.success {
+  color: #4caf50;
+  background-color: #4caf5050;
+  border-color: #4caf50;
+}
+
+#add-list-form {
+  display: flex;
+  gap: 1rem;
+  flex-direction: column;
+}
+
+#add-list-form input[type="text"] {
+  border: none;
+  outline: none;
+  border-radius: 10px;
+  padding: 1rem 3rem 1rem 1rem;
+  width: clamp(250px, 30vw, 500px);
+  box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.25);
+  transition: box-shadow 0.1s ease-in-out;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+#add-list-form input[type="text"]:hover {
+  box-shadow: 0px 5px 10px 2.5px rgba(0, 0, 0, 0.25);
+}
+
+#add-list-form button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 10px;
+  padding: 0.75rem;
+  font-size: 1rem;
+  color: white;
+  background-color: #f7384a;
+  box-shadow: 0px 5px 5px 0px #f7384a;
+  transition: box-shadow 0.1s ease-in-out;
+}
+
+#add-list-form button:hover {
+  box-shadow: 0px 5px 5px 2.5px #f7384a;
+  cursor: pointer;
+}
+
+/* Lists */
+#watchlists {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  max-width: 25rem;
+  gap: 2rem;
+  padding: 2rem;
+  max-width: 2000px;
+  margin: 0 auto;
+}
+
+.watchlist-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  position: relative;
+}
+
+.watchlist-card img {
+  width: 100%;
+  height: auto;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.watchlist-card .watchlist-title {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1.5rem;
+  color: white;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  border-bottom-left-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
+  font-weight: bold;
+  font-size: larger;
+}
+
+@media screen and (max-width: 768px) {
+  #add-list-container {
+    width: 75%;
+    max-width: 75%;
+    margin: 0 auto;
+  }
+
+  #add-list-container input[type="text"] {
+    width: 100%;
+  }
+}

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+  <%- include('components/head', { selected }) %>
+
+  <link rel="stylesheet" href="styles/my-watchlists.css">
+
+  <script src="scripts/color-thief.js" defer></script>
+  <script src="scripts/my-watchlists.js" defer></script>
+</head>
+
+<body>
+  <header>
+    <%- include('components/header', { selected }) %>
+  </header>
+
+  <%- include('components/sidebar') %>
+
+  <main>
+    <section id="watchlist-header">
+      <input type="text" name="quick-search" id="quick-search" placeholder="Recherchez une liste...">
+
+      <button onclick="toggleAddListModal()"><span class="material-symbols-rounded"> add </span>Créer une Liste</button>
+    </section>
+
+    <section id="watchlists"></section>
+  </main>
+
+  <footer>
+    <%- include('components/footer') %>
+  </footer>
+
+  <div id="add-list" hidden>
+    <div id="add-list-container">
+      <div id="texts">
+        <h4 class="important">Créer une liste..</h4>
+
+        <h4>Entrez le nom de votre liste</h4>
+      </div>
+
+      <p id="result-box" class="invisible"></p>
+
+      <div id="add-list-form">
+        <input type="text" name="add-list-search" id="add-list-search" placeholder="Comment voulez-vous appeler votre liste ?">
+
+        <button onclick="createWatchlist()">Créer cette Liste</button>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

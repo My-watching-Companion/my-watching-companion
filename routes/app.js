@@ -9,13 +9,17 @@ const watchlistsController = require("../controllers/app/watchlists");
 const artworksController = require("../controllers/app/artworks");
 const { isAuthenticated } = require("../controllers/functions");
 
-// Définition de la route principale
+// Home
 router.get("/", homeController.getHome);
 
+// Sign in / Sign up
 router.get("/signin", signController.getSignin);
 
 router.get("/signup", signController.getSignup);
 
+router.get("/forgot-password", signController.getForgotPassword);
+
+// Settings
 router.get("/settings", isAuthenticated, settingsController.getSettings);
 
 router.get(
@@ -24,17 +28,20 @@ router.get(
   settingsController.getSettingsByCatAndPage
 );
 
+// Account
+router.get("/account", accountController.getAccount);
+
+// Discovery
 router.get("/discovery", isAuthenticated, discoveryController.getDiscovery);
 
+// Watchlists
 router.get(
-  "/my-watchlist",
+  "/my-watchlists",
   isAuthenticated,
   watchlistsController.getWatchlists
 );
 
-router.get("/account", accountController.getAccount);
-
-router.get("/forgot-password", signController.getForgotPassword);
+router.get("/my-watchlists/:name", watchlistsController.getWatchlistByName);
 
 router.get("/artwork/:id", artworksController.getArtwork);
 

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <%- include('components/head', { selected }) %>
+
+    <link rel="stylesheet" href="/styles/watchlist.css" />
+
+    <script src="/scripts/color-thief.js" defer></script>
+    <script>
+      const selectedList = "<%= listName %>";
+    </script>
+    <script src="/scripts/watchlist.js" defer></script>
+  </head>
+
+  <body>
+    <header><%- include('components/header', { selected }) %></header>
+
+    <%- include('components/sidebar') %>
+
+    <main>
+      <section id="watchlist-header">
+        <div id="interactions">
+          <button onclick="toggleAddArtworkModal()">
+            <span class="material-symbols-rounded"> add </span>Ajouter un Titre
+          </button>
+        </div>
+
+        <h1 id="selected-lists">
+          Vous consultez "<span class="selected"><%= listName %></span>"
+        </h1>
+
+        <input
+          type="text"
+          name="quick-search"
+          id="quick-search"
+          oninput="debouncedFilterArtworks()"
+          placeholder="Recherchez dans votre liste..."
+        />
+      </section>
+
+      <section id="status">
+        <p id="status-loading" style="display: none">
+          Chargement de vos titres en cours...
+        </p>
+        <p id="status-empty">Aucun titre ne correspond à vos critères...</p>
+      </section>
+
+      <section id="artworks"></section>
+    </main>
+
+    <footer><%- include('components/footer') %></footer>
+
+    <div id="add-artwork" hidden>
+      <div id="add-artwork-container">
+        <div id="texts">
+          <h4 class="selected">Ajouter un nouveau titre..</h4>
+
+          <h4 id="add-selected-lists">
+            Ajouter dans "<span class="selected"><%= listName %></span>"
+          </h4>
+        </div>
+
+        <input
+          type="text"
+          name="add-artwork-search"
+          id="add-artwork-search"
+          oninput="debouncedAddArtworkSearch()"
+          placeholder="Dites-moi... Que voulez-vous ajouter ?"
+        />
+
+        <div id="searched-artworks"></div>
+      </div>
+    </div>
+  </body>
+</html>
