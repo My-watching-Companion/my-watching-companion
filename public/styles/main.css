@@ -22,6 +22,7 @@ header {
   align-items: center;
   text-align: center;
   padding: 0.5rem;
+  border-bottom: 3px black solid;
 }
 
 /* Header Logo */
