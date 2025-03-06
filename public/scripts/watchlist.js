@@ -27,14 +27,12 @@ async function toggleAddArtworkModal() {
 // Load watchlists
 async function setLoadingArtworks(show) {
   const status = document.getElementById("status-loading");
-  if (show) status.style.display = "flex";
-  else status.style.display = "none";
+  status.style.display = show ? "flex" : "none";
 }
 
 async function setEmptyArtworks(show) {
   const status = document.getElementById("status-empty");
-  if (show) status.style.display = "flex";
-  else status.style.display = "none";
+  status.style.display = show ? "flex" : "none";
 }
 
 async function loadArtworks() {
@@ -88,6 +86,7 @@ async function loadArtworks() {
   });
 
   setLoadingArtworks(false);
+  debouncedFilterArtworks();
 }
 
 loadArtworks();
@@ -170,6 +169,7 @@ async function addArtworkSearch() {
 
     const addButton = document.createElement("button");
     addButton.textContent = "Ajouter";
+    addButton.classList.add("btn-primary");
     addButton.onclick = () => addArtworkToList(artwork);
 
     titleRow.appendChild(title);

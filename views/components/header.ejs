@@ -16,9 +16,9 @@
 <a class="sign" href="/account"><img id="user-profile-picture" <% if (user.avatar_url !== "Default") { %> src="<%= user.avatar_url %>" <% } else { %> src="c:\Users\twiss\Downloads\icone-profil-avatar-par-defaut-image-utilisateur-medias-sociaux-icone-avatar-gris-silhouette-profil-.png" <% } %> alt="<%= user.username %>'s profile picture."></img></a>
 <% } else { %>
 <% if (selected === "Connexion") { %>
-<button class="sign" id="sign-up" onclick="location.href='/signup'">INSCRIPTION</button>
+<button class="btn-primary sign" id="sign-up" onclick="location.href='/signup'">INSCRIPTION</button>
 <% } else { %>
-<button class="sign" id="sign-in" onclick="location.href='/signin'">CONNEXION</button>
+<button class="btn-primary sign" id="sign-in" onclick="location.href='/signin'">CONNEXION</button>
 <% } %>
 <% } %>
 

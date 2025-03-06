@@ -1,28 +1,16 @@
-.container {
-  display: flex;
-  align-items: center;
-}
-
-.invisible {
-  display: none;
-}
-
 /* Watchlist Header */
 #watchlist-header {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
   padding: 2rem;
-  flex-wrap: wrap;
   gap: 1rem;
 }
 
 #watchlist-header h1 {
   color: #a6a6a6;
   font-size: clamp(1.5rem, 4vw, 2rem);
-  align-items: center;
-  cursor: pointer;
-  user-select: none;
+  text-align: center;
 }
 
 #watchlist-header h1 span.selected {
@@ -30,78 +18,15 @@
   font-weight: 800;
 }
 
-#watchlist-header input[type="text"] {
-  border: none;
-  outline: none;
-  border-radius: 10px;
-  padding: 1rem 3rem 1rem 1rem;
-  width: clamp(200px, 20rem, 100%);
-  max-width: 100%;
-  box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.25);
-  transition: box-shadow 0.1s ease-in-out;
-  background-image: url("/assets/search-icon.png");
-  background-position: calc(100% - 10px);
-  background-size: 1.75rem;
-  background-repeat: no-repeat;
-  font-size: 1rem;
+#watchlist-header > *:first-child {
+  justify-self: start;
 }
 
-#watchlist-header input[type="text"]:hover {
-  box-shadow: 0px 5px 10px 2.5px rgba(0, 0, 0, 0.25);
-}
-
-#watchlist-header button {
-  display: flex;
-  align-items: center;
-  border: none;
-  border-radius: 10px;
-  padding: 0.75rem;
-  font-size: 1rem;
-  font-weight: bolder;
-  color: white;
-  background-color: #f7384a;
-  box-shadow: 0px 5px 10px 0px #f7384a;
-  transition: box-shadow 0.1s ease-in-out;
-}
-
-#watchlist-header button span {
-  font-size: 2rem;
-}
-
-#watchlist-header button:hover {
-  box-shadow: 0px 5px 10px 2.5px #f7384a;
-  cursor: pointer;
-}
-
-/* Media Queries */
-@media screen and (max-width: 768px) {
-  #watchlist-header {
-    padding: 1rem;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  #watchlist-header input[type="text"] {
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  #watchlist-header button {
-    width: 100%;
-    justify-content: center;
-  }
+#watchlist-header > *:last-child {
+  justify-self: end;
 }
 
 /* Add Artwork */
-#add-artwork {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
 #add-artwork-container {
   position: relative;
   top: 50%;
@@ -126,7 +51,6 @@
   display: flex;
   color: grey;
   align-items: center;
-  cursor: pointer;
   user-select: none;
   gap: 0.2rem;
 }
@@ -136,44 +60,9 @@
   font-weight: bolder;
 }
 
-#add-artwork-container #result-box {
-  color: black;
-  background-color: grey;
-  border: 1px solid black;
-  border-radius: 10px;
-  padding: 1rem;
-}
-
-#add-artwork-container #result-box.error {
-  color: #f7384a;
-  background-color: #f7384a50;
-  border-color: #f7384a;
-}
-
-#add-artwork-container #result-box.success {
-  color: #4caf50;
-  background-color: #4caf5050;
-  border-color: #4caf50;
-}
-
 #add-artwork-container input[type="text"] {
-  border: none;
-  outline: none;
-  border-radius: 10px;
-  padding: 1rem 3rem 1rem 1rem;
   width: clamp(250px, 30vw, 500px);
-  box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.25);
-  transition: box-shadow 0.1s ease-in-out;
-  background-image: url("/assets/search-icon.png");
-  background-position: calc(100% - 10px);
-  background-size: 1.75rem;
-  background-repeat: no-repeat;
-  font-size: 1rem;
   box-sizing: border-box;
-}
-
-#add-artwork-container input[type="text"]:hover {
-  box-shadow: 0px 5px 10px 2.5px rgba(0, 0, 0, 0.25);
 }
 
 /* Status */
@@ -185,19 +74,15 @@
 }
 
 #status p {
-  min-width: 50vw;
   color: #000000;
   background-color: #00000050;
-  border: 1px solid #000000;
-  border-radius: 10px;
-  padding: 1rem;
+  border-color: #000000;
 }
 
 /* Artworks */
 #artworks {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
-  max-width: 25rem;
   gap: 2rem;
   padding: 2rem;
   max-width: 2000px;
@@ -286,30 +171,37 @@
 
 .searched-artwork .info button {
   align-self: flex-end;
-  border: none;
-  border-radius: 5px;
-  padding: 0.5rem 1rem;
-  font-weight: bold;
-  color: white;
-  background-color: #f7384a;
-  box-shadow: 0px 5px 10px 0px #f7384a;
-  transition: box-shadow 0.1s ease-in-out;
-  cursor: pointer;
 }
 
-.searched-artwork .info button:hover {
-  box-shadow: 0px 5px 10px 2.5px #f7384a;
+@media screen and (max-width: 1300px) {
+  #watchlist-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #watchlist-header h1 {
+    order: 2;
+    text-align: center;
+    width: 100%;
+  }
+
+  #watchlist-header button,
+  #watchlist-header input[type="text"] {
+    width: 70%;
+    box-sizing: border-box;
+  }
 }
 
 @media screen and (max-width: 768px) {
-  #add-artwork-container {
-    width: 75%;
-    max-width: 75%;
-    margin: 0 auto;
+  #watchlist-header button,
+  #watchlist-header input[type="text"] {
+    width: 80%;
   }
 
-  #add-artwork-container input[type="text"] {
-    width: 100%;
+  #add-artwork-container {
+    max-width: 75%;
+    margin: 0 auto;
   }
 
   #searched-artworks {
