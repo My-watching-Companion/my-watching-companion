@@ -85,12 +85,6 @@ router.get(
   artworksController.getUsersArtworks
 );
 
-router.get(
-  "/getuserlists",
-  isAuthenticated,
-  watchlistsController.getUsersLists
-);
-
 router.post("/searchartworks", artworksController.searchArtworks);
 
 // Watchlists

@@ -75,38 +75,18 @@ exports.getWatchlistByUsernameAndListname = async (req, res) => {
   }
 };
 
-exports.getUsersLists = async (req, res) => {
-  try {
-    const user = req.session.user;
-
-    const query =
-      await executeQuery(`SELECT L.ListsID AS list_id, L.ListsName AS list_name
-                            FROM Users U
-                            LEFT JOIN Ref_UsersList RUL ON U.UserID = RUL.UserID 
-                            LEFT JOIN List L ON RUL.ListsID = L.ListsID 
-                            WHERE U.UserID = ${user.id}`);
-
-    res.status(200).json(query);
-  } catch (error) {
-    res.status(400).json({
-      error: "Une erreur est survenue lors de la récupération des listes.",
-    });
-  }
-};
-
 // New functions
 exports.getUserWatchlists = async (req, res) => {
   try {
     const user = req.session.user;
 
-    if (!user) {
-      res.status(400);
-      return res.json({
+    if (!user)
+      return res.status(401).json({
         error: "Vous devez être connecté pour obtenir ces informations.",
       });
-    }
 
-    const query = await executeQuery(`SELECT TOP 1 WITH TIES  
+    const query = await executeQuery(
+      `SELECT TOP 1 WITH TIES  
                                           L.ListsID AS list_id, 
                                           L.ListsName AS list_name, 
                                           U.Username AS username, 
@@ -116,12 +96,14 @@ exports.getUserWatchlists = async (req, res) => {
                                       LEFT JOIN List L ON RUL.ListsID = L.ListsID
                                       LEFT JOIN Ref_ListArtwork RAL ON L.ListsID = RAL.ListsID
                                       LEFT JOIN Artwork A ON A.ArtworkID = RAL.ArtworkID 
-                                      WHERE U.UserID = ${user.id}
-                                      ORDER BY ROW_NUMBER() OVER (PARTITION BY L.ListsID ORDER BY A.ArtworkID)`);
+                                      WHERE U.UserID = @userID
+                                      ORDER BY ROW_NUMBER() OVER (PARTITION BY L.ListsID ORDER BY A.ArtworkID)`,
+      [{ name: "userID", type: sql.Int, value: user.id }]
+    );
 
     res.status(200).json(query);
   } catch (error) {
-    res.status(400).json({
+    res.status(500).json({
       error: "Une erreur est survenue lors de la récupération des listes.",
     });
   }
@@ -131,23 +113,20 @@ exports.getUserWatchlistByName = async (req, res) => {
   try {
     const user = req.session.user;
 
-    if (!user) {
-      res.status(400);
-      return res.json({
+    if (!user)
+      return res.status(401).json({
         error: "Vous devez être connecté pour obtenir ces informations.",
       });
-    }
 
     const { name } = req.params;
 
-    if (!name) {
-      res.status(400);
-      return res.json({
+    if (!name)
+      return res.status(401).json({
         error: "Veuillez spécifier une liste à récupérer.",
       });
-    }
 
-    const listQuery = await executeQuery(`SELECT L.ListsID AS list_id, 
+    const listQuery = await executeQuery(
+      `SELECT L.ListsID AS list_id, 
                                                   L.ListsName AS list_name, 
                                                   U.Username AS username, 
                                                   A.ArtworkPosterImage AS cover_url
@@ -156,31 +135,37 @@ exports.getUserWatchlistByName = async (req, res) => {
                                       LEFT JOIN List L ON RUL.ListsID = L.ListsID
                                       LEFT JOIN Ref_ListArtwork RAL ON L.ListsID = RAL.ListsID
                                       LEFT JOIN Artwork A ON A.ArtworkID = RAL.ArtworkID 
-                                      WHERE U.UserID = ${user.id} AND L.ListsName = '${name}'`);
+                                      WHERE U.UserID = @userID AND L.ListsName = @listName`,
+      [
+        { name: "userID", type: sql.Int, value: user.id },
+        { name: "listName", type: sql.VarChar, value: name },
+      ]
+    );
 
-    if (listQuery.length === 0) {
-      res.status(400);
-      return res.json({
+    if (listQuery.length === 0)
+      return res.status(401).json({
         error: "Vous ne possédez pas cette liste.",
       });
-    }
 
     const list = listQuery[0];
 
-    const artworksQuery = await executeQuery(`SELECT A.ArtworkID AS artwork_id,
+    const artworksQuery = await executeQuery(
+      `SELECT A.ArtworkID AS artwork_id,
                                                       A.ArtworkName AS artwork_name,
                                                       A.ArtworkAPILink AS artwork_api_link,
                                                       A.ArtworkPosterImage AS artwork_poster
                                               FROM Artwork A
                                               LEFT JOIN Ref_ListArtwork RLA ON A.ArtworkID = RLA.ArtworkID
                                               LEFT JOIN List L ON RLA.ListsID = L.ListsID
-                                              WHERE L.ListsID = ${list.list_id}`);
+                                              WHERE L.ListsID = @listID`,
+      [{ name: "listID", type: sql.Int, value: list.list_id }]
+    );
 
     list.artworks = artworksQuery;
 
     res.status(200).json(list);
   } catch (error) {
-    res.status(400).json({
+    res.status(500).json({
       error: "Une erreur est survenue lors de la récupération des listes.",
     });
   }
@@ -190,35 +175,35 @@ exports.createUserWatchlist = async (req, res) => {
   try {
     const user = req.session.user;
 
-    if (!user) {
-      res.status(400);
-      return res.json({
+    if (!user)
+      return res.status(401).json({
         error: "Vous devez être connecté pour créer une liste.",
       });
-    }
 
     const { name } = req.body;
 
-    if (!name || name.length === 0) {
-      res.status(400);
-      return res.json({
+    if (!name || name.length === 0)
+      return res.status(401).json({
         error: "Le nom de la liste ne peut pas être vide.",
       });
-    }
 
     // Check if the list already exists
-    const list = await executeQuery(`SELECT L.ListsID AS list_id
+    const list = await executeQuery(
+      `SELECT L.ListsID AS list_id
                             FROM Users U
                             LEFT JOIN Ref_UsersList RUL ON U.UserID = RUL.UserID 
                             LEFT JOIN List L ON RUL.ListsID = L.ListsID 
-                            WHERE U.UserID = ${user.id} AND L.ListsName = '${name}'`);
+                            WHERE U.UserID = @userID AND L.ListsName = @listName`,
+      [
+        { name: "userID", type: sql.Int, value: user.id },
+        { name: "listName", type: sql.VarChar, value: name },
+      ]
+    );
 
-    if (list.length > 0) {
-      res.status(400);
-      return res.json({
+    if (list.length > 0)
+      return res.status(401).json({
         error: "Vous possédez déjà une liste avec ce nom.",
       });
-    }
 
     // Create the list
     const insertedList = await executeQuery(
@@ -234,7 +219,7 @@ exports.createUserWatchlist = async (req, res) => {
       message: "La liste a été créée avec succès.",
     });
   } catch (error) {
-    res.status(400).json({
+    res.status(500).json({
       error: "Une erreur est survenue lors de la récupération des listes.",
     });
   }
@@ -244,67 +229,71 @@ exports.updateUserWatchlist = async (req, res) => {
   try {
     const user = req.session.user;
 
-    if (!user) {
-      res.status(400);
-      return res.json({
+    if (!user)
+      return res.status(401).json({
         error: "Vous devez être connecté pour modifier une liste.",
       });
-    }
 
     const { id } = req.params;
 
-    if (!id) {
-      res.status(400);
-      return res.json({
+    if (!id)
+      return res.status(400).json({
         error: "Veuillez spécifier une liste à modifier.",
       });
-    }
 
     const { name } = req.body;
 
     // Check if the list exists
-    const list =
-      await executeQuery(`SELECT L.ListsID AS list_id, L.ListsName AS list_name, U.Username AS username
+    const list = await executeQuery(
+      `SELECT L.ListsID AS list_id, L.ListsName AS list_name, U.Username AS username
                             FROM Users U
                             LEFT JOIN Ref_UsersList RUL ON U.UserID = RUL.UserID 
                             LEFT JOIN List L ON RUL.ListsID = L.ListsID 
-                            WHERE U.UserID = ${user.id} AND L.ListsID = ${id}`);
+                            WHERE U.UserID = @userID AND L.ListsID = @listID`,
+      [
+        { name: "userID", type: sql.Int, value: user.id },
+        { name: "listID", type: sql.Int, value: id },
+      ]
+    );
 
-    if (list.length === 0) {
-      res.status(400);
-      return res.json({
+    if (list.length === 0)
+      return res.status(400).json({
         error: "Vous ne possédez pas cette liste.",
       });
-    }
 
     // Check if a list with the new name already exists
-    const existingList =
-      await executeQuery(`SELECT L.ListsID AS list_id, L.ListsName AS list_name, U.Username AS username
+    const existingList = await executeQuery(
+      `SELECT L.ListsID AS list_id, L.ListsName AS list_name, U.Username AS username
                             FROM Users U
                             LEFT JOIN Ref_UsersList RUL ON U.UserID = RUL.UserID 
                             LEFT JOIN List L ON RUL.ListsID = L.ListsID 
-                            WHERE U.UserID = ${user.id} AND L.ListsName = '${name}'`);
+                            WHERE U.UserID = @userID AND L.ListsName = @listName`,
+      [
+        { name: "userID", type: sql.Int, value: user.id },
+        { name: "listName", type: sql.VarChar, value: name },
+      ]
+    );
 
-    if (existingList.length > 0) {
-      res.status(400);
-      return res.json({
+    if (existingList.length > 0)
+      return res.status(400).json({
         error: "Vous possédez déjà une liste avec ce nom.",
       });
-    }
 
     // Update the list
     await executeQuery(
-      `UPDATE List SET ListsName = '${name}', UpdatedDate = GETDATE() WHERE ListsID = ${id}`
+      `UPDATE List SET ListsName = @listName, UpdatedDate = GETDATE() WHERE ListsID = @listID`,
+      [
+        { name: "listName", type: sql.VarChar, value: name },
+        { name: "listID", type: sql.Int, value: id },
+      ]
     );
 
     res.status(200).json({
       message: "La liste a été modifiée avec succès.",
     });
   } catch (error) {
-    res.status(400).json({
-      error:
-        "Une erreur est survenue lors de la modification de la liste.\n" +
-        error,
+    res.status(500).json({
+      error: "Une erreur est survenue lors de la modification de la liste.",
     });
   }
 };
@@ -313,47 +302,52 @@ exports.deleteUserWatchlist = async (req, res) => {
   try {
     const user = req.session.user;
 
-    if (!user) {
-      res.status(400);
-      return res.json({
+    if (!user)
+      return res.status(401).json({
         error: "Vous devez être connecté pour supprimer une liste.",
       });
-    }
 
     const { id } = req.params;
 
-    if (!id) {
-      res.status(400);
-      return res.json({
+    if (!id)
+      return res.status(400).json({
         error: "Veuillez spécifier une liste à supprimer.",
       });
-    }
 
     // Check if the list exists
-    const list =
-      await executeQuery(`SELECT L.ListsID AS list_id, L.ListsName AS list_name, U.Username AS username
+    const list = await executeQuery(
+      `SELECT L.ListsID AS list_id, L.ListsName AS list_name, U.Username AS username
                             FROM Users U
                             LEFT JOIN Ref_UsersList RUL ON U.UserID = RUL.UserID 
                             LEFT JOIN List L ON RUL.ListsID = L.ListsID 
-                            WHERE U.UserID = ${user.id} AND L.ListsID = ${id}`);
+                            WHERE U.UserID = @userID AND L.ListsID = @id`,
+      [
+        { name: "userID", type: sql.Int, value: user.id },
+        { name: "id", type: sql.Int, value: id },
+      ]
+    );
 
-    if (list.length === 0) {
-      res.status(400);
-      return res.json({
+    if (list.length === 0)
+      return res.status(400).json({
         error: "Vous ne possédez pas cette liste.",
       });
-    }
 
     // Delete the list and its references
-    await executeQuery(`DELETE FROM Ref_ListArtwork WHERE ListsID = ${id}`);
-    await executeQuery(`DELETE FROM Ref_UsersList WHERE ListsID = ${id}`);
-    await executeQuery(`DELETE FROM List WHERE ListsID = ${id}`);
+    await executeQuery(`DELETE FROM Ref_ListArtwork WHERE ListsID = @listID`, [
+      { name: "listID", type: sql.Int, value: id },
+    ]);
+    await executeQuery(`DELETE FROM Ref_UsersList WHERE ListsID = @listID`, [
+      { name: "listID", type: sql.Int, value: id },
+    ]);
+    await executeQuery(`DELETE FROM List WHERE ListsID = @listID`, [
+      { name: "listID", type: sql.Int, value: id },
+    ]);
 
     res.status(200).json({
       message: "La liste a été supprimée avec succès.",
     });
   } catch (error) {
-    res.status(400).json({
+    res.status(500).json({
       error:
         "Une erreur est survenue lors de la suppression de la liste.\n" + error,
     });
