@@ -51,12 +51,12 @@ exports.getUsersArtworks = async (req, res) => {
     const user = req.session.user;
 
     const query =
-      await executeQuery(`SELECT L.ListsID AS list_id, L.ListsName AS list_name, 
+      await executeQuery(`SELECT L.ListID AS list_id, L.ListName AS list_name, 
                             A.ArtworkID AS artwork_id, A.ArtworkName AS artwork_name, A.ArtworkAPILink AS artwork_api, A.ArtworkPosterImage AS artwork_poster
                             FROM Users U
                             LEFT JOIN Ref_UsersList RUL ON U.UserID = RUL.UserID 
-                            LEFT JOIN List L ON RUL.ListsID = L.ListsID 
-                            LEFT JOIN Ref_ListArtwork RLA ON RLA.ListsID = L.ListsID
+                            LEFT JOIN List L ON RUL.ListID = L.ListID 
+                            LEFT JOIN Ref_ListArtwork RLA ON RLA.ListID = L.ListID
                             LEFT JOIN Artwork A ON A.ArtworkID = RLA.ArtworkID
                             WHERE U.UserID = ${user.id}`);
 

@@ -5,10 +5,10 @@ exports.getWatchlistsByUsername = async (req, res) => {
   const SearchUser = req.params["u"];
   try {
     const query = await executeQuery(
-      `SELECT U.UserID, L.ListsID, L.ListsName, U.UpdatedDate
+      `SELECT U.UserID, L.ListID, L.ListName, U.UpdatedDate
         from Users U
           INNER JOIN Ref_UsersList RULi ON U.UserID = RULi.UserID 
-          LEFT JOIN List L ON RULi.ListsID = L.ListsID
+          LEFT JOIN List L ON RULi.ListID = L.ListID
           WHERE U.Username = '${SearchUser}' AND U.Confidentiality != 1`
     );
     if (query.length === 0) {
@@ -19,10 +19,10 @@ exports.getWatchlistsByUsername = async (req, res) => {
     res.json({
       User: { UserID: query[0].UserID, UserURL: `/api/users/${SearchUser}` },
       Watchlist: query.map((element) => ({
-        ListsID: element.ListsID,
-        ListName: element.ListsName,
+        ListID: element.ListID,
+        ListName: element.ListName,
         Updated: element.UpdatedDate,
-        ListURL: `/api/${SearchUser}/watchlists/${element.ListsName}`,
+        ListURL: `/api/${SearchUser}/watchlists/${element.ListName}`,
       })),
     });
   } catch (e) {
@@ -39,23 +39,23 @@ exports.getWatchlistByUsernameAndListname = async (req, res) => {
   const SearchList = req.params["w"];
   try {
     const query =
-      await executeQuery(`SELECT U.UserID, U.ListsID, U.ListsName, U.UpdatedDate, A.ArtworkID, A.ArtworkName, RN.NatureLabel, RT.TypeName 
+      await executeQuery(`SELECT U.UserID, U.ListID, U.ListName, U.UpdatedDate, A.ArtworkID, A.ArtworkName, RN.NatureLabel, RT.TypeName 
                                         from Users U 
                                         LEFT JOIN Ref_UsersLists RUL ON U.UserID = RUL.UserID 
-                                        LEFT JOIN List U ON RUL.ListsID = U.ListsID 
-                                        LEFT JOIN Ref_ListArtwork RULA ON RULA.ListsID = U.ListsID
+                                        LEFT JOIN List U ON RUL.ListID = U.ListID 
+                                        LEFT JOIN Ref_ListArtwork RULA ON RULA.ListID = U.ListID
                                         LEFT JOIN Artwork A ON A.ArtworkID = RULA.ArtworkID
                                         LEFT JOIN Ref_ArtworkType RAT ON RAT.ArtworkID = A.ArtworkID
                                         LEFT JOIN Ref_ArtworkNature RAN ON RAN.ArtworkID = A.ArtworkID
                                         LEFT JOIN Ref_ArtworkCreator RAC ON RAC.ArtworkID = A.ArtworkID
                                         LEFT JOIN Ref_Creator RC ON RC.CreatorID = RAC.CreatorID
-                                        WHERE U.Username = '${SearchUser}' AND U.ListsName = '${SearchList}'`);
+                                        WHERE U.Username = '${SearchUser}' AND U.ListName = '${SearchList}'`);
 
     res.json({
       User: { UserID: query[0].UserID, UserURL: `/api/users/${SearchUser}` },
       WatchListInfo: {
-        ListsID: element.ListsID,
-        ListName: element.ListsName,
+        ListID: element.ListID,
+        ListName: element.ListName,
         Updated: element.UpdatedDate,
         Artwork: query[0].map((element) => ({
           ArtworkID: element.ArtworkID,
@@ -87,17 +87,17 @@ exports.getUserWatchlists = async (req, res) => {
 
     const query = await executeQuery(
       `SELECT TOP 1 WITH TIES  
-                                          L.ListsID AS list_id, 
-                                          L.ListsName AS list_name, 
+                                          L.ListID AS list_id, 
+                                          L.ListName AS list_name, 
                                           U.Username AS username, 
                                           A.ArtworkPosterImage AS cover_url
                                       FROM Users U
                                       LEFT JOIN Ref_UsersList RUL ON U.UserID = RUL.UserID 
-                                      LEFT JOIN List L ON RUL.ListsID = L.ListsID
-                                      LEFT JOIN Ref_ListArtwork RAL ON L.ListsID = RAL.ListsID
+                                      LEFT JOIN List L ON RUL.ListID = L.ListID
+                                      LEFT JOIN Ref_ListArtwork RAL ON L.ListID = RAL.ListID
                                       LEFT JOIN Artwork A ON A.ArtworkID = RAL.ArtworkID 
                                       WHERE U.UserID = @userID
-                                      ORDER BY ROW_NUMBER() OVER (PARTITION BY L.ListsID ORDER BY A.ArtworkID)`,
+                                      ORDER BY ROW_NUMBER() OVER (PARTITION BY L.ListID ORDER BY A.ArtworkID)`,
       [{ name: "userID", type: sql.Int, value: user.id }]
     );
 
@@ -126,16 +126,16 @@ exports.getUserWatchlistByName = async (req, res) => {
       });
 
     const listQuery = await executeQuery(
-      `SELECT L.ListsID AS list_id, 
-                                                  L.ListsName AS list_name, 
+      `SELECT L.ListID AS list_id, 
+                                                  L.ListName AS list_name, 
                                                   U.Username AS username, 
                                                   A.ArtworkPosterImage AS cover_url
                                       FROM Users U
                                       LEFT JOIN Ref_UsersList RUL ON U.UserID = RUL.UserID 
-                                      LEFT JOIN List L ON RUL.ListsID = L.ListsID
-                                      LEFT JOIN Ref_ListArtwork RAL ON L.ListsID = RAL.ListsID
+                                      LEFT JOIN List L ON RUL.ListID = L.ListID
+                                      LEFT JOIN Ref_ListArtwork RAL ON L.ListID = RAL.ListID
                                       LEFT JOIN Artwork A ON A.ArtworkID = RAL.ArtworkID 
-                                      WHERE U.UserID = @userID AND L.ListsName = @listName`,
+                                      WHERE U.UserID = @userID AND L.ListName = @listName`,
       [
         { name: "userID", type: sql.Int, value: user.id },
         { name: "listName", type: sql.VarChar, value: name },
@@ -156,8 +156,8 @@ exports.getUserWatchlistByName = async (req, res) => {
                                                       A.ArtworkPosterImage AS artwork_poster
                                               FROM Artwork A
                                               LEFT JOIN Ref_ListArtwork RLA ON A.ArtworkID = RLA.ArtworkID
-                                              LEFT JOIN List L ON RLA.ListsID = L.ListsID
-                                              WHERE L.ListsID = @listID`,
+                                              LEFT JOIN List L ON RLA.ListID = L.ListID
+                                              WHERE L.ListID = @listID`,
       [{ name: "listID", type: sql.Int, value: list.list_id }]
     );
 
@@ -189,11 +189,11 @@ exports.createUserWatchlist = async (req, res) => {
 
     // Check if the list already exists
     const list = await executeQuery(
-      `SELECT L.ListsID AS list_id
+      `SELECT L.ListID AS list_id
                             FROM Users U
                             LEFT JOIN Ref_UsersList RUL ON U.UserID = RUL.UserID 
-                            LEFT JOIN List L ON RUL.ListsID = L.ListsID 
-                            WHERE U.UserID = @userID AND L.ListsName = @listName`,
+                            LEFT JOIN List L ON RUL.ListID = L.ListID 
+                            WHERE U.UserID = @userID AND L.ListName = @listName`,
       [
         { name: "userID", type: sql.Int, value: user.id },
         { name: "listName", type: sql.VarChar, value: name },
@@ -207,12 +207,12 @@ exports.createUserWatchlist = async (req, res) => {
 
     // Create the list
     const insertedList = await executeQuery(
-      `INSERT INTO List OUTPUT INSERTED.ListsID VALUES ('${name}', GETDATE())`
+      `INSERT INTO List OUTPUT INSERTED.ListID VALUES ('${name}', GETDATE())`
     );
 
     // Link the list to the user
     await executeQuery(
-      `INSERT INTO Ref_UsersList VALUES (${user.id}, ${insertedList[0].ListsID})`
+      `INSERT INTO Ref_UsersList VALUES (${user.id}, ${insertedList[0].ListID})`
     );
 
     res.status(201).json({
@@ -245,11 +245,11 @@ exports.updateUserWatchlist = async (req, res) => {
 
     // Check if the list exists
     const list = await executeQuery(
-      `SELECT L.ListsID AS list_id, L.ListsName AS list_name, U.Username AS username
+      `SELECT L.ListID AS list_id, L.ListName AS list_name, U.Username AS username
                             FROM Users U
                             LEFT JOIN Ref_UsersList RUL ON U.UserID = RUL.UserID 
-                            LEFT JOIN List L ON RUL.ListsID = L.ListsID 
-                            WHERE U.UserID = @userID AND L.ListsID = @listID`,
+                            LEFT JOIN List L ON RUL.ListID = L.ListID 
+                            WHERE U.UserID = @userID AND L.ListID = @listID`,
       [
         { name: "userID", type: sql.Int, value: user.id },
         { name: "listID", type: sql.Int, value: id },
@@ -263,11 +263,11 @@ exports.updateUserWatchlist = async (req, res) => {
 
     // Check if a list with the new name already exists
     const existingList = await executeQuery(
-      `SELECT L.ListsID AS list_id, L.ListsName AS list_name, U.Username AS username
+      `SELECT L.ListID AS list_id, L.ListName AS list_name, U.Username AS username
                             FROM Users U
                             LEFT JOIN Ref_UsersList RUL ON U.UserID = RUL.UserID 
-                            LEFT JOIN List L ON RUL.ListsID = L.ListsID 
-                            WHERE U.UserID = @userID AND L.ListsName = @listName`,
+                            LEFT JOIN List L ON RUL.ListID = L.ListID 
+                            WHERE U.UserID = @userID AND L.ListName = @listName`,
       [
         { name: "userID", type: sql.Int, value: user.id },
         { name: "listName", type: sql.VarChar, value: name },
@@ -281,7 +281,7 @@ exports.updateUserWatchlist = async (req, res) => {
 
     // Update the list
     await executeQuery(
-      `UPDATE List SET ListsName = @listName, UpdatedDate = GETDATE() WHERE ListsID = @listID`,
+      `UPDATE List SET ListName = @listName, UpdatedDate = GETDATE() WHERE ListID = @listID`,
       [
         { name: "listName", type: sql.VarChar, value: name },
         { name: "listID", type: sql.Int, value: id },
@@ -316,11 +316,11 @@ exports.deleteUserWatchlist = async (req, res) => {
 
     // Check if the list exists
     const list = await executeQuery(
-      `SELECT L.ListsID AS list_id, L.ListsName AS list_name, U.Username AS username
+      `SELECT L.ListID AS list_id, L.ListName AS list_name, U.Username AS username
                             FROM Users U
                             LEFT JOIN Ref_UsersList RUL ON U.UserID = RUL.UserID 
-                            LEFT JOIN List L ON RUL.ListsID = L.ListsID 
-                            WHERE U.UserID = @userID AND L.ListsID = @id`,
+                            LEFT JOIN List L ON RUL.ListID = L.ListID 
+                            WHERE U.UserID = @userID AND L.ListID = @id`,
       [
         { name: "userID", type: sql.Int, value: user.id },
         { name: "id", type: sql.Int, value: id },
@@ -333,13 +333,13 @@ exports.deleteUserWatchlist = async (req, res) => {
       });
 
     // Delete the list and its references
-    await executeQuery(`DELETE FROM Ref_ListArtwork WHERE ListsID = @listID`, [
+    await executeQuery(`DELETE FROM Ref_ListArtwork WHERE ListID = @listID`, [
       { name: "listID", type: sql.Int, value: id },
     ]);
-    await executeQuery(`DELETE FROM Ref_UsersList WHERE ListsID = @listID`, [
+    await executeQuery(`DELETE FROM Ref_UsersList WHERE ListID = @listID`, [
       { name: "listID", type: sql.Int, value: id },
     ]);
-    await executeQuery(`DELETE FROM List WHERE ListsID = @listID`, [
+    await executeQuery(`DELETE FROM List WHERE ListID = @listID`, [
       { name: "listID", type: sql.Int, value: id },
     ]);
 
@@ -379,10 +379,10 @@ exports.createUserArtworkByWatchlistName = async (req, res) => {
 
     // Get list ID
     const listQuery = await executeQuery(
-      `SELECT L.ListsID 
+      `SELECT L.ListID 
        FROM List L 
-       INNER JOIN Ref_UsersList UL ON UL.ListsID = L.ListsID 
-       WHERE L.ListsName = @listName AND UL.UserID = @userId`,
+       INNER JOIN Ref_UsersList UL ON UL.ListID = L.ListID 
+       WHERE L.ListName = @listName AND UL.UserID = @userId`,
       [
         { name: "listName", type: sql.VarChar, value: list },
         { name: "userId", type: sql.Int, value: user.id },
@@ -394,7 +394,7 @@ exports.createUserArtworkByWatchlistName = async (req, res) => {
         error: "Vous ne possédez pas cette liste.",
       });
 
-    const listId = listQuery[0].ListsID;
+    const listId = listQuery[0].ListID;
 
     // Check if artwork exists and get its ID, or insert if not exists
     const artworkQuery = await executeQuery(
@@ -424,7 +424,7 @@ exports.createUserArtworkByWatchlistName = async (req, res) => {
     // Check if artwork is already in list
     const existingEntry = await executeQuery(
       `SELECT 1 FROM Ref_ListArtwork 
-       WHERE ListsID = @listId AND ArtworkID = @artworkId`,
+       WHERE ListID = @listId AND ArtworkID = @artworkId`,
       [
         { name: "listId", type: sql.Int, value: listId },
         { name: "artworkId", type: sql.Int, value: artworkId },
@@ -438,7 +438,7 @@ exports.createUserArtworkByWatchlistName = async (req, res) => {
 
     // Add artwork to list
     await executeQuery(
-      `INSERT INTO Ref_ListArtwork (ArtworkID, ListsID) 
+      `INSERT INTO Ref_ListArtwork (ArtworkID, ListID) 
        VALUES (@artworkId, @listId)`,
       [
         { name: "artworkId", type: sql.Int, value: artworkId },
@@ -448,6 +448,81 @@ exports.createUserArtworkByWatchlistName = async (req, res) => {
 
     res.status(201).json({
       message: "Le titre a été ajouté à la liste avec succès.",
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: "Une erreur est survenue lors de l'ajout du titre.",
+    });
+  }
+};
+
+exports.deleteUserArtworkByIDFromWatchlistName = async (req, res) => {
+  try {
+    const user = req.session.user;
+
+    if (!user)
+      return res.status(401).json({
+        error: "Vous devez être connecté pour supprimer un titre d'une liste.",
+      });
+
+    const { name: list, id: artwork_id } = req.params;
+
+    if (!list)
+      return res.status(400).json({
+        error: "Veuillez spécifier une liste.",
+      });
+
+    if (!artwork_id)
+      return res.status(400).json({
+        error: "Veuillez spécifier un titre.",
+      });
+
+    // Get list ID
+    const listQuery = await executeQuery(
+      `SELECT L.ListID 
+       FROM List L 
+       INNER JOIN Ref_UsersList UL ON UL.ListID = L.ListID 
+       WHERE L.ListName = @listName AND UL.UserID = @userId`,
+      [
+        { name: "listName", type: sql.VarChar, value: list },
+        { name: "userId", type: sql.Int, value: user.id },
+      ]
+    );
+
+    if (listQuery.length === 0)
+      return res.status(404).json({
+        error: "Vous ne possédez pas cette liste.",
+      });
+
+    const listId = listQuery[0].ListID;
+
+    // Check if user has artwork in list
+    const artworkQuery = await executeQuery(
+      `SELECT * FROM Ref_ListArtwork
+       WHERE ArtworkID = @artworkId AND ListID = @listId`,
+      [
+        { name: "artworkId", type: sql.Int, value: artwork_id },
+        { name: "listId", type: sql.Int, value: listId },
+      ]
+    );
+
+    if (artworkQuery.length === 0)
+      return res.status(404).json({
+        error: "Vous ne possédez pas ce titre dans cette liste.",
+      });
+
+    // Remove artwork from list
+    await executeQuery(
+      `DELETE FROM Ref_ListArtwork
+       WHERE ArtworkID = @artworkId AND ListID = @listId`,
+      [
+        { name: "artworkId", type: sql.Int, value: artwork_id },
+        { name: "listId", type: sql.Int, value: listId },
+      ]
+    );
+
+    res.status(200).json({
+      message: "Le titre a été supprimé de la liste avec succès.",
     });
   } catch (error) {
     res.status(500).json({

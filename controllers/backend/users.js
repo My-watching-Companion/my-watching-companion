@@ -94,11 +94,11 @@ exports.registerOK = async (req, res) => {
         )}', '${firstname}', 0, 0, 0, '${answer}','${question}')`
       );
       const listid = await executeQuery(
-        "INSERT INTO List OUTPUT inserted.ListsID VALUES ('Ma Liste',GETDATE())"
+        "INSERT INTO List OUTPUT inserted.ListID VALUES ('Ma Liste',GETDATE())"
       );
       console.log(listid);
       await executeQuery(
-        `INSERT INTO Ref_UsersList VALUES (${userid[0].UserID}, ${listid[0].ListsID})`
+        `INSERT INTO Ref_UsersList VALUES (${userid[0].UserID}, ${listid[0].ListID})`
       );
       res.redirect("/signin"); ///+ {message: 'Utilisateur créé avec succès'})
     }
