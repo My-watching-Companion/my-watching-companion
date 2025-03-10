@@ -98,7 +98,7 @@ router.get(
   watchlistsController.getWatchlistByUsernameAndListname
 );
 
-// New watchlists routes
+// Logged User Watchlists
 router.get(
   "/user/watchlists",
   isAuthenticated,
@@ -133,6 +133,25 @@ router.post(
   "/user/watchlists/:name/artworks",
   isAuthenticated,
   watchlistsController.createUserArtworkByWatchlistName
+);
+
+router.delete(
+  "/user/watchlists/:name/artworks/:id",
+  isAuthenticated,
+  watchlistsController.deleteUserArtworkByIDFromWatchlistName
+);
+
+// Logged User Artworks
+router.post(
+  "/user/artworks/:id/liked",
+  isAuthenticated,
+  artworksController.toggleUserLikedArtworkByID
+);
+
+router.post(
+  "/user/artworks/:id/watched",
+  isAuthenticated,
+  artworksController.toggleUserWatchedArtworkByID
 );
 
 module.exports = router;

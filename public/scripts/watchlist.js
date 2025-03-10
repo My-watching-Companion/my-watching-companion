@@ -64,16 +64,147 @@ async function loadArtworks() {
     cardPoster.src = `https://image.tmdb.org/t/p/w500${artwork.artwork_poster}`;
     cardPoster.alt = `${artwork.artwork_name}`;
 
+    // Card Interactions
+    const cardInteractions = document.createElement("div");
+    cardInteractions.classList.add("artwork-interactions");
+
+    const favoriteBtn = document.createElement("span");
+    favoriteBtn.classList.add("material-symbols-rounded");
+    favoriteBtn.textContent = "favorite";
+
+    // Set initial state
+    if (artwork.artwork_liked !== null) {
+      favoriteBtn.classList.add("filled");
+      favoriteBtn.style.color = "#f7384a";
+      favoriteBtn.title = "Retirer des J'aime";
+    } else favoriteBtn.title = "Ajouter aux J'aime";
+
+    favoriteBtn.onclick = async () => {
+      let response = await fetch(
+        `/api/user/artworks/${artwork.artwork_id}/liked`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      response = await response.json();
+
+      // Update based on liked state
+      if (response.message) {
+        favoriteBtn.title = response.liked
+          ? "Retirer des J'aime"
+          : "Ajouter aux J'aime";
+        favoriteBtn.classList.toggle("filled", response.liked);
+        favoriteBtn.style.color = response.liked ? "#f7384a" : "white";
+      }
+    };
+
+    const watchBtn = document.createElement("span");
+    watchBtn.classList.add("material-symbols-rounded");
+    watchBtn.title = "Marquer En Cours de Visionnage";
+    watchBtn.textContent = "visibility_off";
+
+    // Set initial state
+    if (artwork.artwork_watch_status === "En Cours") {
+      watchBtn.title = "Marquer comme Regardé";
+      watchBtn.innerHTML = "schedule";
+      watchBtn.classList.toggle("filled", true);
+      watchBtn.style.color = "#FFC107";
+    } else if (artwork.artwork_watch_status === "Regardé") {
+      watchBtn.title = "Marquer comme À Regarder";
+      watchBtn.innerHTML = "visibility";
+      watchBtn.classList.toggle("filled", true);
+      watchBtn.style.color = "#4CAF50";
+    }
+
+    watchBtn.onclick = async () => {
+      let response = await fetch(
+        `/api/user/artworks/${artwork.artwork_id}/watched`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      response = await response.json();
+
+      // Update based on watched state
+      if (response.message) {
+        switch (response.watchedState) {
+          case "En Cours":
+            watchBtn.title = "Marquer comme Regardé";
+            watchBtn.innerHTML = "schedule";
+            watchBtn.classList.toggle("filled", true);
+            watchBtn.style.color = "#FFC107";
+            break;
+
+          case "Regardé":
+            watchBtn.title = "Marquer comme À Regarder";
+            watchBtn.innerHTML = "visibility";
+            watchBtn.classList.toggle("filled", true);
+            watchBtn.style.color = "#4CAF50";
+            break;
+
+          default:
+            watchBtn.title = "Marquer comme En Cours de Visionnage";
+            watchBtn.innerHTML = "visibility_off";
+            watchBtn.classList.toggle("filled", false);
+            watchBtn.style.color = "white";
+            break;
+        }
+      }
+    };
+
+    const deleteBtn = document.createElement("span");
+    deleteBtn.classList.add("material-symbols-rounded");
+    deleteBtn.title = "Retirer de la Liste";
+    deleteBtn.textContent = "delete";
+    deleteBtn.onclick = async () => {
+      let response = await fetch(
+        `/api/user/watchlists/${selectedList}/artworks/${artwork.artwork_id}`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      response = await response.json();
+
+      if (response.message) {
+        cardDiv.remove();
+
+        const artworksContainer = document.getElementById("artworks");
+        if (artworksContainer.children.length === 0) setEmptyArtworks(true);
+      }
+    };
+
+    const viewMoreBtn = document.createElement("span");
+    viewMoreBtn.classList.add("material-symbols-rounded");
+    viewMoreBtn.title = "View More";
+    viewMoreBtn.textContent = "open_in_new";
+    viewMoreBtn.onclick = () =>
+      (window.location.href = `/artwork/${artwork.artwork_id}`);
+
+    cardInteractions.appendChild(favoriteBtn);
+    cardInteractions.appendChild(watchBtn);
+    cardInteractions.appendChild(deleteBtn);
+    cardInteractions.appendChild(viewMoreBtn);
+
+    // Card Poster Load Event
     cardPoster.addEventListener("load", () => {
       const dominantColor = new ColorThief().getColor(cardPoster);
       const shadowColor = (opacity) =>
         `rgba(${dominantColor[0]}, ${dominantColor[1]}, ${dominantColor[2]}, ${opacity})`;
       cardPoster.style.boxShadow = `0px 0px 5px 5px ${shadowColor(0.7)}`;
-      cardPoster.onmouseover = () => {
+
+      cardDiv.onmouseover = () => {
         cardPoster.style.boxShadow = `0px 0px 0px 10px ${shadowColor(1)}`;
+        cardInteractions.style.opacity = "1";
       };
-      cardPoster.onmouseout = () => {
+      cardDiv.onmouseout = () => {
         cardPoster.style.boxShadow = `0px 0px 5px 5px ${shadowColor(0.7)}`;
+        cardInteractions.style.opacity = "0";
       };
     });
 
@@ -81,7 +212,9 @@ async function loadArtworks() {
       window.location.href = `/artwork/${artwork.artwork_id}`;
     };
 
+    // Append Card
     cardDiv.appendChild(cardPoster);
+    cardDiv.appendChild(cardInteractions);
     artworksContainer.appendChild(cardDiv);
   });
 

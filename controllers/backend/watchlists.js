@@ -151,14 +151,22 @@ exports.getUserWatchlistByName = async (req, res) => {
 
     const artworksQuery = await executeQuery(
       `SELECT A.ArtworkID AS artwork_id,
-                                                      A.ArtworkName AS artwork_name,
-                                                      A.ArtworkAPILink AS artwork_api_link,
-                                                      A.ArtworkPosterImage AS artwork_poster
-                                              FROM Artwork A
-                                              LEFT JOIN Ref_ListArtwork RLA ON A.ArtworkID = RLA.ArtworkID
-                                              LEFT JOIN List L ON RLA.ListID = L.ListID
-                                              WHERE L.ListID = @listID`,
-      [{ name: "listID", type: sql.Int, value: list.list_id }]
+              A.ArtworkName AS artwork_name,
+              A.ArtworkAPILink AS artwork_api_link,
+              A.ArtworkPosterImage AS artwork_poster,
+              LI.LikedID AS artwork_liked,
+              WT.WatchName AS artwork_watch_status
+        FROM Artwork A
+        LEFT JOIN Ref_ListArtwork RLA ON A.ArtworkID = RLA.ArtworkID
+        LEFT JOIN List L ON RLA.ListID = L.ListID
+        LEFT JOIN Liked LI ON A.ArtworkID = LI.ArtworkID AND LI.UserID = @userID
+        LEFT JOIN Watched W ON W.ArtworkID = A.ArtworkID AND W.UserID = @userID
+        LEFT JOIN WatchType WT ON WT.WatchTypeID = W.WatchTypeID
+        WHERE L.ListID = @listID`,
+      [
+        { name: "listID", type: sql.Int, value: list.list_id },
+        { name: "userID", type: sql.Int, value: user.id },
+      ]
     );
 
     list.artworks = artworksQuery;
