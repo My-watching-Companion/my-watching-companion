@@ -16,6 +16,16 @@ async function toggleAddListModal() {
 }
 
 // Load watchlists
+async function setLoadingWatchlists(show) {
+  const status = document.getElementById("status-loading");
+  status.style.display = show ? "flex" : "none";
+}
+
+async function setEmptyWatchlists(show) {
+  const status = document.getElementById("status-empty");
+  status.style.display = show ? "flex" : "none";
+}
+
 async function loadWatchlists() {
   setLoadingWatchlists(true);
   setEmptyWatchlists(false);
@@ -68,24 +78,50 @@ async function loadWatchlists() {
     titleDiv.classList.add("watchlist-title");
     titleDiv.textContent = watchlist.list_name;
 
+    // Delete button
+    const deleteButton = document.createElement("button");
+    deleteButton.classList.add("delete-watchlist-btn");
+    deleteButton.innerHTML =
+      '<span class="material-symbols-rounded">delete</span>';
+    deleteButton.style.display = "none";
+
+    cardDiv.addEventListener("mouseenter", () => {
+      deleteButton.style.display = "flex";
+    });
+    cardDiv.addEventListener("mouseleave", () => {
+      deleteButton.style.display = "none";
+    });
+
+    // Prevent navigation when clicking delete button
+    deleteButton.addEventListener("click", async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const response = await fetch(
+        `/api/user/watchlists/${encodeURIComponent(watchlist.list_name)}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const result = await response.json();
+
+      if (result.message) loadWatchlists();
+      else console.log(result);
+    });
+
     cardDiv.appendChild(cardPoster);
     cardDiv.appendChild(titleDiv);
+    cardDiv.appendChild(deleteButton);
     linkElement.appendChild(cardDiv);
     watchlistsContainer.appendChild(linkElement);
   });
 
   setLoadingWatchlists(false);
   debouncedFilterWatchlists();
-}
-
-async function setLoadingWatchlists(show) {
-  const status = document.getElementById("status-loading");
-  status.style.display = show ? "flex" : "none";
-}
-
-async function setEmptyWatchlists(show) {
-  const status = document.getElementById("status-empty");
-  status.style.display = show ? "flex" : "none";
 }
 
 loadWatchlists();

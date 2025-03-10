@@ -315,9 +315,9 @@ exports.deleteUserWatchlist = async (req, res) => {
         error: "Vous devez être connecté pour supprimer une liste.",
       });
 
-    const { id } = req.params;
+    const { name: listName } = req.params;
 
-    if (!id)
+    if (!listName)
       return res.status(400).json({
         error: "Veuillez spécifier une liste à supprimer.",
       });
@@ -328,10 +328,10 @@ exports.deleteUserWatchlist = async (req, res) => {
                             FROM Users U
                             LEFT JOIN Ref_UsersList RUL ON U.UserID = RUL.UserID 
                             LEFT JOIN List L ON RUL.ListID = L.ListID 
-                            WHERE U.UserID = @userID AND L.ListID = @id`,
+                            WHERE U.UserID = @userID AND L.ListName = @listName`,
       [
         { name: "userID", type: sql.Int, value: user.id },
-        { name: "id", type: sql.Int, value: id },
+        { name: "listName", type: sql.VarChar, value: listName },
       ]
     );
 
@@ -342,13 +342,13 @@ exports.deleteUserWatchlist = async (req, res) => {
 
     // Delete the list and its references
     await executeQuery(`DELETE FROM Ref_ListArtwork WHERE ListID = @listID`, [
-      { name: "listID", type: sql.Int, value: id },
+      { name: "listID", type: sql.Int, value: list[0].list_id },
     ]);
     await executeQuery(`DELETE FROM Ref_UsersList WHERE ListID = @listID`, [
-      { name: "listID", type: sql.Int, value: id },
+      { name: "listID", type: sql.Int, value: list[0].list_id },
     ]);
     await executeQuery(`DELETE FROM List WHERE ListID = @listID`, [
-      { name: "listID", type: sql.Int, value: id },
+      { name: "listID", type: sql.Int, value: list[0].list_id },
     ]);
 
     res.status(200).json({
