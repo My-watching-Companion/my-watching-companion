@@ -17,16 +17,19 @@ async function toggleAddListModal() {
 
 // Load watchlists
 async function loadWatchlists() {
-  setLoadingWatchlists();
+  setLoadingWatchlists(true);
+  setEmptyWatchlists(false);
 
-  const watchlists = await fetch("/api/user/watchlists").then((response) =>
-    response.json()
-  );
+  const watchlists = await fetch("/api/user/watchlists", {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  }).then((response) => response.json());
 
   const watchlistsContainer = document.getElementById("watchlists");
 
   if (watchlists.length === 0) {
-    setNoWatchlists();
+    setEmptyWatchlists(true);
+    setLoadingWatchlists(false);
     return;
   }
 
@@ -36,6 +39,7 @@ async function loadWatchlists() {
     const linkElement = document.createElement("a");
     linkElement.href = `/my-watchlists/${watchlist.list_name}`;
     linkElement.style.textDecoration = "none";
+    linkElement.setAttribute("name", watchlist.list_name);
 
     const cardDiv = document.createElement("div");
     cardDiv.classList.add("watchlist-card");
@@ -69,16 +73,19 @@ async function loadWatchlists() {
     linkElement.appendChild(cardDiv);
     watchlistsContainer.appendChild(linkElement);
   });
+
+  setLoadingWatchlists(false);
+  debouncedFilterWatchlists();
 }
 
-async function setLoadingWatchlists() {
-  const watchlistsContainer = document.getElementById("watchlists");
-  watchlistsContainer.innerHTML = `<p>Loading...</p>`;
+async function setLoadingWatchlists(show) {
+  const status = document.getElementById("status-loading");
+  status.style.display = show ? "flex" : "none";
 }
 
-async function setNoWatchlists() {
-  const watchlistsContainer = document.getElementById("watchlists");
-  watchlistsContainer.innerHTML = `<p>Vous ne possédez aucune liste...</p>`;
+async function setEmptyWatchlists(show) {
+  const status = document.getElementById("status-empty");
+  status.style.display = show ? "flex" : "none";
 }
 
 loadWatchlists();
@@ -115,3 +122,30 @@ async function createWatchlist() {
     loadWatchlists();
   }
 }
+
+// Filter artworks
+async function filterWatchlists() {
+  const watchlistsContainer = document.getElementById("watchlists");
+  const filter = document.getElementById("quick-search").value;
+
+  for (const watchlist of watchlistsContainer.children) {
+    if (
+      watchlist
+        .getAttribute("name")
+        .toLowerCase()
+        .includes(filter.toLowerCase())
+    )
+      watchlist.style.display = "flex";
+    else watchlist.style.display = "none";
+  }
+
+  if (
+    Array.from(watchlistsContainer.children).every(
+      (watchlist) => watchlist.style.display === "none"
+    )
+  )
+    setEmptyWatchlists(true);
+  else setEmptyWatchlists(false);
+}
+
+const debouncedFilterWatchlists = debounce(filterWatchlists, 250);

@@ -1,12 +1,3 @@
-// Debounce function to prevent functions from running multiple times in a row
-function debounce(func, wait) {
-  let timeout;
-  return function executedFunction(...args) {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(this, args), wait);
-  };
-}
-
 // Modals management
 async function toggleAddArtworkModal() {
   const addArtworkModal = document.getElementById("add-artwork");
