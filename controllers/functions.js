@@ -69,7 +69,7 @@ async function TraceLogs(req, res, message) {
 
 async function TraceError(req, res, message) {
   await executeQuery(
-    `INSERT INTO TraceLogs VALUES (GETDATE(), (SELECT UserID FROM Users where Username = '${req.session.user.username}'), '${message}', 1)`
+    `INSERT INTO TraceLogs VALUES (GETDATE(), (SELECT UserID FROM Users where Username = '${req.session.user && req.session.user.username ? req.session.user.username : 0}'), '${message}', 1)`
   );
 }
 

@@ -1,267 +1,200 @@
-.all-container{
-    display: flex;
+/* Main Layout */
+.all-container {
+  display: flex;
+  max-width: 2000px;
+  margin: 0 auto;
 }
 
-.container{
-    position: sticky;
-    margin-left: 10px;
-    width: 15vw;
-    height: 90vh;
-    border-right: 3px black solid;
+/* Sidebar */
+.container {
+  position: sticky;
+  top: 0;
+  width: 250px;
+  height: 90vh;
+  border-right: 1px solid #e6e6e6;
+  padding: 2rem 1rem;
 }
-
-.comments{
-    margin-top: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.text-sidebar{
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    gap: 5px;
-    padding: 5px;
-    font-size: 1vw;
-    text-align: start;
-}
-
-.text-sidebar > .material-symbols-rounded{
-    font-size: 1.8vw;
-}
-
-.comment-sidebar{
-    color: gray;
-    text-align: center;
-    font-size: 0.75vw;
-}
-
-.settings-container{
-    display: flex;
-    width: 80%;
-    align-items: center;
-    flex-direction: column;
-    gap: 20px;
-    padding: 20px;
-}
-
-/* ---- CONFIDENTIALITY ---- */
-.conf-div{
-    display: flex;
-    border-width: 1px;
-    border-radius: 25px;
-    background-color: lightgray;
-    width: 60%;
-    height: auto;
-    box-shadow: 0 0 20px rgba(65, 65, 65, 0.6); 
-}
-
-.conf-text{
-    width: 80%;
-    height: 100%;
-    margin-left: 10px;
-}
-
-.conf-select{
-    height: 100%;
-    width: 19%;
-    align-content: center;
-}
-
-
-#confselect {
-    appearance: none;
-    cursor: pointer;
-    color: white;
-    font-weight: bolder;
-    background-color: #f7384a;
-    box-shadow: 0px 5px 10px -5px #f7384a;
-    border: none;
-    border-radius: 10px;
-    padding: 1rem;
-    transition: box-shadow 0.1s ease-in-out, background-color 0.3s ease-in,color 0.3s ease-in;
-}
-
-#confselect:hover{
-    background-color: white;
-    color: #f7384a;
-    transition: box-shadow 0.1s ease-in-out, background-color 0.3s ease-in,color 0.3s ease-in;
-}
-
-#confselect:focus {
-    border-color: #f7384a; 
-    box-shadow: 0 0 8px rgba(247, 56, 74, 0.6); 
-}
-  
-  #confselect option {
-    padding: 10px;
-    background-color: #fff;
-    color: #333; /* Texte gris foncé */
-    border: none;
-    font-size: 16px;
-  }
-  
-  /* Style de l'option sélectionnée */
-  #confselect option:checked {
-    background-color: #f7384a; /* Fond rouge */
-    color: #fff; /* Texte blanc */
-  }
-  
-  /* Flèche personnalisée pour le select */
-  #confselect::-ms-expand {
-    display: none; /* Retirer la flèche par défaut sur Internet Explorer */
-  }
-  
-  #confselect::before {
-    content: ' ▼'; /* Flèche vers le bas */
-    font-size: 16px;
-    color: #f7384a;
-    position: absolute;
-    top: 50%;
-    right: 15px;
-    transform: translateY(-50%);
-  }
-  
-  /* Style pour le container du select pour éviter que la flèche chevauche le texte */
-  #confselect {
-    position: relative;
-  }
-
-/* ---- MODIFY PROFILE ---- */
-
 
 .profile{
-    background-color: #262626;
-    display: flex;
-    flex-direction: row;
-    color: white;
-    align-items: center;
-    height: 18vh;
-    width: 70vw;
-    border-radius: 25px;
-    justify-content: center;
+  max-width: 100%;
 }
-
-.profile-info{
-    display: flex;
-    flex-direction: row;
-    width: 40%;
-    margin-left: 15px;
-    align-items: center;
-}
-
-.profile-text{
-    display: flex;
-    flex-direction: column;
-    margin-left: 20px;
-    height: 70%;
-}
-
 
 .profile-pic{
-    display: flex;
-    width: 40%;
-    height: 100%;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  align-items: center;
 }
 
-.profile-pic > button{
-    border-radius: 25px;
+.profile-pic > form{
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-.pp{
-    width: 100px;
-    height: 100px;
-    border-radius: 50px;
+.comments {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.text-sidebar {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  font-size: 1rem;
+  color: #666;
+  transition: color 0.2s ease-in-out;
+}
+
+.text-sidebar:hover {
+  color: #f7384a;
+}
+
+.text-sidebar > .material-symbols-rounded {
+  font-size: 1.5rem;
+}
+
+.comment-sidebar {
+  color: #a6a6a6;
+  text-align: center;
+  font-size: 0.875rem;
+}
+
+/* Main Content */
+.settings-container {
+  flex: 1;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Confidentiality Section */
+.conf-div {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  width: 100%;
+  max-width: 800px;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.25);
+}
+
+.conf-text {
+  flex: 1;
+  padding-right: 1rem;
+}
+
+#confselect, #gender {
+  border: none;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-weight: bold;
+  color: white;
+  background-color: #f7384a;
+  box-shadow: 0px 5px 10px 0px #f7384a;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+#confselect:hover, #gender:hover {
+  box-shadow: 0px 5px 10px 2.5px #f7384a;
+}
+
+/* Profile Section */
+.profile {
+  background-color: white;
+  display: flex;
+  padding: 2rem;
+  width: 100%;
+  max-width: 800px;
+  border-radius: 10px;
+  box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.25);
+}
+
+.profile-info {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  flex: 1;
+}
+
+.pp {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .custom-file-upload, button {
-    color: white;
-    background-color: #f7384a;
-    box-shadow: 0px 5px 10px 0px #f7384a;
-    transition: box-shadow 0.1s ease-in-out;
-    padding: 8px 12px;
-    border-radius: 5px;
-    cursor: pointer;
-    display: inline-block;
-    border-color: transparent;
+  border: none;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-weight: bold;
+  color: white;
+  background-color: #f7384a;
+  box-shadow: 0px 5px 10px 0px #f7384a;
+  transition: box-shadow 0.2s ease-in-out;
+  cursor: pointer;
 }
 
 .custom-file-upload:hover, button:hover {
-    box-shadow: 0px 5px 10px 2.5px #f7384a;
-    cursor: pointer;
-    transition: box-shadow 0.1s ease-in-out;
+  box-shadow: 0px 5px 10px 2.5px #f7384a;
 }
 
-.settings-bio{
-    display: flex;
-    width: 70vw;
-    height: 15vh;
-    resize: none;
-    border-radius: 15px;
-    margin-bottom: 10px;
+.settings-bio {
+  width: 100%;
+  padding: 1rem;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  border: none;
+  box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.25);
+  resize: none;
+}
+
+.gender-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; 
+  width: 100%;
+  max-width: 800px;
+}
+
+#gender-title {
+  font-size: 1.2rem;
+  font-weight: bold;
 }
 
 #gender {
-    appearance: none;
-    cursor: pointer;
-    color: white;
-    font-weight: bolder;
-    background-color: #f7384a;
-    box-shadow: 0px 5px 10px -5px #f7384a;
-    border: none;
-    border-radius: 10px;
-    padding: 1rem;
-    transition: box-shadow 0.1s ease-in-out, background-color 0.3s ease-in,color 0.3s ease-in;
+  width: 200px; 
+  text-align: center;
 }
 
-#gender:hover{
-    background-color: white;
-    color: #f7384a;
-    transition: box-shadow 0.1s ease-in-out, background-color 0.3s ease-in,color 0.3s ease-in;
-}
 
-#gender:focus {
-    border-color: #f7384a; 
-    box-shadow: 0 0 8px rgba(247, 56, 74, 0.6); 
-}
-  
-  #gender option {
-    padding: 10px;
-    background-color: #fff;
-    color: #333; /* Texte gris foncé */
-    border: none;
-    font-size: 16px;
-  }
-  
-  /* Style de l'option sélectionnée */
-  #gender option:checked {
-    background-color: #f7384a; /* Fond rouge */
-    color: #fff; /* Texte blanc */
-  }
-  
-  /* Flèche personnalisée pour le select */
-  #gender::-ms-expand {
-    display: none; /* Retirer la flèche par défaut sur Internet Explorer */
-  }
-  
-  #gender::before {
-    content: ' ▼'; /* Flèche vers le bas */
-    font-size: 16px;
-    color: #f7384a;
-    position: absolute;
-    top: 50%;
-    right: 15px;
-    transform: translateY(-50%);
-  }
-  
-  /* Style pour le container du select pour éviter que la flèche chevauche le texte */
-  #gender {
-    position: relative;
+@media screen and (max-width: 768px) {
+  .all-container {
+    flex-direction: column;
   }
 
-  .div-container > #gender-title{
-    align-items: start;
+  .container {
+    width: 100%;
+    height: auto;
+    position: static;
+    border-right: none;
+    border-bottom: 1px solid #e6e6e6;
   }
+
+  .profile, .conf-div {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .profile-info {
+    flex-direction: column;
+  }
+}
