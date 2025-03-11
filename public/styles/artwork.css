@@ -373,17 +373,37 @@ main {
   color: var(--artwork-color);
 }
 
-.comment-like {
+.like-container,
+.dislike-container,
+.comment-delete {
   display: flex;
   align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  color: #666;
+  font-size: 0.9rem;
+  border-radius: 4px;
 }
 
-.comment-like .material-symbols-rounded {
+.like-container .material-symbols-rounded,
+.dislike-container .material-symbols-rounded,
+.comment-delete .material-symbols-rounded {
+  color: #666;
   font-size: 1.1rem;
 }
 
-.like-count {
+.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clickable:hover {
+  background: rgba(var(--artwork-color-rgb), 0.1);
+}
+
+.count-value {
   font-size: 0.9rem;
+  font-weight: 500;
 }
 
 @media (max-width: 900px) {

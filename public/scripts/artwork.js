@@ -54,52 +54,134 @@ async function loadComments() {
     const commentContent = document.createElement("div");
     commentContent.className = "comment-content";
     const commentText = document.createElement("p");
-    commentText.textContent = comment.comment;
+    commentText.textContent = comment.comment_content;
     commentContent.appendChild(commentText);
 
     // Create comment actions
     const commentActions = document.createElement("div");
     commentActions.className = "comment-actions";
 
-    // Like Button
-    const likeButton = document.createElement("button");
-    likeButton.className = "comment-like";
+    // Likes
+    const likeContainer = document.createElement("div");
+    likeContainer.className =
+      userID !== -1 ? "like-container clickable" : "like-container";
 
-    const thumbIcon = document.createElement("span");
-    thumbIcon.className = "material-symbols-rounded";
-    thumbIcon.textContent = "thumb_up";
-
-    // TODO: Like Counter functionality !
     const likeCount = document.createElement("span");
-    likeCount.className = "like-count";
-    likeCount.textContent = comment.likes || 0;
+    likeCount.className = "count-value";
+    likeCount.textContent = comment.comment_likes || 0;
 
-    likeButton.appendChild(thumbIcon);
-    likeButton.appendChild(likeCount);
+    const likeIcon = document.createElement("span");
+    likeIcon.classList.add(
+      "material-symbols-rounded",
+      ...(comment.user_reaction === true ? ["filled"] : [])
+    );
+    likeIcon.textContent = "thumb_up";
 
-    // Delete Button
-    const deleteButton = document.createElement("button");
-    deleteButton.className = "comment-delete";
+    likeContainer.appendChild(likeCount);
+    likeContainer.appendChild(likeIcon);
 
-    const binIcon = document.createElement("span");
-    binIcon.className = "material-symbols-rounded";
-    binIcon.textContent = "delete";
+    // Dislikes
+    const dislikeContainer = document.createElement("div");
+    dislikeContainer.className =
+      userID !== -1 ? "dislike-container clickable" : "dislike-container";
 
-    deleteButton.appendChild(binIcon);
+    const dislikeCount = document.createElement("span");
+    dislikeCount.className = "count-value";
+    dislikeCount.textContent = comment.comment_dislikes || 0;
 
-    deleteButton.onclick = async () => {
-      const response = await fetch("/api/comments/" + comment.id, {
-        method: "DELETE",
-      }).then((response) => response.json());
+    const dislikeIcon = document.createElement("span");
+    dislikeIcon.classList.add(
+      "material-symbols-rounded",
+      ...(comment.user_reaction === false ? ["filled"] : [])
+    );
+    dislikeIcon.textContent = "thumb_down";
 
-      console.log(response);
+    dislikeContainer.appendChild(dislikeCount);
+    dislikeContainer.appendChild(dislikeIcon);
 
-      if (response.message) loadComments();
-    };
+    // Add event listeners only if user is logged in
+    if (userID !== -1) {
+      likeContainer.onclick = async () => {
+        const response = await fetch(
+          `/api/comments/${comment.comment_id}/like`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          }
+        ).then((response) => response.json());
 
-    // Add buttons to actions
-    if (userID !== -1) commentActions.appendChild(likeButton);
-    if (userID === comment.user_id) commentActions.appendChild(deleteButton);
+        if (response.error)
+          return console.error("Error liking comment:", response.error);
+
+        if (response.removedReaction === true) {
+          likeCount.textContent = parseInt(likeCount.textContent) - 1;
+          likeIcon.classList.remove("filled");
+        } else if (response.previousReaction === "dislike") {
+          dislikeCount.textContent = parseInt(dislikeCount.textContent) - 1;
+          dislikeIcon.classList.remove("filled");
+
+          likeCount.textContent = parseInt(likeCount.textContent) + 1;
+          likeIcon.classList.add("filled");
+        } else {
+          likeCount.textContent = parseInt(likeCount.textContent) + 1;
+          likeIcon.classList.add("filled");
+        }
+      };
+
+      dislikeContainer.onclick = async () => {
+        const response = await fetch(
+          `/api/comments/${comment.comment_id}/dislike`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          }
+        ).then((response) => response.json());
+
+        if (response.error)
+          return console.error("Error disliking comment:", response.error);
+
+        if (response.removedReaction === true) {
+          dislikeCount.textContent = parseInt(dislikeCount.textContent) - 1;
+          dislikeIcon.classList.remove("filled");
+        } else if (response.previousReaction === "like") {
+          likeCount.textContent = parseInt(likeCount.textContent) - 1;
+          likeIcon.classList.remove("filled");
+
+          dislikeCount.textContent = parseInt(dislikeCount.textContent) + 1;
+          dislikeIcon.classList.add("filled");
+        } else {
+          dislikeCount.textContent = parseInt(dislikeCount.textContent) + 1;
+          dislikeIcon.classList.add("filled");
+        }
+      };
+    }
+
+    commentActions.appendChild(likeContainer);
+    commentActions.appendChild(dislikeContainer);
+
+    // Delete Button (only visible for user comments)
+    if (userID !== -1 && userID === comment.user_id) {
+      const deleteButton = document.createElement("button");
+      deleteButton.className = "comment-delete";
+
+      const binIcon = document.createElement("span");
+      binIcon.className = "material-symbols-rounded";
+      binIcon.textContent = "delete";
+
+      deleteButton.appendChild(binIcon);
+
+      deleteButton.onclick = async () => {
+        const response = await fetch("/api/comments/" + comment.comment_id, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+        }).then((response) => response.json());
+
+        // TODO: delete confirmation
+        if (response.message) loadComments();
+      };
+
+      commentActions.appendChild(deleteButton);
+    }
 
     // Add components to comment
     commentElement.appendChild(commentHeader);

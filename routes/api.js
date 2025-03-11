@@ -170,5 +170,15 @@ router.delete(
   isAuthenticated,
   commentsController.deleteComment
 );
+router.post(
+  "/comments/:id/like",
+  isAuthenticated,
+  commentsController.likeComment
+);
+router.post(
+  "/comments/:id/dislike",
+  isAuthenticated,
+  commentsController.dislikeComment
+);
 
 module.exports = router;
