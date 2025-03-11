@@ -13,6 +13,7 @@ const friendsController = require("../controllers/backend/friends");
 const watchlistsController = require("../controllers/backend/watchlists");
 const artworksController = require("../controllers/backend/artworks");
 const securityController = require("../controllers/backend/security");
+const commentsController = require("../controllers/backend/comments");
 
 const express = require("express");
 router.use(express.json());
@@ -152,6 +153,22 @@ router.post(
   "/user/artworks/:id/watched",
   isAuthenticated,
   artworksController.toggleUserWatchedArtworkByID
+);
+
+// Comments
+router.get("/comments", commentsController.getComments);
+router.get("/comments/artworks/:id", commentsController.getCommentsByArtworkID);
+router.get(
+  "/comments/user",
+  isAuthenticated,
+  commentsController.getCommentsByUser
+);
+router.post("/comments", isAuthenticated, commentsController.createComment);
+router.put("/comments/:id", isAuthenticated, commentsController.updateComment);
+router.delete(
+  "/comments/:id",
+  isAuthenticated,
+  commentsController.deleteComment
 );
 
 module.exports = router;
