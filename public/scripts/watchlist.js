@@ -172,7 +172,7 @@ async function loadArtworks() {
 
     const viewMoreBtn = document.createElement("span");
     viewMoreBtn.classList.add("material-symbols-rounded");
-    viewMoreBtn.title = "View More";
+    viewMoreBtn.title = "Voir Plus";
     viewMoreBtn.textContent = "open_in_new";
     viewMoreBtn.onclick = () =>
       (window.location.href = `/artwork/${artwork.artwork_id}`);

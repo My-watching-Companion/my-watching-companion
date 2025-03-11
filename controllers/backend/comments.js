@@ -191,7 +191,8 @@ exports.deleteComment = async (req, res) => {
       });
 
     await executeQuery(
-      `DELETE FROM Comment WHERE CommentID = @commentID AND UserID = @userID`,
+      `DELETE FROM CommentLiked WHERE CommentID = @commentID
+       DELETE FROM Comment WHERE CommentID = @commentID AND UserID = @userID`,
       [
         { name: "commentID", type: sql.Int, value: commentID },
         { name: "userID", type: sql.Int, value: user.id },
