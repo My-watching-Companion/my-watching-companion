@@ -214,17 +214,22 @@ function updateCharacterCounter(element) {
   const currentLength = element.value.length;
   currentCount.textContent = currentLength;
 
+  // Change counter color/shake based on content
   if (currentLength >= 400) currentCount.style.color = "#f7384a";
   else currentCount.style.color = "#777";
-
   if (currentLength === 500) element.classList.add("apply-shake");
+
+  // Auto-resize textarea based on content
+  element.style.height = "auto";
+  element.style.height = `calc(${element.scrollHeight}px - 2rem)`;
 }
 
 const commentInput = document.getElementById("comment-input");
-if (commentInput)
+if (commentInput) {
   commentInput.addEventListener("animationend", () => {
     commentInput.classList.remove("apply-shake");
   });
+}
 
 async function sendComment(event) {
   event.preventDefault();
@@ -241,5 +246,13 @@ async function sendComment(event) {
     }),
   }).then((response) => response.json());
 
-  if (response.message) loadComments();
+  if (response.message) {
+    loadComments();
+
+    // Reset textarea content and height after submission
+    commentInput.value = "";
+    commentInput.style.height = "auto";
+    commentInput.style.height = `calc(${commentInput.scrollHeight}px - 2rem)`;
+    document.getElementById("current-count").textContent = "0";
+  }
 }

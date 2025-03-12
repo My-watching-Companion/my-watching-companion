@@ -231,6 +231,7 @@ main {
   line-height: 1.5rem;
   resize: none;
   transition: all 0.3s ease;
+  overflow-y: hidden;
 }
 
 .comment-input-container textarea:focus {
