@@ -446,22 +446,110 @@ main {
   gap: 1rem;
 }
 
-#delete-comment-container button {
-  padding: 0.75rem 1rem;
+/* Edit Comment Styles */
+.comment-edit,
+.comment-delete {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  background: none;
   border: none;
-  border-radius: 6px;
+  color: #666;
+  font-size: 0.9rem;
   cursor: pointer;
-  font-weight: bold;
+  border-radius: 4px;
   transition: all 0.2s ease;
 }
 
-#delete-comment-container button:not(.btn-primary) {
-  background-color: #f0f0f0;
-  box-shadow: 0px 5px 10px 0px #33333350;
+.comment-edit:hover,
+.comment-delete:hover {
+  background: rgba(var(--artwork-color-rgb), 0.1);
+  color: var(--artwork-color);
 }
 
-#delete-comment-container button:not(.btn-primary):hover {
-  box-shadow: 0px 10px 10px 0px #33333350;
+.comment-edit .material-symbols-rounded,
+.comment-delete .material-symbols-rounded {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.comment-edit:hover .material-symbols-rounded,
+.comment-delete:hover .material-symbols-rounded {
+  color: var(--artwork-color);
+}
+
+/* Common Button Styles */
+.btn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.btn-primary {
+  background: var(--artwork-color);
+  color: var(--artwork-text-color);
+  box-shadow: 0px 3px 7px -3px rgba(var(--artwork-color-rgb), 0.6);
+}
+
+.btn-primary:hover {
+  box-shadow: 0px 5px 10px -3px rgba(var(--artwork-color-rgb), 0.6);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: #f0f0f0;
+  color: #666;
+  box-shadow: 0px 3px 7px -3px rgba(0, 0, 0, 0.2);
+}
+
+.btn-secondary:hover {
+  box-shadow: 0px 5px 10px -3px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
+}
+
+/* Edit comment form */
+.edit-comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.edit-comment-input {
+  padding: 0.75rem;
+  border: none;
+  border-bottom: 2px solid var(--artwork-color);
+  border-radius: 8px;
+  line-height: 1.5rem;
+  resize: none;
+  transition: all 0.3s ease;
+  overflow-y: hidden;
+  background: rgba(var(--artwork-color-rgb), 0.05);
+}
+
+.edit-comment-input:focus {
+  box-shadow: 0 2px 4px rgba(var(--artwork-color-rgb), 0.15);
+  outline: none;
+}
+
+.edit-character-count {
+  align-self: flex-end;
+  font-size: 0.85rem;
+  color: #777;
+}
+
+.edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
 }
 
 @media (max-width: 900px) {

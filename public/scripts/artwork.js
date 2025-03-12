@@ -8,12 +8,10 @@ async function toggleDeleteCommentModal(comment = null) {
     "comment-to-delete-container"
   );
 
-  // Clear previous comment preview
   previewContainer.innerHTML = "";
 
   // If a comment is provided, populate the preview
   if (comment) {
-    // Store the comment ID in a data attribute for the delete action
     addListContainer.dataset.commentId = comment.comment_id;
 
     // Create preview of the comment to be deleted
@@ -92,6 +90,7 @@ async function loadComments() {
   comments.forEach((comment) => {
     const commentElement = document.createElement("div");
     commentElement.className = "comment-item";
+    commentElement.dataset.commentId = comment.comment_id;
 
     // Create comment header
     const commentHeader = document.createElement("div");
@@ -116,9 +115,10 @@ async function loadComments() {
     // Comment date section
     const commentDate = document.createElement("span");
     commentDate.className = "comment-date";
-    commentDate.textContent = formatCommentDate(
-      comment.created_at || new Date()
-    );
+    let dateText = formatCommentDate(comment.comment_creation || new Date());
+    if (comment.comment_updated) dateText += " (modifié)";
+
+    commentDate.textContent = dateText;
 
     // Add user section and date to header
     commentHeader.appendChild(commentUser);
@@ -233,8 +233,23 @@ async function loadComments() {
     commentActions.appendChild(likeContainer);
     commentActions.appendChild(dislikeContainer);
 
-    // Delete Button (only visible for user comments)
+    // Edit and Delete Buttons (only visible for user comments)
     if (userID !== -1 && userID === comment.user_id) {
+      // Edit Button
+      const editButton = document.createElement("button");
+      editButton.className = "comment-edit";
+
+      const editIcon = document.createElement("span");
+      editIcon.className = "material-symbols-rounded";
+      editIcon.textContent = "edit";
+
+      editButton.appendChild(editIcon);
+
+      editButton.onclick = () => {
+        enableCommentEditing(commentElement, comment.comment_content);
+      };
+
+      // Delete Button
       const deleteButton = document.createElement("button");
       deleteButton.className = "comment-delete";
 
@@ -251,6 +266,7 @@ async function loadComments() {
         });
       };
 
+      commentActions.appendChild(editButton);
       commentActions.appendChild(deleteButton);
     }
 
@@ -262,6 +278,97 @@ async function loadComments() {
     // Add comment to comments list
     commentsContainer.appendChild(commentElement);
   });
+}
+
+// Function to enable comment editing
+function enableCommentEditing(commentElement, currentContent) {
+  const commentId = commentElement.dataset.commentId;
+  const commentContent = commentElement.querySelector(".comment-content");
+
+  // Create edit form
+  const editForm = document.createElement("div");
+  editForm.className = "edit-comment-form";
+
+  // Create textarea with current comment content
+  const textarea = document.createElement("textarea");
+  textarea.value = currentContent;
+  textarea.maxLength = 500;
+  textarea.className = "edit-comment-input";
+  textarea.oninput = function () {
+    updateCharacterCounter(this, "edit-current-count");
+  };
+
+  // Character counter
+  const charCounter = document.createElement("div");
+  charCounter.className = "character-count edit-character-count";
+  charCounter.innerHTML = `<span id="edit-current-count">${currentContent.length}</span>/500`;
+
+  // Action buttons
+  const actionButtons = document.createElement("div");
+  actionButtons.className = "edit-actions";
+
+  const saveButton = document.createElement("button");
+  saveButton.className = "btn btn-primary";
+  saveButton.innerHTML =
+    '<span class="material-symbols-rounded">check</span> Enregistrer';
+
+  const cancelButton = document.createElement("button");
+  cancelButton.className = "btn btn-secondary";
+  cancelButton.innerHTML =
+    '<span class="material-symbols-rounded">close</span> Annuler';
+
+  actionButtons.appendChild(saveButton);
+  actionButtons.appendChild(cancelButton);
+
+  // Add components to edit form
+  editForm.appendChild(textarea);
+  editForm.appendChild(charCounter);
+  editForm.appendChild(actionButtons);
+
+  // Replace content with edit form
+  commentContent.innerHTML = "";
+  commentContent.appendChild(editForm);
+
+  // Text area functionality
+  updateCharacterCounter(textarea, "edit-current-count");
+  setupAnimationListeners(textarea);
+
+  textarea.focus();
+
+  // Save button action
+  saveButton.onclick = async () => {
+    const updatedContent = textarea.value.trim();
+
+    if (updatedContent === "") return;
+
+    const response = await fetch(`/api/comments/${commentId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ comment: updatedContent }),
+    }).then((response) => response.json());
+
+    if (response.error) return;
+
+    // Update the comment content
+    commentContent.innerHTML = "";
+    const commentText = document.createElement("p");
+    commentText.textContent = updatedContent;
+    commentContent.appendChild(commentText);
+
+    // Update the date to show that the comment was modified
+    const commentHeader = commentElement.querySelector(".comment-header");
+    const dateSpan = commentHeader.querySelector(".comment-date");
+    if (dateSpan && !dateSpan.textContent.includes("(modifié)"))
+      dateSpan.textContent += " (modifié)";
+  };
+
+  // Cancel button action
+  cancelButton.onclick = () => {
+    commentContent.innerHTML = "";
+    const commentText = document.createElement("p");
+    commentText.textContent = currentContent;
+    commentContent.appendChild(commentText);
+  };
 }
 
 // Helper function to format comment dates
@@ -279,9 +386,9 @@ function formatCommentDate(dateString) {
 
 loadComments();
 
-// Comment form
-function updateCharacterCounter(element) {
-  const currentCount = document.getElementById("current-count");
+// Unified character counter function that works for both new comments and editing
+function updateCharacterCounter(element, counterId = "current-count") {
+  const currentCount = document.getElementById(counterId);
   const currentLength = element.value.length;
   currentCount.textContent = currentLength;
 
@@ -292,14 +399,21 @@ function updateCharacterCounter(element) {
 
   // Auto-resize textarea based on content
   element.style.height = "auto";
-  element.style.height = `calc(${element.scrollHeight}px - 2rem)`;
+  element.style.height = `calc(${element.scrollHeight}px - ${
+    counterId.includes("edit") ? "1rem" : "2rem"
+  })`;
+}
+
+// Setup animation end listeners for elements
+function setupAnimationListeners(element) {
+  element.addEventListener("animationend", () => {
+    element.classList.remove("apply-shake");
+  });
 }
 
 const commentInput = document.getElementById("comment-input");
 if (commentInput) {
-  commentInput.addEventListener("animationend", () => {
-    commentInput.classList.remove("apply-shake");
-  });
+  setupAnimationListeners(commentInput);
 }
 
 async function sendComment(event) {
@@ -322,8 +436,6 @@ async function sendComment(event) {
 
     // Reset textarea content and height after submission
     commentInput.value = "";
-    commentInput.style.height = "auto";
-    commentInput.style.height = `calc(${commentInput.scrollHeight}px - 2rem)`;
-    document.getElementById("current-count").textContent = "0";
+    updateCharacterCounter(commentInput);
   }
 }

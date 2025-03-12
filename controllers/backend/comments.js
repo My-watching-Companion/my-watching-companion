@@ -11,6 +11,8 @@ exports.getComments = async (req, res) => {
               C.ArtworkID AS artwork_id,
               C.CommentID AS comment_id, 
               C.Comment AS comment_content,
+              C.CreationDate AS comment_creation,
+              C.UpdatedDate AS comment_updated,
               (SELECT COUNT(*) FROM CommentLiked WHERE CommentID = C.CommentID AND CommentLiked = 1) AS comment_likes,
               (SELECT COUNT(*) FROM CommentLiked WHERE CommentID = C.CommentID AND CommentLiked = 0) AS comment_dislikes,
               (SELECT CommentLiked FROM CommentLiked WHERE CommentID = C.CommentID AND UserID = @userID) AS user_reaction
@@ -43,6 +45,8 @@ exports.getCommentsByArtworkID = async (req, res) => {
               C.ArtworkID AS artwork_id,
               C.CommentID AS comment_id, 
               C.Comment AS comment_content,
+              C.CreationDate AS comment_creation,
+              C.UpdatedDate AS comment_updated,
               (SELECT COUNT(*) FROM CommentLiked WHERE CommentID = C.CommentID AND CommentLiked = 1) AS comment_likes,
               (SELECT COUNT(*) FROM CommentLiked WHERE CommentID = C.CommentID AND CommentLiked = 0) AS comment_dislikes,
               (SELECT CommentLiked FROM CommentLiked WHERE CommentID = C.CommentID AND UserID = @userID) AS user_reaction
@@ -78,6 +82,8 @@ exports.getCommentsByUser = async (req, res) => {
               C.ArtworkID AS artwork_id,
               C.CommentID AS comment_id, 
               C.Comment AS comment_content,
+              C.CreationDate AS comment_creation,
+              C.UpdatedDate AS comment_updated,
               (SELECT COUNT(*) FROM CommentLiked WHERE CommentID = C.CommentID AND CommentLiked = 1) AS comment_likes,
               (SELECT COUNT(*) FROM CommentLiked WHERE CommentID = C.CommentID AND CommentLiked = 0) AS comment_dislikes,
               (SELECT CommentLiked FROM CommentLiked WHERE CommentID = C.CommentID AND UserID = @userID) AS user_reaction
@@ -109,8 +115,8 @@ exports.createComment = async (req, res) => {
     });
 
   try {
-    const result = await executeQuery(
-      `INSERT INTO Comment (ArtworkID, UserID, Comment) VALUES (@artworkID, @userID, @comment)`,
+    await executeQuery(
+      `INSERT INTO Comment (ArtworkID, UserID, Comment, CreationDate) VALUES (@artworkID, @userID, @comment, GETDATE())`,
       [
         { name: "artworkID", type: sql.Int, value: artworkID },
         { name: "userID", type: sql.Int, value: user.id },
@@ -140,20 +146,23 @@ exports.updateComment = async (req, res) => {
     });
 
   try {
-    const comment = await executeQuery(
-      `SELECT UserID FROM Comment WHERE CommentID = @commentID`,
-      [{ name: "commentID", type: sql.Int, value: commentID }]
+    const commentExists = await executeQuery(
+      `SELECT UserID FROM Comment WHERE CommentID = @commentID AND UserID = @userID`,
+      [
+        { name: "commentID", type: sql.Int, value: commentID },
+        { name: "userID", type: sql.Int, value: user.id },
+      ]
     );
 
-    if (comment.recordset[0].UserID !== user.id)
+    if (commentExists.length === 0)
       return res.status(403).json({
         error: "You are not authorized to delete this comment.",
       });
 
     await executeQuery(
-      `UPDATE Comment SET Comment = @comment WHERE ID = @commentID AND UserID = @userID`,
+      `UPDATE Comment SET Comment = @comment, UpdatedDate = GETDATE() WHERE CommentID = @commentID AND UserID = @userID`,
       [
-        { name: "comment", type: sql.NVarChar, value: comment },
+        { name: "comment", type: sql.VarChar, value: comment },
         { name: "commentID", type: sql.Int, value: commentID },
         { name: "userID", type: sql.Int, value: user.id },
       ]
