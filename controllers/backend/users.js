@@ -5,14 +5,18 @@ const {
   TraceError,
   TraceLogs,
   formatDate,
+  clearSession,
 } = require("../functions");
 const { CRYPTO_KEY } = require("../../config");
 const path = require("path");
 
-const HOUR = 1000 * 60 * 20;
+// 1 hour
+const SESSION_LIFETIME = 1000 * 60 * 60;
+// 1 week for remember me
+const REMEMBER_SESSION_LIFETIME = 1000 * 60 * 60 * 24 * 7;
 
 exports.loginOK = async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, remember } = req.body;
 
   try {
     const query = await executeQuery(
@@ -20,6 +24,12 @@ exports.loginOK = async (req, res) => {
     );
 
     const user = query[0];
+
+    if (!user)
+      return res.json({
+        status: "ERROR",
+        message: "User doesn't exist",
+      });
 
     if (
       password ===
@@ -39,12 +49,21 @@ exports.loginOK = async (req, res) => {
         user.Bio,
         user.Gender
       );
-      req.session.cookie.expires = new Date(Date.now() + HOUR);
-      req.session.cookie.maxAge = HOUR;
+
+      // Change session duration based on "remember me" option
+      const sessionDuration = remember
+        ? REMEMBER_SESSION_LIFETIME
+        : SESSION_LIFETIME;
+      req.session.cookie.expires = new Date(Date.now() + sessionDuration);
+      req.session.cookie.maxAge = sessionDuration;
 
       TraceLogs(req, res, `User ${username} successfully login`);
 
-      res.redirect("/");
+      // Check if we should redirect to a specific page
+      const redirectTo = req.session.returnTo || "/";
+      delete req.session.returnTo;
+
+      res.redirect(redirectTo);
     } else {
       TraceError(req, res, `Users use wrong password`);
 
@@ -60,6 +79,20 @@ exports.loginOK = async (req, res) => {
       status: "KO",
       message: `Internal Server Error ${e}`,
     });
+  }
+};
+
+// Add logout functionality
+exports.logout = async (req, res) => {
+  try {
+    if (req.session.user) {
+      TraceLogs(req, res, `User ${req.session.user.username} logged out`);
+      await clearSession(req);
+    }
+    res.redirect("/signin");
+  } catch (e) {
+    console.error("Logout error:", e);
+    res.redirect("/");
   }
 };
 

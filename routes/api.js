@@ -4,8 +4,8 @@ const multer = require("multer");
 
 const {
   isAuthenticated,
-  CheckAge,
-  GetUser,
+  refreshSession,
+  validateSession,
 } = require("../controllers/functions");
 
 const usersController = require("../controllers/backend/users");
@@ -18,6 +18,7 @@ const commentsController = require("../controllers/backend/comments");
 const express = require("express");
 router.use(express.json());
 router.use(express.static("uploads"));
+router.use(refreshSession);
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -33,6 +34,10 @@ const uploads = multer({ storage: storage });
 // Authentication
 router.post("/login/ok", usersController.loginOK);
 router.post("/register/ok", usersController.registerOK);
+router.post("/logout", usersController.logout);
+router.get("/check-session", validateSession, (req, res) => {
+  res.json({ status: "OK", user: { username: req.session.user.username } });
+});
 
 // Users
 router.post(
