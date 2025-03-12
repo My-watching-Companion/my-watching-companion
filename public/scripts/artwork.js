@@ -1,3 +1,77 @@
+// Modals and custom selects
+async function toggleDeleteCommentModal(comment = null) {
+  const deleteCommentModal = document.getElementById("delete-comment");
+  deleteCommentModal.toggleAttribute("hidden");
+
+  const addListContainer = document.getElementById("delete-comment-container");
+  const previewContainer = document.getElementById(
+    "comment-to-delete-container"
+  );
+
+  // Clear previous comment preview
+  previewContainer.innerHTML = "";
+
+  // If a comment is provided, populate the preview
+  if (comment) {
+    // Store the comment ID in a data attribute for the delete action
+    addListContainer.dataset.commentId = comment.comment_id;
+
+    // Create preview of the comment to be deleted
+    const commentPreview = document.createElement("div");
+    commentPreview.className = "comment-preview";
+
+    const commentContent = document.createElement("p");
+    commentContent.textContent = comment.comment_content;
+
+    commentPreview.appendChild(commentContent);
+    previewContainer.appendChild(commentPreview);
+
+    // Set up delete and cancel buttons
+    const deleteButton = addListContainer.querySelector(".btn-primary");
+    const cancelButton = addListContainer.querySelector(
+      "button:not(.btn-primary)"
+    );
+
+    deleteButton.onclick = async () => {
+      const resultBox = document.getElementById("result-box");
+
+      const response = await fetch("/api/comments/" + comment.comment_id, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      }).then((response) => response.json());
+
+      if (response.error) {
+        resultBox.textContent = "Ce commentaire ne peut pas être supprimé.";
+        resultBox.classList.remove("invisible", "success");
+        resultBox.classList.add("error");
+        return;
+      }
+
+      if (response.message) {
+        resultBox.textContent = "Commentaire supprimé avec succès!";
+        resultBox.classList.remove("invisible", "error");
+        resultBox.classList.add("success");
+
+        // Close modal and reload comments after a short delay
+        setTimeout(() => {
+          toggleDeleteCommentModal();
+          loadComments();
+        }, 1500);
+      }
+    };
+
+    cancelButton.onclick = () => toggleDeleteCommentModal();
+  }
+
+  const resultBox = document.getElementById("result-box");
+  resultBox.classList.remove("error", "success");
+  resultBox.classList.add("invisible");
+
+  deleteCommentModal.onclick = (event) => {
+    if (!addListContainer.contains(event.target)) toggleDeleteCommentModal();
+  };
+}
+
 async function loadComments() {
   const response = await fetch("/api/comments/artworks/" + artworkID);
   const comments = await response.json();
@@ -170,14 +244,11 @@ async function loadComments() {
 
       deleteButton.appendChild(binIcon);
 
-      deleteButton.onclick = async () => {
-        const response = await fetch("/api/comments/" + comment.comment_id, {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-        }).then((response) => response.json());
-
-        // TODO: delete confirmation
-        if (response.message) loadComments();
+      deleteButton.onclick = () => {
+        toggleDeleteCommentModal({
+          comment_id: comment.comment_id,
+          comment_content: comment.comment_content,
+        });
       };
 
       commentActions.appendChild(deleteButton);

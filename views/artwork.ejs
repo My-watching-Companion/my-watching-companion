@@ -145,5 +145,21 @@
     </main>
 
     <footer><%- include('components/footer') %></footer>
+
+    <div id="delete-comment" class="modal" hidden>
+      <div id="delete-comment-container">
+        <h4>Voulez-vous supprimer ce commentaire ?</h4>
+
+        <p id="result-box" class="status-box invisible"></p>
+
+        <div id="comment-to-delete-container"></div>
+
+        <div>
+          <button class="btn-primary">Supprimer le Commentaire</button>
+
+          <button>Annuler</button>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
