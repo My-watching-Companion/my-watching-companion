@@ -121,7 +121,7 @@ exports.registerOK = async (req, res) => {
       res.redirect("/signup"); ///+ {message: 'Pseudonyme déjà utilisé'})
     } else {
       const userid = await executeQuery(
-        `INSERT INTO Users OUTPUT inserted.UserID VALUES(GETDATE(), GETDATE(), '${username}', '${lastname}', '${birthdate}','${email}', '\\UsersProfilePicture\\Default.png', '${CryptoJS.AES.encrypt(
+        `INSERT INTO Users(CreationDate, UpdatedDate, Username, LastName, UsersBirthDate, EmailAddress, UserProfilePicture, Password, FirstName, IsActivated, Confidentiality, RoleID, SecurityQuestionAnswer, SecurityQuestionID) OUTPUT inserted.UserID VALUES(GETDATE(), GETDATE(), '${username}', '${lastname}', '${birthdate}','${email}', '\\UsersProfilePicture\\Default.png', '${CryptoJS.AES.encrypt(
           password,
           CRYPTO_KEY
         )}', '${firstname}', 0, 0, 0, '${answer}','${question}')`
