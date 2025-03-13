@@ -10,7 +10,7 @@
 
     <div class="navigation">
       <a href="/" class="nav-item <% if (selected === "Accueil") { %>selected<% } %>">Accueil</a>
-      <a href="/my-watchlist" class="nav-item <% if (selected === "Ma Watchlist") { %>selected<% } %>">Ma Watchlist</a>
+      <a href="/my-watchlists" class="nav-item <% if (selected === "Mes Watchlists") { %>selected<% } %>">Mes Watchlists</a>
       <a href="/discovery" class="nav-item <% if (selected === "Découverte") { %>selected<% } %>">Découverte</a>
       <a href="/trending" class="nav-item <% if (selected === "Tendance") { %>selected<% } %>">Tendance</a>
       <a href="/settings" class="nav-item <% if (selected === "Paramètres") { %>selected<% } %>">Paramètres</a>
@@ -31,9 +31,9 @@
     </a>
     <% } else { %>
     <% if (selected === "Connexion") { %>
-    <button class="sign" id="sign-up" onclick="location.href='/signup'">INSCRIPTION</button>
+    <button class="btn-primary sign" id="sign-up" onclick="location.href='/signup'">INSCRIPTION</button>
     <% } else { %>
-    <button class="sign" id="sign-in" onclick="location.href='/signin'">CONNEXION</button>
+    <button class="btn-primary sign" id="sign-in" onclick="location.href='/signin'">CONNEXION</button>
     <% } %>
     <% } %>
   </div>

@@ -2,6 +2,9 @@
 .material-symbols-rounded {
   font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
 }
+.material-symbols-rounded.filled {
+  font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+}
 
 * {
   font-family: "Lato", serif;
@@ -17,8 +20,8 @@ body {
 
 /* HEADER */
 header {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
   align-items: center;
   text-align: center;
   padding: 0.5rem;
@@ -48,6 +51,7 @@ header #logo h1 {
 nav {
   display: flex;
   gap: 1rem;
+  justify-content: center;
 }
 
 .nav-item {
@@ -65,6 +69,14 @@ nav {
   font-weight: bold;
 }
 
+/* User style */
+header #header-user {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+}
+
 /* User Profile Picture */
 #user-profile-picture {
   width: 3rem;
@@ -74,19 +86,7 @@ nav {
 
 /* Header Connection */
 button.sign {
-  color: white;
-  font-weight: bolder;
-  background-color: #f7384a;
-  box-shadow: 0px 5px 10px -5px #f7384a;
-  border: none;
-  border-radius: 10px;
   padding: 1rem;
-  transition: box-shadow 0.1s ease-in-out;
-}
-
-button.sign:hover {
-  box-shadow: 0px 5px 10px -2.5px #f7384a;
-  cursor: pointer;
 }
 
 a.sign {
@@ -183,21 +183,124 @@ footer {
   justify-content: center;
 }
 
-/* REUSABLE BUTTONS */
-button.main-button {
-  color: white;
-  font-weight: bolder;
-  background-color: #f7384a;
-  box-shadow: 0px 5px 10px -5px #f7384a;
+/* Common Utility Classes */
+.invisible {
+  display: none;
+}
+
+/* Common Form Elements */
+.search-input {
+  border: none;
+  outline: none;
+  border-radius: 10px;
+  padding: 1rem 3rem 1rem 1rem;
+  width: clamp(200px, 20rem, 100%);
+  max-width: 100%;
+  box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.25);
+  transition: box-shadow 0.1s ease-in-out;
+  background-image: url("/assets/search-icon.png");
+  background-position: calc(100% - 10px);
+  background-size: 1.75rem;
+  background-repeat: no-repeat;
+  font-size: 1rem;
+}
+
+.search-input:hover {
+  box-shadow: 0px 5px 10px 2.5px rgba(0, 0, 0, 0.25);
+}
+
+/* Common Button Styles */
+.btn-primary {
+  display: flex;
+  align-items: center;
   border: none;
   border-radius: 10px;
-  padding: 1rem;
+  padding: 0.6rem;
+  font-size: 1rem;
+  font-weight: bolder;
+  color: white;
+  background-color: #f7384a;
+  box-shadow: 0px 5px 10px 0px #f7384a;
   transition: box-shadow 0.1s ease-in-out;
 }
 
-button.main-button:hover {
-  box-shadow: 0px 5px 10px -2.5px #f7384a;
+.btn-primary span {
+  font-size: 2rem;
+}
+
+.btn-primary:hover {
+  box-shadow: 0px 5px 10px 2.5px #f7384a;
   cursor: pointer;
+}
+
+/* Common Status Display */
+.status-box {
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.status-box.success {
+  color: #4caf50;
+  background-color: #4caf5050;
+  border-color: #4caf50;
+}
+
+.status-box.error {
+  color: #f7384a;
+  background-color: #f7384a50;
+  border-color: #f7384a;
+}
+
+/* Common Layout Classes */
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  display: flex;
+  align-items: center;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 100000;
+}
+
+/* Common Animations */
+@keyframes shake {
+  10%,
+  90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+
+  20%,
+  80% {
+    transform: translate3d(2px, 0, 0);
+  }
+
+  30%,
+  50%,
+  70% {
+    transform: translate3d(-4px, 0, 0);
+  }
+
+  40%,
+  60% {
+    transform: translate3d(4px, 0, 0);
+  }
+}
+
+.apply-shake {
+  animation: shake 0.82s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 
 /* Responsiveness */

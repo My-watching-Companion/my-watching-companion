@@ -1,38 +1,54 @@
 const router = require("express").Router();
-const { getAccount } = require("../controllers/app/account");
-const { getDiscovery } = require("../controllers/app/discovery");
-const { getError } = require("../controllers/app/error");
-const { getForgotPassword } = require("../controllers/app/forgot-password");
-const { getHome } = require("../controllers/app/home");
-const settingsControllers = require("../controllers/app/settings");
-const signControllers = require("../controllers/app/sign-in-up");
-const { getWatchlists } = require("../controllers/app/watchlists");
-const { isAuthenticated } = require("../controllers/functions");
+const accountController = require("../controllers/app/account");
+const discoveryController = require("../controllers/app/discovery");
+const errorController = require("../controllers/app/error");
+const homeController = require("../controllers/app/home");
+const settingsController = require("../controllers/app/settings");
+const signController = require("../controllers/app/sign-in-up");
+const watchlistsController = require("../controllers/app/watchlists");
+const artworksController = require("../controllers/app/artworks");
+const { isAuthenticated, refreshSession } = require("../controllers/functions");
+const usersController = require("../controllers/backend/users");
 
-// Définition de la route principale
-router.get("/", getHome);
+// Apply session refresh middleware to all routes
+router.use(refreshSession);
 
-router.get("/signin", signControllers.getSignin);
+// Home
+router.get("/", homeController.getHome);
 
-router.get("/signup", signControllers.getSignup);
+// Sign in / Sign up
+router.get("/signin", signController.getSignin);
+router.get("/signup", signController.getSignup);
+router.get("/forgot-password", signController.getForgotPassword);
+router.get("/logout", usersController.logout);
 
-router.get("/settings", isAuthenticated, settingsControllers.getSettings);
+// Settings
+router.get("/settings", isAuthenticated, settingsController.getSettings);
 
 router.get(
   "/settings/:cat/:sett",
   isAuthenticated,
-  settingsControllers.getSettingsByCatAndPage
+  settingsController.getSettingsByCatAndPage
 );
 
-router.get("/discovery", isAuthenticated, getDiscovery);
+// Account
+router.get("/account", accountController.getAccount);
 
-router.get("/my-watchlist", isAuthenticated, getWatchlists);
+// Discovery
+router.get("/discovery", isAuthenticated, discoveryController.getDiscovery);
 
-router.get("/account", getAccount);
+// Watchlists
+router.get(
+  "/my-watchlists",
+  isAuthenticated,
+  watchlistsController.getWatchlists
+);
 
-router.get("/forgot-password", getForgotPassword);
+router.get("/my-watchlists/:name", watchlistsController.getWatchlistByName);
+
+router.get("/artwork/:id", artworksController.getArtwork);
 
 // Définition de la route erreur 404
-router.get("*", getError);
+router.get("*", errorController.getError);
 
 module.exports = router;

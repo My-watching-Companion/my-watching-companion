@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <%- include('components/head', { selected }) %>
+
+    <link rel="stylesheet" href="styles/my-watchlists.css" />
+
+    <script src="scripts/color-thief.js" defer></script>
+    <script src="scripts/my-watchlists.js" defer></script>
+  </head>
+
+  <body>
+    <header><%- include('components/header', { selected }) %></header>
+
+    <%- include('components/sidebar') %>
+
+    <main>
+      <section id="watchlist-header">
+        <input
+          class="search-input"
+          type="text"
+          name="quick-search"
+          id="quick-search"
+          placeholder="Recherchez une liste..."
+          oninput="debouncedFilterWatchlists()"
+        />
+
+        <button class="btn-primary" onclick="toggleAddListModal()">
+          <span class="material-symbols-rounded"> add </span>Créer une Liste
+        </button>
+      </section>
+
+      <section id="status">
+        <p id="status-loading" class="status-box" style="display: none">
+          Chargement de vos listes en cours...
+        </p>
+        <p id="status-empty" class="status-box">
+          Aucune liste ne correspond à vos critères...
+        </p>
+      </section>
+
+      <section id="watchlists"></section>
+    </main>
+
+    <footer><%- include('components/footer') %></footer>
+
+    <div id="add-list" class="modal" hidden>
+      <div id="add-list-container">
+        <div id="texts">
+          <h4 class="important">Créer une liste..</h4>
+
+          <h4>Entrez le nom de votre liste</h4>
+        </div>
+
+        <p id="result-box" class="status-box invisible"></p>
+
+        <div id="add-list-form">
+          <input
+            class="search-input"
+            type="text"
+            name="add-list-search"
+            id="add-list-search"
+            placeholder="Comment voulez-vous appeler votre liste ?"
+          />
+
+          <button class="btn-primary" onclick="createWatchlist()">
+            Créer cette Liste
+          </button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
