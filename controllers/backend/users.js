@@ -124,12 +124,11 @@ exports.registerOK = async (req, res) => {
         `INSERT INTO Users(CreationDate, UpdatedDate, Username, LastName, UsersBirthDate, EmailAddress, UserProfilePicture, Password, FirstName, IsActivated, Confidentiality, RoleID, SecurityQuestionAnswer, SecurityQuestionID) OUTPUT inserted.UserID VALUES(GETDATE(), GETDATE(), '${username}', '${lastname}', '${birthdate}','${email}', '\\UsersProfilePicture\\Default.png', '${CryptoJS.AES.encrypt(
           password,
           CRYPTO_KEY
-        )}', '${firstname}', 0, 0, 0, '${answer}','${question}')`
+        )}', '${firstname}', 0, 0, 1, '${answer}','${question}')`
       );
       const listid = await executeQuery(
         "INSERT INTO List OUTPUT inserted.ListID VALUES ('Ma Liste',GETDATE())"
       );
-      console.log(listid);
       await executeQuery(
         `INSERT INTO Ref_UsersList VALUES (${userid[0].UserID}, ${listid[0].ListID})`
       );
