@@ -111,7 +111,35 @@ exports.searchArtworks = async (req, res) => {
       return movie;
     });
 
+    // Send the response to the user immediately
     res.status(200).json(movies);
+
+    // Populate the database after sending the response
+    try {
+      for (const movie of movies)
+        await executeQuery(
+          `IF NOT EXISTS (SELECT 1 FROM Artwork WHERE ArtworkAPILink = @apiLink)
+           BEGIN
+             INSERT INTO Artwork (ArtworkName, ArtworkAPILink, ArtworkPosterImage)
+             VALUES (@title, @apiLink, @poster);
+           END`,
+          [
+            { name: "title", type: sql.NVarChar, value: movie.title },
+            {
+              name: "apiLink",
+              type: sql.VarChar,
+              value: `https://api.themoviedb.org/3/movie/${movie.id}`,
+            },
+            {
+              name: "poster",
+              type: sql.NVarChar,
+              value: movie.poster_path,
+            },
+          ]
+        );
+    } catch (dbError) {
+      console.error("Error populating database:", dbError);
+    }
   } catch (error) {
     res.status(400);
     return res.json({
