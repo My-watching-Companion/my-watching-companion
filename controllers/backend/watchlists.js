@@ -87,17 +87,17 @@ exports.getUserWatchlists = async (req, res) => {
 
     const query = await executeQuery(
       `SELECT TOP 1 WITH TIES  
-                                          L.ListID AS list_id, 
-                                          L.ListName AS list_name, 
-                                          U.Username AS username, 
-                                          A.ArtworkPosterImage AS cover_url
-                                      FROM Users U
-                                      LEFT JOIN Ref_UsersList RUL ON U.UserID = RUL.UserID 
-                                      LEFT JOIN List L ON RUL.ListID = L.ListID
-                                      LEFT JOIN Ref_ListArtwork RAL ON L.ListID = RAL.ListID
-                                      LEFT JOIN Artwork A ON A.ArtworkID = RAL.ArtworkID 
-                                      WHERE U.UserID = @userID
-                                      ORDER BY ROW_NUMBER() OVER (PARTITION BY L.ListID ORDER BY A.ArtworkID)`,
+            L.ListID AS list_id, 
+            L.ListName AS list_name, 
+            U.Username AS username, 
+            A.ArtworkPosterImage AS cover_url
+        FROM Ref_UsersList RUL
+        LEFT JOIN Users U ON U.UserID = RUL.UserID 
+        LEFT JOIN List L ON RUL.ListID = L.ListID
+        LEFT JOIN Ref_ListArtwork RAL ON L.ListID = RAL.ListID
+        LEFT JOIN Artwork A ON A.ArtworkID = RAL.ArtworkID 
+        WHERE U.UserID = @userID
+        ORDER BY ROW_NUMBER() OVER (PARTITION BY L.ListID ORDER BY A.ArtworkID)`,
       [{ name: "userID", type: sql.Int, value: user.id }]
     );
 
