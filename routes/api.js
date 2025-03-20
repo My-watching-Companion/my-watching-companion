@@ -4,8 +4,8 @@ const multer = require("multer");
 
 const {
   isAuthenticated,
-  CheckAge,
-  GetUser,
+  refreshSession,
+  validateSession,
 } = require("../controllers/functions");
 
 const usersController = require("../controllers/backend/users");
@@ -13,10 +13,13 @@ const friendsController = require("../controllers/backend/friends");
 const watchlistsController = require("../controllers/backend/watchlists");
 const artworksController = require("../controllers/backend/artworks");
 const securityController = require("../controllers/backend/security");
+const commentsController = require("../controllers/backend/comments");
+const notifController = require("../controllers/backend/notifs");
 
 const express = require("express");
 router.use(express.json());
 router.use(express.static("uploads"));
+router.use(refreshSession);
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -32,6 +35,10 @@ const uploads = multer({ storage: storage });
 // Authentication
 router.post("/login/ok", usersController.loginOK);
 router.post("/register/ok", usersController.registerOK);
+router.post("/logout", usersController.logout);
+router.get("/check-session", validateSession, (req, res) => {
+  res.json({ status: "OK", user: { username: req.session.user.username } });
+});
 
 // Users
 router.post(
@@ -85,19 +92,7 @@ router.get(
   artworksController.getUsersArtworks
 );
 
-router.get(
-  "/getuserlists",
-  isAuthenticated,
-  watchlistsController.getUsersLists
-);
-
 router.post("/searchartworks", artworksController.searchArtworks);
-
-router.post(
-  "/addartworktolist",
-  isAuthenticated,
-  watchlistsController.addArtworkToList
-);
 
 // Watchlists
 router.get(
@@ -110,7 +105,7 @@ router.get(
   watchlistsController.getWatchlistByUsernameAndListname
 );
 
-// New watchlists routes
+// Logged User Watchlists
 router.get(
   "/user/watchlists",
   isAuthenticated,
@@ -140,5 +135,61 @@ router.delete(
   isAuthenticated,
   watchlistsController.deleteUserWatchlist
 );
+
+router.post(
+  "/user/watchlists/:name/artworks",
+  isAuthenticated,
+  watchlistsController.createUserArtworkByWatchlistName
+);
+
+router.delete(
+  "/user/watchlists/:name/artworks/:id",
+  isAuthenticated,
+  watchlistsController.deleteUserArtworkByIDFromWatchlistName
+);
+
+// Logged User Artworks
+router.post(
+  "/user/artworks/:id/liked",
+  isAuthenticated,
+  artworksController.toggleUserLikedArtworkByID
+);
+
+router.post(
+  "/user/artworks/:id/watched",
+  isAuthenticated,
+  artworksController.toggleUserWatchedArtworkByID
+);
+
+// Comments
+router.get("/comments", commentsController.getComments);
+router.get("/comments/artworks/:id", commentsController.getCommentsByArtworkID);
+router.get(
+  "/comments/user",
+  isAuthenticated,
+  commentsController.getCommentsByUser
+);
+router.post("/comments", isAuthenticated, commentsController.createComment);
+router.put("/comments/:id", isAuthenticated, commentsController.updateComment);
+router.delete(
+  "/comments/:id",
+  isAuthenticated,
+  commentsController.deleteComment
+);
+router.post(
+  "/comments/:id/like",
+  isAuthenticated,
+  commentsController.likeComment
+);
+router.post(
+  "/comments/:id/dislike",
+  isAuthenticated,
+  commentsController.dislikeComment
+);
+
+// Notifs
+router.get("/getnotifs",isAuthenticated, notifController.getAllNotifs);
+router.delete("/deletenotifs/:notifid",isAuthenticated, notifController.deleteNotif);
+router.put("/addnotif/:Param1/:Param2/:Val1/:Val2/:NotifID", isAuthenticated, notifController.addNotifs);
 
 module.exports = router;

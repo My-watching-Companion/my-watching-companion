@@ -6,7 +6,8 @@ async function toggleAddListModal() {
   const addListContainer = document.getElementById("add-list-container");
 
   const resultBox = document.getElementById("result-box");
-  resultBox.classList.remove("visible", "error", "success");
+  resultBox.classList.remove("error", "success");
+  resultBox.classList.add("invisible");
 
   addListModal.onclick = (event) => {
     if (!addListContainer.contains(event.target))
@@ -15,17 +16,30 @@ async function toggleAddListModal() {
 }
 
 // Load watchlists
-async function loadWatchlists() {
-  setLoadingWatchlists();
+async function setLoadingWatchlists(show) {
+  const status = document.getElementById("status-loading");
+  status.style.display = show ? "flex" : "none";
+}
 
-  const watchlists = await fetch("/api/user/watchlists").then((response) =>
-    response.json()
-  );
+async function setEmptyWatchlists(show) {
+  const status = document.getElementById("status-empty");
+  status.style.display = show ? "flex" : "none";
+}
+
+async function loadWatchlists() {
+  setLoadingWatchlists(true);
+  setEmptyWatchlists(false);
+
+  const watchlists = await fetch("/api/user/watchlists", {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  }).then((response) => response.json());
 
   const watchlistsContainer = document.getElementById("watchlists");
 
   if (watchlists.length === 0) {
-    setNoWatchlists();
+    setEmptyWatchlists(true);
+    setLoadingWatchlists(false);
     return;
   }
 
@@ -35,6 +49,7 @@ async function loadWatchlists() {
     const linkElement = document.createElement("a");
     linkElement.href = `/my-watchlists/${watchlist.list_name}`;
     linkElement.style.textDecoration = "none";
+    linkElement.setAttribute("name", watchlist.list_name);
 
     const cardDiv = document.createElement("div");
     cardDiv.classList.add("watchlist-card");
@@ -63,21 +78,50 @@ async function loadWatchlists() {
     titleDiv.classList.add("watchlist-title");
     titleDiv.textContent = watchlist.list_name;
 
+    // Delete button
+    const deleteButton = document.createElement("button");
+    deleteButton.classList.add("delete-watchlist-btn");
+    deleteButton.innerHTML =
+      '<span class="material-symbols-rounded">delete</span>';
+    deleteButton.style.display = "none";
+
+    cardDiv.addEventListener("mouseenter", () => {
+      deleteButton.style.display = "flex";
+    });
+    cardDiv.addEventListener("mouseleave", () => {
+      deleteButton.style.display = "none";
+    });
+
+    // Prevent navigation when clicking delete button
+    deleteButton.addEventListener("click", async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const response = await fetch(
+        `/api/user/watchlists/${encodeURIComponent(watchlist.list_name)}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const result = await response.json();
+
+      if (result.message) loadWatchlists();
+      else console.log(result);
+    });
+
     cardDiv.appendChild(cardPoster);
     cardDiv.appendChild(titleDiv);
+    cardDiv.appendChild(deleteButton);
     linkElement.appendChild(cardDiv);
     watchlistsContainer.appendChild(linkElement);
   });
-}
 
-async function setLoadingWatchlists() {
-  const watchlistsContainer = document.getElementById("watchlists");
-  watchlistsContainer.innerHTML = `<p>Loading...</p>`;
-}
-
-async function setNoWatchlists() {
-  const watchlistsContainer = document.getElementById("watchlists");
-  watchlistsContainer.innerHTML = `<p>Vous ne possédez aucune liste...</p>`;
+  setLoadingWatchlists(false);
+  debouncedFilterWatchlists();
 }
 
 loadWatchlists();
@@ -114,3 +158,30 @@ async function createWatchlist() {
     loadWatchlists();
   }
 }
+
+// Filter artworks
+async function filterWatchlists() {
+  const watchlistsContainer = document.getElementById("watchlists");
+  const filter = document.getElementById("quick-search").value;
+
+  for (const watchlist of watchlistsContainer.children) {
+    if (
+      watchlist
+        .getAttribute("name")
+        .toLowerCase()
+        .includes(filter.toLowerCase())
+    )
+      watchlist.style.display = "flex";
+    else watchlist.style.display = "none";
+  }
+
+  if (
+    Array.from(watchlistsContainer.children).every(
+      (watchlist) => watchlist.style.display === "none"
+    )
+  )
+    setEmptyWatchlists(true);
+  else setEmptyWatchlists(false);
+}
+
+const debouncedFilterWatchlists = debounce(filterWatchlists, 250);

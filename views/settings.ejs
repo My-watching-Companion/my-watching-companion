@@ -59,7 +59,7 @@
         <button type="submit" onclick="ModifyBio()">Modifier la Bio</button>
       </div>
 
-      <div class="div-container">
+      <div class="div-container" id="gender-div">
         <h1 class="title" id="gender-title">Genre</h1>
         <select name="gender" id="gender" onchange="ModifyGender()">
           <option value="" <%= user.gender === false || user.gender === true || user.gender === 0 || user.gender === 1 ? "hidden" : "selected"%>>Non Divulgué </option>

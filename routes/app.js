@@ -7,17 +7,21 @@ const settingsController = require("../controllers/app/settings");
 const signController = require("../controllers/app/sign-in-up");
 const watchlistsController = require("../controllers/app/watchlists");
 const artworksController = require("../controllers/app/artworks");
-const { isAuthenticated } = require("../controllers/functions");
+const { isAuthenticated, refreshSession } = require("../controllers/functions");
+const usersController = require("../controllers/backend/users");
+const notifController = require("../controllers/backend/notifs");
+
+// Apply session refresh middleware to all routes
+router.use(refreshSession);
 
 // Home
 router.get("/", homeController.getHome);
 
 // Sign in / Sign up
 router.get("/signin", signController.getSignin);
-
 router.get("/signup", signController.getSignup);
-
 router.get("/forgot-password", signController.getForgotPassword);
+router.get("/logout", usersController.logout);
 
 // Settings
 router.get("/settings", isAuthenticated, settingsController.getSettings);

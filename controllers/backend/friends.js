@@ -6,7 +6,7 @@ exports.addFriends = async (req, res) => {
   const friends = req.params["friends"];
   try {
     await executeQuery(
-      `INSERT INTO Friend VALUES((SELECT UserID From Users where Username = '${friends}'), (SELECT UserID From Users where Username = '${user}'))`
+      `INSERT INTO Friend VALUES((SELECT UserID From Users where Username = '${friends}'), 0 ,(SELECT UserID From Users where Username = '${user}'))`
     );
     TraceLogs(
       req,

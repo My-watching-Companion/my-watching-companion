@@ -4,8 +4,30 @@ function isAuthenticated(req, res, next) {
   if (req.session.user) {
     return next();
   } else {
+    // Store the original URL for redirect after login
+    req.session.returnTo = req.originalUrl || req.url;
     res.redirect("/signin");
   }
+}
+
+// Add session validation with optional redirect
+function validateSession(req, res, next) {
+  if (req.session.user) {
+    // Refresh the session
+    req.session.touch();
+    next();
+  } else {
+    res.status(401).json({
+      status: "ERROR",
+      message: "Session expired or not authenticated",
+    });
+  }
+}
+
+// Extends session lifespan on activity
+function refreshSession(req, res, next) {
+  if (req.session.user) req.session.touch();
+  next();
 }
 
 function ChangeSession(
@@ -30,7 +52,29 @@ function ChangeSession(
     confidentiality: Confidentiality,
     bio: Bio,
     gender: Gender,
+    lastActivity: new Date(),
   };
+}
+
+// Clear user session
+function clearSession(req) {
+  return new Promise((resolve) => {
+    req.session.destroy((err) => {
+      if (err) console.error("Session destruction error:", err);
+      resolve();
+    });
+  });
+}
+
+// Check if session is inactive for too long
+function isSessionExpired(session, maxInactiveInterval = 30) {
+  if (!session.user || !session.user.lastActivity) return true;
+
+  const lastActivity = new Date(session.user.lastActivity);
+  const currentTime = new Date();
+  const inactiveTime = (currentTime - lastActivity) / (1000 * 60);
+
+  return inactiveTime > maxInactiveInterval;
 }
 
 async function CheckAge(username, age) {
@@ -69,7 +113,7 @@ async function TraceLogs(req, res, message) {
 
 async function TraceError(req, res, message) {
   await executeQuery(
-    `INSERT INTO TraceLogs VALUES (GETDATE(), (SELECT UserID FROM Users where Username = '${req.session.user.username}'), '${message}', 1)`
+    `INSERT INTO TraceLogs VALUES (GETDATE(), (SELECT UserID FROM Users where Username = '${req.session.user && req.session.user.username ? req.session.user.username : 0}'), '${message}', 1)`
   );
 }
 
@@ -87,7 +131,11 @@ function formatDate(dateString) {
 
 module.exports = {
   isAuthenticated,
+  validateSession,
+  refreshSession,
   ChangeSession,
+  clearSession,
+  isSessionExpired,
   CheckAge,
   GetUser,
   TraceLogs,

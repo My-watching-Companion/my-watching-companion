@@ -1,5 +1,5 @@
 exports.getError = (req, res) => {
   res.status(404);
 
-  res.render("error", { selected: "Erreur" });
+  res.render("error", { selected: "Accueil" });
 };

@@ -29,7 +29,7 @@ exports.getArtwork = async (req, res) => {
   artwork[0].ArtworkTMDB = artworkTMDBInfos;
 
   res.render("artwork", {
-    selected: "Artwork",
+    selected: "Découverte",
     user: req.session.user,
     artwork: artwork[0],
   });
