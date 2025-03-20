@@ -9,6 +9,7 @@ const watchlistsController = require("../controllers/app/watchlists");
 const artworksController = require("../controllers/app/artworks");
 const { isAuthenticated, refreshSession } = require("../controllers/functions");
 const usersController = require("../controllers/backend/users");
+const notifController = require("../controllers/backend/notifs");
 
 // Apply session refresh middleware to all routes
 router.use(refreshSession);

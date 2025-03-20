@@ -14,6 +14,7 @@ const watchlistsController = require("../controllers/backend/watchlists");
 const artworksController = require("../controllers/backend/artworks");
 const securityController = require("../controllers/backend/security");
 const commentsController = require("../controllers/backend/comments");
+const notifController = require("../controllers/backend/notifs");
 
 const express = require("express");
 router.use(express.json());
@@ -185,5 +186,10 @@ router.post(
   isAuthenticated,
   commentsController.dislikeComment
 );
+
+// Notifs
+router.get("/getnotifs",isAuthenticated, notifController.getAllNotifs);
+router.delete("/deletenotifs/:notifid",isAuthenticated, notifController.deleteNotif);
+router.put("/addnotif/:Param1/:Param2/:Val1/:Val2/:NotifID", isAuthenticated, notifController.addNotifs);
 
 module.exports = router;
