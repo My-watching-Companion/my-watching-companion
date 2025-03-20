@@ -3,7 +3,7 @@ const path = require("path");
 const session = require("express-session");
 const PORT = process.env.PORT || 3000;
 const { CRYPTO_KEY } = require("./config");
-const { router: api, isAuthenticated } = require("./routes/api");
+const api = require("./routes/api");
 const app = express();
 app.use(
   session({
@@ -13,7 +13,12 @@ app.use(
   })
 );
 app.use(express.urlencoded({ extended: true }));
-
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  next();
+});
 // Définition du répertoire des fichiers et moteur de modèles
 app.set("views", path.join(__dirname + "/views"));
 app.set("view engine", "ejs");

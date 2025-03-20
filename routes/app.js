@@ -1,122 +1,55 @@
 const router = require("express").Router();
-const { executeQuery } = require("../db");
-const { isAuthenticated, GetUser } = require("./api");
+const accountController = require("../controllers/app/account");
+const discoveryController = require("../controllers/app/discovery");
+const errorController = require("../controllers/app/error");
+const homeController = require("../controllers/app/home");
+const settingsController = require("../controllers/app/settings");
+const signController = require("../controllers/app/sign-in-up");
+const watchlistsController = require("../controllers/app/watchlists");
+const artworksController = require("../controllers/app/artworks");
+const { isAuthenticated, refreshSession } = require("../controllers/functions");
+const usersController = require("../controllers/backend/users");
+const notifController = require("../controllers/backend/notifs");
 
-// Définition de la route principale
-router.get("/", (req, res) => {
-  res.render("home", { selected: "Accueil" });
-});
+// Apply session refresh middleware to all routes
+router.use(refreshSession);
 
-router.get("/signin", (req, res) => {
-  res.render("signin", { selected: "Connexion" });
-});
+// Home
+router.get("/", homeController.getHome);
 
-router.get("/signup", (req, res) => {
-  res.render("signup", { selected: "Inscription" });
-});
+// Sign in / Sign up
+router.get("/signin", signController.getSignin);
+router.get("/signup", signController.getSignup);
+router.get("/forgot-password", signController.getForgotPassword);
+router.get("/logout", usersController.logout);
 
-router.get("/settings", isAuthenticated, (req, res) => {
-  res.render("settings", {
-    selected: "Paramètres",
-    choice: null,
-    user: req.session.user.username,
-  });
-});
+// Settings
+router.get("/settings", isAuthenticated, settingsController.getSettings);
 
-router.get("/settings/:cat/:sett", isAuthenticated, async (req, res) => {
-  const categories = req.params["cat"];
-  const page = req.params["sett"];
-  let friends = null;
-  let allusers = null;
-  let nature = null;
-  console.log(req.session.user);
-  console.log(categories, page);
-  if (categories !== undefined && page !== undefined) {
-    if (categories === "profile" && page === "modifyprofile") {
-    } else if (categories === "confidentiality" && page === "friends") {
-    } else if (categories === "watchlists" && page === "preferences") {
-      nature = await fetch("http://localhost:3000/api/getallnature").then(
-        (resp) => resp.json()
-      );
-    }
-    res.render("settings", {
-      selected: "Paramètres",
-      choice: `${categories}/${page}`,
-      user: req.session.user,
-      friends: friends,
-      allusers: allusers,
-      nature: nature,
-    });
-  }
-});
+router.get(
+  "/settings/:cat/:sett",
+  isAuthenticated,
+  settingsController.getSettingsByCatAndPage
+);
 
-router.get("/discovery", isAuthenticated, async (req, res) => {
-  const user = req.session.user;
-  let isfriends = false;
-  let iswl = false;
-  const friends = await fetch(
-    `http://localhost:3000/api/friends/${req.session.user.username}`
-  ).then((resp) => resp.json());
+// Account
+router.get("/account", accountController.getAccount);
 
-  allusers = await fetch(
-    `http://localhost:3000/api/getuserswithoutfriends/${req.session.user.username}`
-  ).then((resp) => resp.json());
+// Discovery
+router.get("/discovery", isAuthenticated, discoveryController.getDiscovery);
 
-  let wloffriends = {};
-  if (friends.Friends.length > 0) {
-    isfriends = true;
-  }
-  for (const element of friends.Friends) {
-    const watchlists = await fetch(
-      `http://localhost:3000/api/users/${element.Username}/watchlists`
-    ).then((resp) => resp.json());
-    if (watchlists.Watchlist === null) {
-      continue;
-    } else {
-      wloffriends[element.Username] = watchlists;
-    }
-  }
-  console.log(wloffriends);
-  for (const user of Object.keys(wloffriends)) {
-    for (const wl of wloffriends[user].Watchlist) {
-      if (wl !== null || wl !== undefined || wl.length !== 0) {
-        iswl = true;
-        break;
-      }
-    }
-  }
+// Watchlists
+router.get(
+  "/my-watchlists",
+  isAuthenticated,
+  watchlistsController.getWatchlists
+);
 
-  res.render("discover", {
-    selected: "Découverte",
-    friends: friends,
-    wloffriends: wloffriends,
-    isfriends: isfriends,
-    iswl: iswl,
-    user: req.session.user.username,
-    allusers: allusers,
-  });
-});
+router.get("/my-watchlists/:name", watchlistsController.getWatchlistByName);
 
-router.get("/my-watchlist", isAuthenticated, (req, res) => {
-  res.render("my-watchlist", {
-    selected: "Ma Watchlist",
-    user: req.session.user,
-  });
-});
-
-router.get("/account", (req, res) => {
-  res.render("account", { selected: "Mot de Passe Oublié" });
-});
-
-router.get("/forgot-password", (req, res) => {
-  res.render("forgot-password", { selected: "Mot de Passe Oublié" });
-});
+router.get("/artwork/:id", artworksController.getArtwork);
 
 // Définition de la route erreur 404
-router.get("*", (req, res) => {
-  res.status(404);
-
-  res.render("error", { selected: "Erreur" });
-});
+router.get("*", errorController.getError);
 
 module.exports = router;

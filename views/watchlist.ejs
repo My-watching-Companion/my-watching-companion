@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <%- include('components/head', { selected }) %>
+
+    <link rel="stylesheet" href="/styles/watchlist.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,0..200" />
+
+    <script src="/scripts/color-thief.js" defer></script>
+    <script>
+      const selectedList = "<%= listName %>";
+    </script>
+    <script src="/scripts/watchlist.js" defer></script>
+  </head>
+
+  <body>
+    <header><%- include('components/header', { selected }) %></header>
+
+    <%- include('components/sidebar') %>
+
+    <main>
+      <section id="watchlist-header">
+        <input
+          class="search-input"
+          type="text"
+          name="quick-search"
+          id="quick-search"
+          oninput="debouncedFilterArtworks()"
+          placeholder="Recherchez dans votre liste..."
+        />
+
+        <h1 id="selected-lists">
+          Vous consultez <span class="selected"><%= listName %></span>
+        </h1>
+
+        <button class="btn-primary" onclick="toggleAddArtworkModal()">
+          <span class="material-symbols-rounded"> add </span>Ajouter un Titre
+        </button>
+      </section>
+
+      <section id="status">
+        <p id="status-loading" class="status-box" style="display: none">
+          Chargement de vos titres en cours...
+        </p>
+        <p id="status-empty" class="status-box">
+          Aucun titre ne correspond à vos critères...
+        </p>
+      </section>
+
+      <section id="artworks"></section>
+    </main>
+
+    <footer><%- include('components/footer') %></footer>
+
+    <div id="add-artwork" class="modal" hidden>
+      <div id="add-artwork-container">
+        <div id="texts">
+          <h4 class="selected">Ajouter un nouveau titre..</h4>
+
+          <h4 id="add-selected-lists">
+            Ajouter dans <span class="selected"><%= listName %></span>
+          </h4>
+        </div>
+
+        <p id="result-box" class="status-box invisible"></p>
+
+        <input
+          class="search-input"
+          type="text"
+          name="add-artwork-search"
+          id="add-artwork-search"
+          oninput="debouncedAddArtworkSearch()"
+          placeholder="Dites-moi... Que voulez-vous ajouter ?"
+        />
+
+        <div id="searched-artworks"></div>
+      </div>
+    </div>
+  </body>
+</html>
