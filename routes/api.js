@@ -192,4 +192,11 @@ router.get("/getnotifs",isAuthenticated, notifController.getAllNotifs);
 router.delete("/deletenotifs/:notifid",isAuthenticated, notifController.deleteNotif);
 router.put("/addnotif/:Param1/:Param2/:Val1/:Val2/:NotifID", isAuthenticated, notifController.addNotifs);
 
+
+// Artworks
+router.get("/artworks/trending/day", artworksController.getTrendingMoviesByDay);
+router.get("/artworks/trending/week", artworksController.getTrendingMoviesByWeek);
+router.get("/artworks/trending/upcoming", artworksController.getUpcomingMovies);
+
+
 module.exports = router;
