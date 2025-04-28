@@ -373,3 +373,36 @@ exports.dislikeComment = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+exports.getTrendingComments = async (req, res) => {
+  try {
+    const userID = req.session.user ? req.session.user.id : null;
+    
+    const comments = await executeQuery(
+      `SELECT TOP 20
+              U.UserID AS user_id,
+              U.Username AS username,
+              U.UserProfilePicture AS user_avatar_url,
+              A.ArtworkID AS artwork_id,
+              A.ArtworkName AS artwork_name,
+              A.ArtworkPosterImage AS artwork_poster,
+              C.CommentID AS comment_id,
+              C.Comment AS comment_content,
+              C.CreationDate AS comment_creation,
+              C.UpdatedDate AS comment_updated,
+              (SELECT COUNT(*) FROM CommentLiked WHERE CommentID = C.CommentID AND CommentLiked = 1) AS comment_likes,
+              (SELECT COUNT(*) FROM CommentLiked WHERE CommentID = C.CommentID AND CommentLiked = 0) AS comment_dislikes,
+              ${userID ? `(SELECT CommentLiked FROM CommentLiked WHERE CommentID = C.CommentID AND UserID = @userID) AS user_reaction` : 'NULL AS user_reaction'}
+       FROM Comment C
+       LEFT JOIN Users U ON U.UserID = C.UserID
+       LEFT JOIN Artwork A ON A.ArtworkID = C.ArtworkID
+       WHERE C.CreationDate >= DATEADD(day, -7, GETDATE())
+       ORDER BY comment_likes DESC`,
+      userID ? [{ name: "userID", type: sql.Int, value: userID }] : []
+    );
+
+    res.status(200).json(comments);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

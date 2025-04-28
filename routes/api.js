@@ -163,6 +163,7 @@ router.post(
 
 // Comments
 router.get("/comments", commentsController.getComments);
+router.get("/comments/trending", commentsController.getTrendingComments);
 router.get("/comments/artworks/:id", commentsController.getCommentsByArtworkID);
 router.get(
   "/comments/user",

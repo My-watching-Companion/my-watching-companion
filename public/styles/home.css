@@ -92,83 +92,192 @@ h6 {
 
 /* COMMENTAIRES POPULAIRES */
 .title_comm_pop {
-    margin-top: 70px;
-    text-align: left;
+    margin: 0;
+    padding: 15px 40px;
     font-size: 1rem;
     color: #2c3e50;
-    margin-bottom: 30px;
+    position: relative;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+/* Ajouter la ligne décorative sous le titre */
+.title_comm_pop::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 60px;
+    height: 4px;
+    background: #000000;
+    border-radius: 2px;
+}
+
+/* Animation au survol */
+.title_comm_pop:hover {
+    transform: translateX(10px);
+    transition: transform 0.3s ease;
 }
 
 /* Container principal des commentaires */
 .bloc_comm_pop {
+    position: relative;
     display: flex;
-    flex-direction: row; /* Changé de column à row */
-    gap: 20px; /* Espacement entre les commentaires */
-    margin: 30px auto;
-    width: 100%;
-    overflow-x: auto; /* Permet le défilement horizontal */
-    padding: 20px;
-    scrollbar-width: none; /* Cache la scrollbar Firefox */
-    -ms-overflow-style: none; /* Cache la scrollbar IE */
+    scroll-behavior: smooth;
+    padding: 20px 40px;
+    gap: 20px;
+    overflow-x: scroll;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    width: calc(100% - 80px);
 }
 
-/* Cache la scrollbar Chrome */
+/* Masquer la scrollbar tout en gardant la fonction de défilement */
 .bloc_comm_pop::-webkit-scrollbar {
     display: none;
 }
 
 /* Style de chaque commentaire */
-.div_barbie_comm_pop {
+.div_com_pop {
     display: flex;
-    flex-direction: column; /* Réorganise le contenu en vertical */
-    min-width: 300px; /* Largeur minimale fixe */
-    max-width: 350px; /* Largeur maximale */
-    margin: 0 10px;
-    padding: 20px;
-    background: #f8f9fa;
-    border-radius: 15px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    flex-direction: column;
+    min-width: 250px;
+    max-width: 250px;
+    margin: 0 8px;
+    padding: 18px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* Image du film */
-.barbie {
+.artwork_poster {
     width: 100%;
-    height: 200px;
+    height: 180px;
     object-fit: cover;
     border-radius: 10px;
     margin-bottom: 15px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* Informations utilisateur */
 .user_comm_pop {
-    margin: 10px 0;
-    font-weight: bold;
+    margin: 15px 0;
+    font-weight: 600;
     color: #2c3e50;
-}
-
-/* Texte du commentaire */
-.text_barbie_comm_pop {
-    margin: 10px 0;
-    line-height: 1.6;
-    color: #4a4a4a;
-    flex-grow: 1;
-}
-
-/* Section likes */
-.like_barbie_comm_pop {
-    margin-top: auto;
     display: flex;
     align-items: center;
     gap: 10px;
+}
+
+.user_comm_pop img.user-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #f0f0f0;
+}
+
+.user_comm_pop span {
+    color: #ffd700;
+    letter-spacing: 2px;
+}
+
+/* Texte du commentaire */
+.text_com_pop {
+    margin: 15px 0;
+    line-height: 1.6;
+    color: #4a4a4a;
+    flex-grow: 1;
+    font-size: 0.95rem;
+}
+
+/* Section likes */
+.like_com_pop {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
     color: #666;
+    padding-top: 15px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.like_com_pop .like-icon {
+    color: #ff4757;
+    font-size: 1.2rem;
 }
 
 /* Animation au survol du commentaire */
-.div_barbie_comm_pop:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-    transition: all 0.3s ease;
+.div_com_pop:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Styles pour les actions de commentaire (likes/dislikes) */
+.comment-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.like-container,
+.dislike-container {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    color: #666;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+.clickable:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #333;
+}
+
+.material-symbols-rounded {
+    font-size: 1.1rem;
+    transition: all 0.2s ease;
+}
+
+.material-symbols-rounded.filled {
+    font-weight: 600;
+}
+
+.like-container .material-symbols-rounded.filled {
+    color: #4CAF50;
+}
+
+.dislike-container .material-symbols-rounded.filled {
+    color: #f44336;
+}
+
+.count-value {
+    font-weight: 500;
+    min-width: 1rem;
+    text-align: center;
+}
+
+/* Message "pas de commentaires" */
+.no-comments-message {
+    width: 100%;
+    text-align: center;
+    padding: 40px;
+    background: #f8f9fa;
+    border-radius: 15px;
+    color: #666;
+    font-size: 1.1rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin: 20px 0;
 }
 
 /* Carousel */
@@ -252,13 +361,29 @@ h6 {
     }
 
     .bloc_comm_pop {
+        padding: 15px 20px;
+        width: calc(100% - 40px);
+        gap: 15px;
+    }
+
+    .div_com_pop {
+        min-width: 200px;
+        max-width: 200px;
         padding: 15px;
     }
 
-    .div_barbie_comm_pop {
-        min-width: 250px;
-        max-width: 300px;
-        padding: 15px;
+    .artwork_poster {
+        height: 160px;
+    }
+
+    .text_com_pop {
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+
+    .title_comm_pop {
+        padding: 12px 20px;
+        font-size: 0.9rem;
     }
 }
 
@@ -292,23 +417,63 @@ h6 {
         font-size: 18px;
     }
 
-    .div_barbie_comm_pop {
-        min-width: 200px;
-        max-width: 100%;
-        margin: 0 5px;
+    .bloc_comm_pop {
+        padding: 10px 15px;
+        width: calc(100% - 30px);
+        gap: 12px;
+    }
+
+    .div_com_pop {
+        min-width: 180px;
+        max-width: 180px;
         padding: 12px;
     }
 
-    .barbie {
-        height: 150px;
+    .artwork_poster {
+        height: 140px;
+        margin-bottom: 8px;
     }
 
     .user_comm_pop {
+        margin: 8px 0;
+        gap: 6px;
+    }
+
+    .user_comm_pop img.user-avatar {
+        width: 22px;
+        height: 22px;
+    }
+
+    .text_com_pop {
+        margin: 8px 0;
+        font-size: 0.8rem;
+        line-height: 1.2;
+    }
+
+    .like_com_pop {
+        font-size: 0.8rem;
+        margin-top: 10px;
+        padding-top: 10px;
+    }
+
+    .user_comm_pop img.user-avatar {
+        width: 25px;
+        height: 25px;
+    }
+
+    .no-comments-message {
+        padding: 20px;
         font-size: 0.9rem;
     }
 
-    .text_barbie_comm_pop {
+    .title_comm_pop {
+        padding: 10px 15px;
         font-size: 0.85rem;
+    }
+
+    .title_comm_pop::after {
+        width: 40px;
+        height: 3px;
     }
 }
 
@@ -318,9 +483,37 @@ h6 {
         width: 100px;
     }
 
-    .div_barbie_comm_pop {
-        min-width: 180px;
+    .bloc_comm_pop {
+        padding: 8px 10px;
+        width: calc(100% - 20px);
+        gap: 10px;
+    }
+
+    .div_com_pop {
+        min-width: 140px;
+        max-width: 140px;
         padding: 10px;
+    }
+
+    .artwork_poster {
+        height: 120px;
+        margin-bottom: 6px;
+    }
+
+    .user_comm_pop {
+        margin: 6px 0;
+        gap: 4px;
+    }
+
+    .user_comm_pop img.user-avatar {
+        width: 20px;
+        height: 20px;
+    }
+
+    .text_com_pop {
+        margin: 6px 0;
+        font-size: 0.75rem;
+        line-height: 1.1;
     }
 
     h1 {
@@ -329,6 +522,16 @@ h6 {
 
     h6 {
         font-size: 0.8rem;
+    }
+
+    .title_comm_pop {
+        padding: 8px 10px;
+        font-size: 0.8rem;
+    }
+
+    .title_comm_pop::after {
+        width: 30px;
+        height: 2px;
     }
 }
 
