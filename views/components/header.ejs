@@ -10,6 +10,9 @@
   <a href="/discovery" class="nav-item <% if (selected === "Découverte") { %>selected<% } %>">Découverte</a>
   <a href="/trending" class="nav-item <% if (selected === "Tendance") { %>selected<% } %>">Tendance</a>
   <a href="/settings" class="nav-item <% if (selected === "Paramètres") { %>selected<% } %>">Paramètres</a>
+  <% if (typeof user !== "undefined" && user.roleId === 2) { %>
+    <a href="/admin" class="nav-item <% if (selected === "Administration") { %>selected<% } %>">Administration</a>
+  <% } %>
 </nav>
 
 <div id="header-user">

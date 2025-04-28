@@ -47,7 +47,8 @@ exports.loginOK = async (req, res) => {
         user.LastName,
         user.Confidentiality,
         user.Bio,
-        user.Gender
+        user.Gender,
+        user.RoleID
       );
 
       // Change session duration based on "remember me" option
@@ -198,7 +199,8 @@ exports.updateUser = async (req, res) => {
         ? options.Confidentiality
         : req.session.user.confidentiality,
       options.Bio ? options.Bio : req.session.user.bio,
-      options.Gender === undefined ? req.session.user.gender : options.Gender
+      options.Gender === undefined ? req.session.user.gender : options.Gender,
+      req.session.user.roleId
     );
 
     res.status(200).redirect("/settings/profile/modifyprofile");
@@ -296,7 +298,8 @@ exports.changeConfidentialityUser = async (req, res) => {
       req.session.user.lastname,
       nbconf,
       req.session.user.bio,
-      req.session.user.gender
+      req.session.user.gender,
+      req.session.user.roleId
     );
     res.json({
       status: "OK",

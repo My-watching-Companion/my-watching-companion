@@ -40,7 +40,8 @@ function ChangeSession(
   LastName,
   Confidentiality,
   Bio,
-  Gender
+  Gender,
+  RoleID
 ) {
   req.session.user = {
     id: UserID,
@@ -52,6 +53,7 @@ function ChangeSession(
     confidentiality: Confidentiality,
     bio: Bio,
     gender: Gender,
+    roleId: RoleID,
     lastActivity: new Date(),
   };
 }
