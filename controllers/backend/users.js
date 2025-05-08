@@ -1,5 +1,5 @@
 const CryptoJS = require("crypto-js");
-const { executeQuery } = require("../../db");
+const { executeQuery, sql } = require("../../db");
 const {
   ChangeSession,
   TraceError,
@@ -310,6 +310,426 @@ exports.changeConfidentialityUser = async (req, res) => {
     res.json({
       status: "KO",
       message: `Internal Server Error ${e}`,
+    });
+  }
+};
+
+// Admin functions for user management
+exports.getAdminUsers = async (req, res) => {
+  // Check if user is admin
+  if (!req.session.user || req.session.user.roleId !== 2) {
+    return res.status(403).json({
+      error: "Vous n'avez pas les droits d'administration nécessaires.",
+    });
+  }
+
+  try {
+    const users = await executeQuery(
+      `SELECT UserID, Username, EmailAddress, UserProfilePicture, FirstName, 
+              LastName, UsersBirthDate, RoleID, CreationDate, Confidentiality 
+       FROM Users
+       ORDER BY Username`
+    );
+
+    res.status(200).json(users);
+  } catch (error) {
+    TraceError(req, res, `Error in getAdminUsers: ${error}`);
+    res.status(500).json({
+      error:
+        "Une erreur est survenue lors de la récupération des utilisateurs.",
+    });
+  }
+};
+
+exports.createAdminUser = async (req, res) => {
+  // Check if user is admin
+  if (!req.session.user || req.session.user.roleId !== 2)
+    return res.status(403).json({
+      error: "Vous n'avez pas les droits d'administration nécessaires.",
+    });
+
+  const {
+    username,
+    email,
+    password,
+    confirmPassword,
+    firstName,
+    lastName,
+    birthdate,
+    securityQuestion,
+    securityAnswer,
+    role,
+  } = req.body;
+
+  // Validate all required fields
+  if (
+    !username ||
+    !email ||
+    !password ||
+    !confirmPassword ||
+    !firstName ||
+    !lastName ||
+    !birthdate ||
+    !securityQuestion ||
+    !securityAnswer ||
+    !role
+  )
+    return res.status(400).json({
+      error: "Tous les champs sont obligatoires.",
+    });
+
+  // Verify passwords match
+  if (password !== confirmPassword)
+    return res.status(400).json({
+      error: "Les mots de passe ne correspondent pas.",
+    });
+
+  try {
+    // Check if username or email already exists
+    const existingUser = await executeQuery(
+      `SELECT Username, EmailAddress FROM Users 
+       WHERE Username = @username OR EmailAddress = @email`,
+      [
+        { name: "username", type: sql.VarChar, value: username },
+        { name: "email", type: sql.VarChar, value: email },
+      ]
+    );
+
+    if (existingUser.length > 0)
+      return res.status(400).json({
+        error:
+          "Ce nom d'utilisateur ou cette adresse email est déjà utilisé(e).",
+      });
+
+    // Create the user
+    const encryptedPassword = CryptoJS.AES.encrypt(
+      password,
+      CRYPTO_KEY
+    ).toString();
+
+    const userid = await executeQuery(
+      `INSERT INTO Users (
+        CreationDate, UpdatedDate, Username, LastName, UsersBirthDate, EmailAddress, 
+        UserProfilePicture, Password, FirstName, IsActivated, Confidentiality, RoleID,
+        SecurityQuestionID, SecurityQuestionAnswer
+      ) 
+      OUTPUT inserted.UserID 
+      VALUES (
+        GETDATE(), GETDATE(), @username, @lastName, @birthdate, @email, 
+        '\\UsersProfilePicture\\Default.png', @password, @firstName, 1, 0, @role,
+        @securityQuestion, @securityAnswer
+      )`,
+      [
+        { name: "username", type: sql.VarChar, value: username },
+        { name: "email", type: sql.VarChar, value: email },
+        { name: "password", type: sql.VarChar, value: encryptedPassword },
+        { name: "firstName", type: sql.VarChar, value: firstName },
+        { name: "lastName", type: sql.VarChar, value: lastName },
+        { name: "birthdate", type: sql.Date, value: new Date(birthdate) },
+        { name: "role", type: sql.Int, value: parseInt(role) },
+        {
+          name: "securityQuestion",
+          type: sql.Int,
+          value: parseInt(securityQuestion),
+        },
+        { name: "securityAnswer", type: sql.VarChar, value: securityAnswer },
+      ]
+    );
+
+    // Create default list for the user
+    const listid = await executeQuery(
+      "INSERT INTO List OUTPUT inserted.ListID VALUES ('Ma Liste', GETDATE())"
+    );
+
+    await executeQuery(`INSERT INTO Ref_UsersList VALUES (@userID, @listID)`, [
+      { name: "userID", type: sql.Int, value: userid[0].UserID },
+      { name: "listID", type: sql.Int, value: listid[0].ListID },
+    ]);
+
+    TraceLogs(
+      req,
+      res,
+      `Admin ${req.session.user.username} created user ${username}`
+    );
+
+    res.status(201).json({
+      message: "Utilisateur créé avec succès.",
+    });
+  } catch (error) {
+    TraceError(req, res, `Error in createAdminUser: ${error}`);
+    res.status(500).json({
+      error: "Une erreur est survenue lors de la création de l'utilisateur.",
+    });
+  }
+};
+
+exports.updateAdminUser = async (req, res) => {
+  // Check if user is admin
+  if (!req.session.user || req.session.user.roleId !== 2)
+    return res.status(403).json({
+      error: "Vous n'avez pas les droits d'administration nécessaires.",
+    });
+
+  const { id } = req.params;
+  const { username, email, firstName, lastName, role, gender, bio } = req.body;
+
+  if (
+    !id ||
+    (!username &&
+      !email &&
+      !firstName &&
+      !lastName &&
+      !role &&
+      gender === undefined &&
+      !bio)
+  )
+    return res.status(400).json({
+      error: "Des données sont manquantes pour la mise à jour.",
+    });
+
+  try {
+    // Check if user exists
+    const user = await executeQuery(
+      `SELECT UserID FROM Users WHERE UserID = @userID`,
+      [{ name: "userID", type: sql.Int, value: id }]
+    );
+
+    if (user.length === 0) {
+      return res.status(404).json({
+        error: "Utilisateur non trouvé.",
+      });
+    }
+
+    // Build update query dynamically based on provided fields
+    const updates = [];
+    const params = [{ name: "userID", type: sql.Int, value: id }];
+
+    if (username) {
+      updates.push("Username = @username");
+      params.push({ name: "username", type: sql.VarChar, value: username });
+    }
+
+    if (email) {
+      updates.push("EmailAddress = @email");
+      params.push({ name: "email", type: sql.VarChar, value: email });
+    }
+
+    if (firstName) {
+      updates.push("FirstName = @firstName");
+      params.push({ name: "firstName", type: sql.VarChar, value: firstName });
+    }
+
+    if (lastName) {
+      updates.push("LastName = @lastName");
+      params.push({ name: "lastName", type: sql.VarChar, value: lastName });
+    }
+
+    if (bio !== undefined) {
+      updates.push("Bio = @bio");
+      params.push({ name: "bio", type: sql.VarChar, value: bio });
+    }
+
+    if (gender !== undefined) {
+      if (gender === "" || gender === "null") updates.push("Gender = NULL");
+      else {
+        updates.push("Gender = @gender");
+        // Convert 'true'/'false' strings to actual boolean for SQL
+        params.push({
+          name: "gender",
+          type: sql.Bit,
+          value: gender === "true" ? true : false,
+        });
+      }
+    }
+
+    if (role) {
+      updates.push("RoleID = @role");
+      params.push({ name: "role", type: sql.Int, value: parseInt(role) });
+    }
+
+    updates.push("UpdatedDate = GETDATE()");
+
+    if (updates.length > 0)
+      await executeQuery(
+        `UPDATE Users SET ${updates.join(", ")} WHERE UserID = @userID`,
+        params
+      );
+
+    TraceLogs(
+      req,
+      res,
+      `Admin ${req.session.user.username} updated user with ID ${id}`
+    );
+
+    res.status(200).json({
+      message: "Utilisateur mis à jour avec succès.",
+    });
+  } catch (error) {
+    TraceError(req, res, `Error in updateAdminUser: ${error}`);
+    res.status(500).json({
+      error: "Une erreur est survenue lors de la mise à jour de l'utilisateur.",
+    });
+  }
+};
+
+exports.deleteAdminUser = async (req, res) => {
+  // Check if user is admin
+  if (!req.session.user || req.session.user.roleId !== 2)
+    return res.status(403).json({
+      error: "Vous n'avez pas les droits d'administration nécessaires.",
+    });
+
+  const { id } = req.params;
+
+  if (!id)
+    return res.status(400).json({
+      error: "ID utilisateur manquant.",
+    });
+
+  try {
+    // Check if user exists and is not the current user
+    const user = await executeQuery(
+      `SELECT UserID, Username FROM Users WHERE UserID = @userID`,
+      [{ name: "userID", type: sql.Int, value: id }]
+    );
+
+    if (user.length === 0)
+      return res.status(404).json({
+        error: "Utilisateur non trouvé.",
+      });
+
+    if (user[0].UserID === req.session.user.id)
+      return res.status(400).json({
+        error:
+          "Vous ne pouvez pas supprimer votre propre compte via l'administration.",
+      });
+
+    // Delete related data one table at a time to avoid syntax errors
+
+    // Delete user's comment likes
+    await executeQuery(`DELETE FROM CommentLiked WHERE UserID = @userID`, [
+      { name: "userID", type: sql.Int, value: id },
+    ]);
+
+    // Delete user's comments
+    await executeQuery(`DELETE FROM Comment WHERE UserID = @userID`, [
+      { name: "userID", type: sql.Int, value: id },
+    ]);
+
+    // Delete user's artwork likes
+    await executeQuery(`DELETE FROM Liked WHERE UserID = @userID`, [
+      { name: "userID", type: sql.Int, value: id },
+    ]);
+
+    // Delete user's watch status
+    await executeQuery(`DELETE FROM Watched WHERE UserID = @userID`, [
+      { name: "userID", type: sql.Int, value: id },
+    ]);
+
+    // Delete user's friend relationships
+    await executeQuery(
+      `DELETE FROM Friend WHERE (UserID = @userID) OR (FriendsUserID = @userID)`,
+      [{ name: "userID", type: sql.Int, value: id }]
+    );
+
+    // Delete user's notifications
+    await executeQuery(`DELETE FROM Ref_NotifUser WHERE UserID = @userID`, [
+      { name: "userID", type: sql.Int, value: id },
+    ]);
+
+    // Get user's lists
+    const userLists = await executeQuery(
+      `SELECT ListID FROM Ref_UsersList WHERE UserID = @userID`,
+      [{ name: "userID", type: sql.Int, value: id }]
+    );
+
+    // If user has lists, delete artworks from them and then the lists
+    if (userLists.length > 0) {
+      const listIds = userLists.map((list) => list.ListID);
+
+      // Delete artworks from user's lists
+      for (const listId of listIds)
+        await executeQuery(
+          `DELETE FROM Ref_ListArtwork WHERE ListID = @listID`,
+          [{ name: "listID", type: sql.Int, value: listId }]
+        );
+
+      // Delete user's lists references
+      await executeQuery(`DELETE FROM Ref_UsersList WHERE UserID = @userID`, [
+        { name: "userID", type: sql.Int, value: id },
+      ]);
+
+      // Delete user's lists
+      for (const listId of listIds)
+        await executeQuery(`DELETE FROM List WHERE ListID = @listID`, [
+          { name: "listID", type: sql.Int, value: listId },
+        ]);
+    }
+
+    // Delete trace logs
+    await executeQuery(`DELETE FROM TraceLogs WHERE TraceUsers = @userID`, [
+      { name: "userID", type: sql.Int, value: id },
+    ]);
+
+    // Finally delete user
+    await executeQuery(`DELETE FROM Users WHERE UserID = @userID`, [
+      { name: "userID", type: sql.Int, value: id },
+    ]);
+
+    TraceLogs(
+      req,
+      res,
+      `Admin ${req.session.user.username} deleted user with ID ${id} (${user[0].Username})`
+    );
+
+    res.status(200).json({
+      message: "Utilisateur supprimé avec succès.",
+    });
+  } catch (error) {
+    TraceError(req, res, `Error in deleteAdminUser: ${error}`);
+    res.status(500).json({
+      error: "Une erreur est survenue lors de la suppression de l'utilisateur.",
+    });
+  }
+};
+
+exports.getAdminUserById = async (req, res) => {
+  try {
+    // Check if user is admin
+    if (!req.session.user || req.session.user.roleId !== 2)
+      return res.status(403).json({
+        error: "Vous n'avez pas les droits d'administration nécessaires.",
+      });
+
+    const { id } = req.params;
+
+    if (!id)
+      return res.status(400).json({
+        error: "ID utilisateur manquant.",
+      });
+
+    // Include proper SQL parameter and add Bio and Gender fields
+    const user = await executeQuery(
+      `SELECT UserID, Username, EmailAddress, UserProfilePicture, FirstName, 
+              LastName, UsersBirthDate, RoleID, CreationDate, Confidentiality,
+              Bio, Gender 
+       FROM Users
+       WHERE UserID = @userID`,
+      [{ name: "userID", type: sql.Int, value: parseInt(id) }]
+    );
+
+    if (user.length === 0)
+      return res.status(404).json({
+        error: "Utilisateur non trouvé.",
+      });
+
+    res.status(200).json(user[0]);
+  } catch (error) {
+    console.error(`Error in getAdminUserById: ${error}`);
+    TraceError(req, res, `Error in getAdminUserById: ${error}`);
+    res.status(500).json({
+      error:
+        "Une erreur est survenue lors de la récupération de l'utilisateur.",
     });
   }
 };

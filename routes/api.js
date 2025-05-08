@@ -189,15 +189,102 @@ router.post(
 );
 
 // Notifs
-router.get("/getnotifs",isAuthenticated, notifController.getAllNotifs);
-router.delete("/deletenotifs/:notifid",isAuthenticated, notifController.deleteNotif);
-router.put("/addnotif/:Param1/:Param2/:Val1/:Val2/:NotifID", isAuthenticated, notifController.addNotifs);
-
+router.get("/getnotifs", isAuthenticated, notifController.getAllNotifs);
+router.delete(
+  "/deletenotifs/:notifid",
+  isAuthenticated,
+  notifController.deleteNotif
+);
+router.put(
+  "/addnotif/:Param1/:Param2/:Val1/:Val2/:NotifID",
+  isAuthenticated,
+  notifController.addNotifs
+);
 
 // Artworks
 router.get("/artworks/trending/day", artworksController.getTrendingMoviesByDay);
-router.get("/artworks/trending/week", artworksController.getTrendingMoviesByWeek);
+router.get(
+  "/artworks/trending/week",
+  artworksController.getTrendingMoviesByWeek
+);
 router.get("/artworks/trending/upcoming", artworksController.getUpcomingMovies);
 
+// Admin Routes - protected by isAuthenticated middleware and role check in controllers
+router.get("/admin/users", isAuthenticated, usersController.getAdminUsers);
+router.get(
+  "/admin/users/:id",
+  isAuthenticated,
+  usersController.getAdminUserById
+);
+router.post("/admin/users", isAuthenticated, usersController.createAdminUser);
+router.put(
+  "/admin/users/:id",
+  isAuthenticated,
+  usersController.updateAdminUser
+);
+router.delete(
+  "/admin/users/:id",
+  isAuthenticated,
+  usersController.deleteAdminUser
+);
+
+router.get(
+  "/admin/comments",
+  isAuthenticated,
+  commentsController.getAdminComments
+);
+router.get(
+  "/admin/comments/:id",
+  isAuthenticated,
+  commentsController.getAdminCommentById
+);
+router.delete(
+  "/admin/comments/:id",
+  isAuthenticated,
+  commentsController.deleteAdminComment
+);
+
+router.get(
+  "/admin/artworks",
+  isAuthenticated,
+  artworksController.getAdminArtworks
+);
+router.get(
+  "/admin/artworks/:id",
+  isAuthenticated,
+  artworksController.getAdminArtworkById
+);
+router.post(
+  "/admin/artworks",
+  isAuthenticated,
+  artworksController.createAdminArtwork
+);
+router.put(
+  "/admin/artworks/:id",
+  isAuthenticated,
+  artworksController.updateAdminArtwork
+);
+router.delete(
+  "/admin/artworks/:id",
+  isAuthenticated,
+  artworksController.deleteAdminArtwork
+);
+
+router.get("/admin/lists", isAuthenticated, watchlistsController.getAdminLists);
+router.get(
+  "/admin/lists/:id",
+  isAuthenticated,
+  watchlistsController.getAdminListById
+);
+router.put(
+  "/admin/lists/:id",
+  isAuthenticated,
+  watchlistsController.updateAdminList
+);
+router.delete(
+  "/admin/lists/:id",
+  isAuthenticated,
+  watchlistsController.deleteAdminList
+);
 
 module.exports = router;

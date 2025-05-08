@@ -538,3 +538,174 @@ exports.deleteUserArtworkByIDFromWatchlistName = async (req, res) => {
     });
   }
 };
+
+// Admin functions for watchlist management
+exports.getAdminLists = async (req, res) => {
+  // Check if user is admin
+  if (!req.session.user || req.session.user.roleId !== 2)
+    return res.status(403).json({
+      error: "Vous n'avez pas les droits d'administration nécessaires.",
+    });
+
+  try {
+    const lists = await executeQuery(
+      `SELECT L.ListID, L.ListName, L.UpdatedDate,
+              U.Username, U.UserID,
+              (SELECT COUNT(*) FROM Ref_ListArtwork WHERE ListID = L.ListID) AS ArtworkCount
+       FROM List L
+       JOIN Ref_UsersList RUL ON L.ListID = RUL.ListID
+       JOIN Users U ON RUL.UserID = U.UserID
+       ORDER BY L.ListName`
+    );
+
+    res.status(200).json(lists);
+  } catch (error) {
+    res.status(500).json({
+      error: "Une erreur est survenue lors de la récupération des listes.",
+    });
+  }
+};
+
+exports.updateAdminList = async (req, res) => {
+  // Check if user is admin
+  if (!req.session.user || req.session.user.roleId !== 2)
+    return res.status(403).json({
+      error: "Vous n'avez pas les droits d'administration nécessaires.",
+    });
+
+  const { id } = req.params;
+  const { name } = req.body;
+
+  if (!id)
+    return res.status(400).json({
+      error: "ID de liste manquant.",
+    });
+
+  if (!name)
+    return res.status(400).json({
+      error: "Nom de liste manquant.",
+    });
+
+  try {
+    // Check if list exists
+    const list = await executeQuery(
+      `SELECT ListID FROM List WHERE ListID = @listID`,
+      [{ name: "listID", type: sql.Int, value: id }]
+    );
+
+    if (list.length === 0) {
+      return res.status(404).json({
+        error: "Liste non trouvée.",
+      });
+    }
+
+    // Update list name
+    await executeQuery(
+      `UPDATE List SET ListName = @listName, UpdatedDate = GETDATE() WHERE ListID = @listID`,
+      [
+        { name: "listName", type: sql.VarChar, value: name },
+        { name: "listID", type: sql.Int, value: id },
+      ]
+    );
+
+    res.status(200).json({
+      message: "Liste mise à jour avec succès.",
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: "Une erreur est survenue lors de la mise à jour de la liste.",
+    });
+  }
+};
+
+exports.deleteAdminList = async (req, res) => {
+  // Check if user is admin
+  if (!req.session.user || req.session.user.roleId !== 2)
+    return res.status(403).json({
+      error: "Vous n'avez pas les droits d'administration nécessaires.",
+    });
+
+  const { id } = req.params;
+
+  if (!id)
+    return res.status(400).json({
+      error: "ID de liste manquant.",
+    });
+
+  try {
+    // Check if list exists
+    const list = await executeQuery(
+      `SELECT ListID FROM List WHERE ListID = @listID`,
+      [{ name: "listID", type: sql.Int, value: id }]
+    );
+
+    if (list.length === 0)
+      return res.status(404).json({
+        error: "Liste non trouvée.",
+      });
+
+    // Delete list and related data one at a time
+
+    // Delete artworks from list
+    await executeQuery(`DELETE FROM Ref_ListArtwork WHERE ListID = @listID`, [
+      { name: "listID", type: sql.Int, value: id },
+    ]);
+
+    // Delete list user reference
+    await executeQuery(`DELETE FROM Ref_UsersList WHERE ListID = @listID`, [
+      { name: "listID", type: sql.Int, value: id },
+    ]);
+
+    // Delete list
+    await executeQuery(`DELETE FROM List WHERE ListID = @listID`, [
+      { name: "listID", type: sql.Int, value: id },
+    ]);
+
+    res.status(200).json({
+      message: "Liste supprimée avec succès.",
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: "Une erreur est survenue lors de la suppression de la liste.",
+    });
+  }
+};
+
+exports.getAdminListById = async (req, res) => {
+  // Check if user is admin
+  if (!req.session.user || req.session.user.roleId !== 2)
+    return res.status(403).json({
+      error: "Vous n'avez pas les droits d'administration nécessaires.",
+    });
+
+  const { id } = req.params;
+
+  if (!id)
+    return res.status(400).json({
+      error: "ID de liste manquant.",
+    });
+
+  try {
+    const list = await executeQuery(
+      `SELECT L.ListID, L.ListName, L.UpdatedDate,
+              U.Username, U.UserID,
+              (SELECT COUNT(*) FROM Ref_ListArtwork WHERE ListID = L.ListID) AS ArtworkCount
+       FROM List L
+       JOIN Ref_UsersList RUL ON L.ListID = RUL.ListID
+       JOIN Users U ON RUL.UserID = U.UserID
+       WHERE L.ListID = @listID`,
+      [{ name: "listID", type: sql.Int, value: id }]
+    );
+
+    if (list.length === 0)
+      return res.status(404).json({
+        error: "Liste non trouvée.",
+      });
+
+    res.status(200).json(list[0]);
+  } catch (error) {
+    res.status(500).json({
+      error: "Une erreur est survenue lors de la récupération de la liste.",
+    });
+  }
+};

@@ -377,7 +377,7 @@ exports.dislikeComment = async (req, res) => {
 exports.getTrendingComments = async (req, res) => {
   try {
     const userID = req.session.user ? req.session.user.id : null;
-    
+
     const comments = await executeQuery(
       `SELECT TOP 20
               U.UserID AS user_id,
@@ -392,7 +392,11 @@ exports.getTrendingComments = async (req, res) => {
               C.UpdatedDate AS comment_updated,
               (SELECT COUNT(*) FROM CommentLiked WHERE CommentID = C.CommentID AND CommentLiked = 1) AS comment_likes,
               (SELECT COUNT(*) FROM CommentLiked WHERE CommentID = C.CommentID AND CommentLiked = 0) AS comment_dislikes,
-              ${userID ? `(SELECT CommentLiked FROM CommentLiked WHERE CommentID = C.CommentID AND UserID = @userID) AS user_reaction` : 'NULL AS user_reaction'}
+              ${
+                userID
+                  ? `(SELECT CommentLiked FROM CommentLiked WHERE CommentID = C.CommentID AND UserID = @userID) AS user_reaction`
+                  : "NULL AS user_reaction"
+              }
        FROM Comment C
        LEFT JOIN Users U ON U.UserID = C.UserID
        LEFT JOIN Artwork A ON A.ArtworkID = C.ArtworkID
@@ -404,5 +408,119 @@ exports.getTrendingComments = async (req, res) => {
     res.status(200).json(comments);
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+};
+
+// Admin functions for comment management
+exports.getAdminComments = async (req, res) => {
+  // Check if user is admin
+  if (!req.session.user || req.session.user.roleId !== 2)
+    return res.status(403).json({
+      error: "Vous n'avez pas les droits d'administration nécessaires.",
+    });
+
+  try {
+    const comments = await executeQuery(
+      `SELECT C.CommentID, C.Comment AS CommentContent, C.CreationDate, C.UpdatedDate,
+              U.Username, U.UserID,
+              A.ArtworkName, A.ArtworkID,
+              (SELECT COUNT(*) FROM CommentLiked WHERE CommentID = C.CommentID AND CommentLiked = 1) AS Likes,
+              (SELECT COUNT(*) FROM CommentLiked WHERE CommentID = C.CommentID AND CommentLiked = 0) AS Dislikes
+       FROM Comment C
+       JOIN Users U ON C.UserID = U.UserID
+       JOIN Artwork A ON C.ArtworkID = A.ArtworkID
+       ORDER BY C.CreationDate DESC`
+    );
+
+    res.status(200).json(comments);
+  } catch (error) {
+    res.status(500).json({
+      error:
+        "Une erreur est survenue lors de la récupération des commentaires.",
+    });
+  }
+};
+
+exports.deleteAdminComment = async (req, res) => {
+  // Check if user is admin
+  if (!req.session.user || req.session.user.roleId !== 2)
+    return res.status(403).json({
+      error: "Vous n'avez pas les droits d'administration nécessaires.",
+    });
+
+  const { id } = req.params;
+
+  if (!id)
+    return res.status(400).json({
+      error: "ID de commentaire manquant.",
+    });
+
+  try {
+    // Check if comment exists
+    const comment = await executeQuery(
+      `SELECT CommentID, UserID FROM Comment WHERE CommentID = @commentID`,
+      [{ name: "commentID", type: sql.Int, value: id }]
+    );
+
+    if (comment.length === 0)
+      return res.status(404).json({
+        error: "Commentaire non trouvé.",
+      });
+
+    // Delete comment and its likes
+    await executeQuery(
+      `DELETE FROM CommentLiked WHERE CommentID = @commentID;
+       DELETE FROM Comment WHERE CommentID = @commentID;`,
+      [{ name: "commentID", type: sql.Int, value: id }]
+    );
+
+    res.status(200).json({
+      message: "Commentaire supprimé avec succès.",
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: "Une erreur est survenue lors de la suppression du commentaire.",
+    });
+  }
+};
+
+exports.getAdminCommentById = async (req, res) => {
+  // Check if user is admin
+  if (!req.session.user || req.session.user.roleId !== 2)
+    return res.status(403).json({
+      error: "Vous n'avez pas les droits d'administration nécessaires.",
+    });
+
+  const { id } = req.params;
+
+  if (!id)
+    return res.status(400).json({
+      error: "ID de commentaire manquant.",
+    });
+
+  try {
+    const comment = await executeQuery(
+      `SELECT C.CommentID, C.Comment AS CommentContent, C.CreationDate, C.UpdatedDate,
+              U.Username, U.UserID,
+              A.ArtworkName, A.ArtworkID,
+              (SELECT COUNT(*) FROM CommentLiked WHERE CommentID = C.CommentID AND CommentLiked = 1) AS Likes,
+              (SELECT COUNT(*) FROM CommentLiked WHERE CommentID = C.CommentID AND CommentLiked = 0) AS Dislikes
+       FROM Comment C
+       JOIN Users U ON C.UserID = U.UserID
+       JOIN Artwork A ON C.ArtworkID = A.ArtworkID
+       WHERE C.CommentID = @commentID`,
+      [{ name: "commentID", type: sql.Int, value: id }]
+    );
+
+    if (comment.length === 0)
+      return res.status(404).json({
+        error: "Commentaire non trouvé.",
+      });
+
+    res.status(200).json(comment[0]);
+  } catch (error) {
+    res.status(500).json({
+      error: "Une erreur est survenue lors de la récupération du commentaire.",
+    });
   }
 };

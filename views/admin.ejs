@@ -1,154 +1,282 @@
 <!DOCTYPE html>
 
 <html lang="fr">
-<head>
-  <%- include('components/head', { selected: "Administration" }) %>
-  <link rel="stylesheet" href="styles/admin.css">
-  <script src="scripts/admin.js" defer></script>
-</head>
+  <head>
+    <%- include('components/head', { selected: "Administration" }) %>
+    <link rel="stylesheet" href="styles/admin.css" />
+    <script src="scripts/admin.js" defer></script>
+  </head>
 
-<body>
-  <header>
-    <%- include('components/header', { selected: "Administration" }) %>
-  </header>
+  <body>
+    <header>
+      <%- include('components/header', { selected: "Administration" }) %>
+    </header>
 
-  <%- include('components/sidebar') %>
-  
-  <main>
-    <nav class="admin-nav">
-      <button class="tab-button active" data-tab="users">
-        <span class="material-symbols-rounded">group</span>
-        Utilisateurs
-      </button>
-      <button class="tab-button" data-tab="comments">
-        <span class="material-symbols-rounded">comment</span>
-        Commentaires
-      </button>
-      <button class="tab-button" data-tab="artworks">
-        <span class="material-symbols-rounded">movie</span>
-        Titres
-      </button>
-      <button class="tab-button" data-tab="lists">
-        <span class="material-symbols-rounded">format_list_bulleted</span>
-        Listes
-      </button>
-    </nav>
+    <%- include('components/sidebar') %>
 
-    <div class="tab-content active" id="users-tab">
-      <section class="section-admin users-management">
-        <h3>Gestion des Utilisateurs</h3>
-        <div class="admin-container">
-          <div class="search-container">
-            <input type="text" id="users-search" placeholder="Rechercher un utilisateur..." class="search-input">
-            <button class="btn-primary" onclick="toggleAddUserModal()">
-              <span class="material-symbols-rounded">add</span>Ajouter un Utilisateur
+    <main>
+      <nav class="admin-nav">
+        <button class="tab-button active" data-tab="users">
+          <span class="material-symbols-rounded">group</span>
+          Utilisateurs
+        </button>
+        <button class="tab-button" data-tab="comments">
+          <span class="material-symbols-rounded">comment</span>
+          Commentaires
+        </button>
+        <button class="tab-button" data-tab="artworks">
+          <span class="material-symbols-rounded">movie</span>
+          Titres
+        </button>
+        <button class="tab-button" data-tab="lists">
+          <span class="material-symbols-rounded">format_list_bulleted</span>
+          Listes
+        </button>
+      </nav>
+
+      <div class="tab-content active" id="users-tab">
+        <section class="section-admin users-management">
+          <h3>Gestion des Utilisateurs</h3>
+          <div class="admin-container">
+            <div class="search-container">
+              <input
+                type="text"
+                id="users-search"
+                placeholder="Rechercher un utilisateur..."
+                class="search-input"
+              />
+              <button class="btn-primary" onclick="toggleAddUserModal()">
+                <span class="material-symbols-rounded">add</span>Ajouter un
+                Utilisateur
+              </button>
+            </div>
+            <div class="users-list admin-list">
+              <!-- Liste des utilisateurs générée dynamiquement -->
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="tab-content" id="comments-tab">
+        <section class="section-admin comments-management">
+          <h3>Gestion des Commentaires</h3>
+          <div class="admin-container">
+            <div class="search-container">
+              <input
+                type="text"
+                id="comments-search"
+                placeholder="Rechercher un commentaire..."
+                class="search-input"
+              />
+            </div>
+            <div class="comments-list admin-list">
+              <!-- Liste des commentaires générée dynamiquement -->
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="tab-content" id="artworks-tab">
+        <section class="section-admin artworks-management">
+          <h3>Gestion des Titres</h3>
+          <div class="admin-container">
+            <div class="search-container">
+              <input
+                type="text"
+                id="artworks-search"
+                placeholder="Rechercher un titre..."
+                class="search-input"
+              />
+              <button class="btn-primary" onclick="toggleAddArtworkModal()">
+                <span class="material-symbols-rounded">add</span>Ajouter un
+                Titre
+              </button>
+            </div>
+            <div class="artworks-list admin-list">
+              <!-- Liste des titres générée dynamiquement -->
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="tab-content" id="lists-tab">
+        <section class="section-admin lists-management">
+          <h3>Gestion des Listes</h3>
+          <div class="admin-container">
+            <div class="search-container">
+              <input
+                type="text"
+                id="lists-search"
+                placeholder="Rechercher une liste..."
+                class="search-input"
+              />
+            </div>
+            <div class="lists-list admin-list">
+              <!-- Liste des watchlists générée dynamiquement -->
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- Modal Ajout/Modification Utilisateur -->
+    <div id="user-modal" class="modal" hidden>
+      <div class="modal-content">
+        <h4>Gérer un Utilisateur</h4>
+        <form id="user-form">
+          <div class="form-group">
+            <label for="username">Nom d'utilisateur</label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              placeholder="Nom d'utilisateur"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="firstName">Prénom</label>
+            <input
+              type="text"
+              id="firstName"
+              name="firstName"
+              placeholder="Prénom"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="lastName">Nom</label>
+            <input
+              type="text"
+              id="lastName"
+              name="lastName"
+              placeholder="Nom"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              placeholder="Email"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="password">Mot de passe</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="Mot de passe"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="confirmPassword">Confirmer le mot de passe</label>
+            <input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              placeholder="Confirmer le mot de passe"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="birthdate">Date de naissance</label>
+            <input type="date" id="birthdate" name="birthdate" required />
+          </div>
+          <div class="form-group">
+            <label for="securityQuestion">Question de sécurité</label>
+            <select id="securityQuestion" name="securityQuestion" required>
+              <option value="" disabled selected>
+                Sélectionnez une question
+              </option>
+              <option value="1">
+                Quel est le nom de jeune fille de votre mère ?
+              </option>
+              <option value="2">
+                Quel est le nom de votre premier animal de compagnie ?
+              </option>
+              <option value="3">Dans quelle ville êtes-vous né(e) ?</option>
+              <option value="4">Quel est votre film préféré ?</option>
+              <option value="5">
+                Quel est le prénom de votre meilleur(e) ami(e) d'enfance ?
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="securityAnswer"
+              >Réponse à la question de sécurité</label
+            >
+            <input
+              type="text"
+              id="securityAnswer"
+              name="securityAnswer"
+              placeholder="Votre réponse"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="role">Rôle</label>
+            <select id="role" name="role" required>
+              <option value="1">Utilisateur</option>
+              <option value="2">Administrateur</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">Sauvegarder</button>
+            <button
+              type="button"
+              class="btn-secondary"
+              onclick="closeUserModal()"
+            >
+              Annuler
             </button>
           </div>
-          <div class="users-list admin-list">
-            <!-- Liste des utilisateurs générée dynamiquement -->
-          </div>
-        </div>
-      </section>
+        </form>
+      </div>
     </div>
 
-    <div class="tab-content" id="comments-tab">
-      <section class="section-admin comments-management">
-        <h3>Gestion des Commentaires</h3>
-        <div class="admin-container">
-          <div class="search-container">
-            <input type="text" id="comments-search" placeholder="Rechercher un commentaire..." class="search-input">
+    <!-- Modal Ajout Titre -->
+    <div id="artwork-modal" class="modal" hidden>
+      <div class="modal-content">
+        <h4>Ajouter un Titre</h4>
+        <form id="artwork-form">
+          <div class="form-group">
+            <input type="text" name="title" placeholder="Titre" required />
           </div>
-          <div class="comments-list admin-list">
-            <!-- Liste des commentaires générée dynamiquement -->
+          <div class="form-group">
+            <input
+              type="url"
+              name="posterUrl"
+              placeholder="URL de l'affiche"
+              required
+            />
           </div>
-        </div>
-      </section>
-    </div>
-
-    <div class="tab-content" id="artworks-tab">
-      <section class="section-admin artworks-management">
-        <h3>Gestion des Titres</h3>
-        <div class="admin-container">
-          <div class="search-container">
-            <input type="text" id="artworks-search" placeholder="Rechercher un titre..." class="search-input">
-            <button class="btn-primary" onclick="toggleAddArtworkModal()">
-              <span class="material-symbols-rounded">add</span>Ajouter un Titre
+          <div class="form-group">
+            <textarea
+              name="description"
+              placeholder="Description"
+              required
+            ></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">Ajouter</button>
+            <button
+              type="button"
+              class="btn-secondary"
+              onclick="closeArtworkModal()"
+            >
+              Annuler
             </button>
           </div>
-          <div class="artworks-list admin-list">
-            <!-- Liste des titres générée dynamiquement -->
-          </div>
-        </div>
-      </section>
+        </form>
+      </div>
     </div>
 
-    <div class="tab-content" id="lists-tab">
-      <section class="section-admin lists-management">
-        <h3>Gestion des Listes</h3>
-        <div class="admin-container">
-          <div class="search-container">
-            <input type="text" id="lists-search" placeholder="Rechercher une liste..." class="search-input">
-          </div>
-          <div class="lists-list admin-list">
-            <!-- Liste des watchlists générée dynamiquement -->
-          </div>
-        </div>
-      </section>
-    </div>
-  </main>
-
-  <!-- Modal Ajout/Modification Utilisateur -->
-  <div id="user-modal" class="modal" hidden>
-    <div class="modal-content">
-      <h4>Gérer un Utilisateur</h4>
-      <form id="user-form">
-        <div class="form-group">
-          <input type="text" name="username" placeholder="Nom d'utilisateur" required>
-        </div>
-        <div class="form-group">
-          <input type="email" name="email" placeholder="Email" required>
-        </div>
-        <div class="form-group">
-          <input type="password" name="password" placeholder="Mot de passe">
-        </div>
-        <div class="form-group">
-          <select name="role" required>
-            <option value="1">Utilisateur</option>
-            <option value="2">Administrateur</option>
-          </select>
-        </div>
-        <div class="form-actions">
-          <button type="submit" class="btn-primary">Sauvegarder</button>
-          <button type="button" class="btn-secondary" onclick="closeUserModal()">Annuler</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Modal Ajout Titre -->
-  <div id="artwork-modal" class="modal" hidden>
-    <div class="modal-content">
-      <h4>Ajouter un Titre</h4>
-      <form id="artwork-form">
-        <div class="form-group">
-          <input type="text" name="title" placeholder="Titre" required>
-        </div>
-        <div class="form-group">
-          <input type="url" name="posterUrl" placeholder="URL de l'affiche" required>
-        </div>
-        <div class="form-group">
-          <textarea name="description" placeholder="Description" required></textarea>
-        </div>
-        <div class="form-actions">
-          <button type="submit" class="btn-primary">Ajouter</button>
-          <button type="button" class="btn-secondary" onclick="closeArtworkModal()">Annuler</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <footer>
-    <%- include('components/footer') %>
-  </footer>
-</body>
+    <footer><%- include('components/footer') %></footer>
+  </body>
 </html>
