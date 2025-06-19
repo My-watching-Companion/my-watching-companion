@@ -1,0 +1,331 @@
+@import url("https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap");
+.material-symbols-rounded {
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+.material-symbols-rounded.filled {
+  font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+* {
+  font-family: "Lato", serif;
+}
+
+html,
+body {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+/* HEADER */
+header {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
+  text-align: center;
+  padding: 0.5rem;
+}
+
+/* Header Logo */
+a#logo {
+  text-decoration: none;
+}
+
+header #logo {
+  display: flex;
+}
+
+header #logo img {
+  width: 3rem;
+  height: 3rem;
+}
+
+header #logo h1 {
+  color: black;
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+/* Header Navigation */
+nav {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.nav-item {
+  color: black;
+  text-decoration: none;
+}
+
+.nav-item.selected {
+  font-weight: bold;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.nav-item:hover {
+  font-weight: bold;
+}
+
+/* User style */
+header #header-user {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* User Profile Picture */
+#user-profile-picture {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 3rem;
+}
+
+/* Header Connection */
+button.sign {
+  padding: 1rem;
+}
+
+a.sign {
+  text-decoration: none;
+  color: black;
+  font-weight: bolder;
+}
+
+/* Sidebar */
+#sidebar {
+  display: none;
+  flex-direction: column;
+  position: fixed;
+  justify-content: space-between;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 50vw;
+  background-color: white;
+  box-shadow: -5px 0px 5px 0px rgba(0, 0, 0, 0.25);
+  z-index: 10000;
+}
+
+.top {
+  display: flex;
+  flex-direction: column;
+}
+
+.top .title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+#open-sidebar {
+  display: none;
+}
+
+#open-sidebar,
+#close-sidebar {
+  user-select: none;
+}
+
+#open-sidebar:hover,
+#close-sidebar:hover {
+  cursor: pointer;
+}
+
+.top .navigation {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  text-align: left;
+  padding: 1rem;
+}
+
+#sidebar .user {
+  align-self: center;
+  margin-bottom: 2rem;
+}
+
+#user-box {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.25);
+  border-radius: 10px;
+  padding: 1rem;
+  max-width: 40vw;
+}
+
+#user-box #user-profile-picture {
+  width: 5rem;
+  height: 5rem;
+  border-radius: 5rem;
+}
+
+#user-box #informations-box {
+  font-size: smaller;
+}
+
+/* Main Content */
+main {
+  flex: 1;
+}
+
+/* Footer */
+footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Common Utility Classes */
+.invisible {
+  display: none;
+}
+
+/* Common Form Elements */
+.search-input {
+  border: none;
+  outline: none;
+  border-radius: 10px;
+  padding: 1rem 3rem 1rem 1rem;
+  width: clamp(200px, 20rem, 100%);
+  max-width: 100%;
+  box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.25);
+  transition: box-shadow 0.1s ease-in-out;
+  background-image: url("/assets/search-icon.png");
+  background-position: calc(100% - 10px);
+  background-size: 1.75rem;
+  background-repeat: no-repeat;
+  font-size: 1rem;
+}
+
+.search-input:hover {
+  box-shadow: 0px 5px 10px 2.5px rgba(0, 0, 0, 0.25);
+}
+
+/* Common Button Styles */
+.btn-primary {
+  display: flex;
+  align-items: center;
+  border: none;
+  border-radius: 10px;
+  padding: 0.6rem;
+  font-size: 1rem;
+  font-weight: bolder;
+  color: white;
+  background-color: #f7384a;
+  box-shadow: 0px 5px 10px 0px #f7384a;
+  transition: box-shadow 0.1s ease-in-out;
+}
+
+.btn-primary span {
+  font-size: 2rem;
+}
+
+.btn-primary:hover {
+  box-shadow: 0px 5px 10px 2.5px #f7384a;
+  cursor: pointer;
+}
+
+/* Common Status Display */
+.status-box {
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.status-box.success {
+  color: #4caf50;
+  background-color: #4caf5050;
+  border-color: #4caf50;
+}
+
+.status-box.error {
+  color: #f7384a;
+  background-color: #f7384a50;
+  border-color: #f7384a;
+}
+
+/* Common Layout Classes */
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  display: flex;
+  align-items: center;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 100000;
+}
+
+/* Common Animations */
+@keyframes shake {
+  10%,
+  90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+
+  20%,
+  80% {
+    transform: translate3d(2px, 0, 0);
+  }
+
+  30%,
+  50%,
+  70% {
+    transform: translate3d(-4px, 0, 0);
+  }
+
+  40%,
+  60% {
+    transform: translate3d(4px, 0, 0);
+  }
+}
+
+.apply-shake {
+  animation: shake 0.82s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* Responsiveness */
+@media screen and (max-width: 900px) {
+  /* Header */
+  #logo h1 {
+    display: none;
+  }
+
+  nav .nav-item {
+    display: none;
+  }
+  nav .nav-item.selected {
+    display: flex;
+  }
+
+  /* User Information */
+  .sign {
+    display: none;
+  }
+  .user .sign {
+    display: flex;
+  }
+
+  #open-sidebar {
+    display: flex;
+  }
+}

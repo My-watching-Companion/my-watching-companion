@@ -1,0 +1,241 @@
+/* Watchlist Header */
+#watchlist-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 2rem;
+  gap: 1rem;
+}
+
+#watchlist-header h1 {
+  color: #a6a6a6;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  text-align: center;
+}
+
+#watchlist-header h1 span.selected {
+  color: black;
+  font-weight: 800;
+}
+
+#watchlist-header > *:first-child {
+  justify-self: start;
+}
+
+#watchlist-header > *:last-child {
+  justify-self: end;
+}
+
+/* Add Artwork */
+#add-artwork-container {
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  width: fit-content;
+  max-width: 90%;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.25);
+}
+
+#add-artwork-container #texts {
+  display: flex;
+  justify-content: space-between;
+}
+
+#add-artwork-container #texts #add-selected-lists {
+  display: flex;
+  color: grey;
+  align-items: center;
+  user-select: none;
+  gap: 0.2rem;
+}
+
+#add-artwork-container #texts #add-selected-lists span.selected {
+  color: black;
+  font-weight: bolder;
+}
+
+#add-artwork-container input[type="text"] {
+  width: clamp(250px, 30vw, 500px);
+  box-sizing: border-box;
+}
+
+/* Status */
+#status {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#status p {
+  color: #000000;
+  background-color: #00000050;
+  border-color: #000000;
+}
+
+/* Artworks */
+#artworks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  gap: 2rem;
+  padding: 2rem;
+  max-width: 2000px;
+  margin: 0 auto;
+}
+
+.artwork-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  position: relative;
+}
+
+.artwork-card img {
+  width: 100%;
+  height: auto;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.artwork-interactions {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem;
+  color: white;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 1));
+  border-bottom-left-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
+  font-weight: bold;
+  font-size: larger;
+  display: flex;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.artwork-interactions span {
+  cursor: pointer;
+}
+
+/* Searched Artworks */
+#searched-artworks {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  max-height: 60vh;
+  width: 100%;
+  max-width: clamp(250px, 30vw, 500px);
+  padding: 0 1rem;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.searched-artwork {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.25);
+  box-sizing: border-box;
+  margin-bottom: 1.5rem;
+}
+
+.searched-artwork img {
+  width: auto;
+  height: 8rem;
+  border-radius: 5px;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+.searched-artwork .info {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.searched-artwork .info .title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.searched-artwork .info h3 {
+  font-size: 1.5rem;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.searched-artwork .info .metadata {
+  color: #666;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.searched-artwork .info .description {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.searched-artwork .info button {
+  align-self: flex-end;
+}
+
+@media screen and (max-width: 1300px) {
+  #watchlist-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #watchlist-header h1 {
+    order: 2;
+    text-align: center;
+    width: 100%;
+  }
+
+  #watchlist-header button,
+  #watchlist-header input[type="text"] {
+    width: 70%;
+    box-sizing: border-box;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  #watchlist-header button,
+  #watchlist-header input[type="text"] {
+    width: 80%;
+  }
+
+  #add-artwork-container {
+    max-width: 75%;
+    margin: 0 auto;
+  }
+
+  #searched-artworks {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .searched-artwork img {
+    height: auto;
+    max-height: 150px;
+    object-fit: contain;
+  }
+}

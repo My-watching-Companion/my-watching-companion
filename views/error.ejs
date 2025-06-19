@@ -1,11 +1,31 @@
 <!DOCTYPE html>
+
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Watching Companion - Erreur</title>
+    <%- include('components/head', { selected }) %>
+
+    <link rel="stylesheet" href="/styles/error.css" />
   </head>
+
   <body>
-    <h1>Erreur 404</h1>
+    <header><%- include('components/header', { selected }) %></header>
+
+    <%- include('components/sidebar') %>
+
+    <section id="error">
+      <img src="/assets/404.png" alt="My Watching Companion 404 Error" />
+
+      <p>
+        <i><b>La page recherchée ne semble pas exister.</b></i>
+      </p>
+
+      <button
+        class="btn-primary"
+        style="padding: 1rem"
+        onclick="window.location.href='/'"
+      >
+        Retour à l'Accueil
+      </button>
+    </section>
   </body>
 </html>

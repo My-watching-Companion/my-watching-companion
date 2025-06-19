@@ -1,0 +1,31 @@
+<a id="logo" href="/">
+  <img src="/assets/transparent_logo.png" alt="Logo My Watching Companion" />
+
+  <h1>MY WATCHING<br />COMPANION</h1>
+</a>
+
+<nav>
+  <a href="/" class="nav-item <% if (selected === "Accueil") { %>selected<% } %>">Accueil</a>
+  <a href="/my-watchlists" class="nav-item <% if (selected === "Mes Watchlists") { %>selected<% } %>">Mes Watchlists</a>
+  <a href="/discovery" class="nav-item <% if (selected === "Découverte") { %>selected<% } %>">Découverte</a>
+  <a href="/settings" class="nav-item <% if (selected === "Paramètres") { %>selected<% } %>">Paramètres</a>
+  <% if (typeof user !== "undefined" && user.roleId === 2) { %>
+    <a href="/admin" class="nav-item <% if (selected === "Administration") { %>selected<% } %>">Administration</a>
+  <% } %>
+</nav>
+
+<div id="header-user">
+  <% if (typeof user !== "undefined") { %>
+    <a class="sign" href="/account"><img id="user-profile-picture" <% if (user.avatar_url !== "Default") { %> src="<%= user.avatar_url %>" <% } else { %> src="c:\Users\twiss\Downloads\icone-profil-avatar-par-defaut-image-utilisateur-medias-sociaux-icone-avatar-gris-silhouette-profil-.png" <% } %> alt="<%= user.username %>'s profile picture."></img></a>
+  <% } else { %>
+    <% if (selected === "Connexion") { %>
+      <button class="btn-primary sign" id="sign-up" onclick="location.href='/signup'">INSCRIPTION</button>
+    <% } else { %>
+      <button class="btn-primary sign" id="sign-in" onclick="location.href='/signin'">CONNEXION</button>
+    <% } %>
+  <% } %>
+  
+  <span id="open-sidebar" class="material-symbols-rounded" onclick="openSidebar()">
+    menu
+  </span>
+</div>

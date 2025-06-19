@@ -1,0 +1,46 @@
+<div id="sidebar">
+  <div class="top">
+    <div class="title">
+      <h3>MENU</h3>
+
+      <span id="close-sidebar" class="material-symbols-rounded" onclick="closeSidebar()">
+        close
+      </span>
+    </div>
+
+    <div class="navigation">
+      <a href="/" class="nav-item <% if (selected === "Accueil") { %>selected<% } %>">Accueil</a>
+      <a href="/my-watchlists" class="nav-item <% if (selected === "Mes Watchlists") { %>selected<% } %>">Mes Watchlists</a>
+      <a href="/discovery" class="nav-item <% if (selected === "Découverte") { %>selected<% } %>">Découverte</a>
+      <a href="/trending" class="nav-item <% if (selected === "Tendance") { %>selected<% } %>">Tendance</a>
+      <a href="/settings" class="nav-item <% if (selected === "Paramètres") { %>selected<% } %>">Paramètres</a>
+      <% if (typeof user !== "undefined" && user.roleId === 2) { %>
+        <a href="/admin" class="nav-item">
+          <span class="material-symbols-rounded">admin_panel_settings</span>
+          Administration
+        </a>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="user">
+    <% if (typeof user !== "undefined") { %>
+    <a class="sign" href="/account">
+      <div id="user-box">
+        <img id="user-profile-picture" <% if (user.avatar_url !== "Default") { %> src="<%= user.avatar_url %>" <% } else { %> src="https://img.freepik.com/vecteurs-premium/icone-profil-avatar-par-defaut-image-utilisateur-medias-sociaux-icone-avatar-gris-silhouette-profil-vierge-illustration-vectorielle_561158-3467.jpg" <% } %> alt="<%= user.username %>'s profile picture."></img>
+        <div id="informations-box">
+          <p>CONNECTÉ EN TANT QUE</p>
+          <p><%= user.firstname %> <%= user.lastname %> <br>
+            <%= user.email %></p>
+        </div>
+      </div>
+    </a>
+    <% } else { %>
+    <% if (selected === "Connexion") { %>
+    <button class="btn-primary sign" id="sign-up" onclick="location.href='/signup'">INSCRIPTION</button>
+    <% } else { %>
+    <button class="btn-primary sign" id="sign-in" onclick="location.href='/signin'">CONNEXION</button>
+    <% } %>
+    <% } %>
+  </div>
+</div>

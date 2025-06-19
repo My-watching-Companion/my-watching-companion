@@ -1,11 +1,82 @@
 <!DOCTYPE html>
+
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Watching Companion - Accueil</title>
-  </head>
-  <body>
-    <h1>My Watching Companion</h1>
-  </body>
+<head>
+  <%- include('components/head', { selected }) %>
+  <link rel="stylesheet" href="styles/home.css">
+  <script src="scripts/home.js" defer></script>
+</head>
+
+<body>
+  <header>
+    <%- include('components/header', { selected }) %>
+  </header>
+
+  <%- include('components/sidebar') %>
+  <main>
+    <section class="section_img_home">
+      <img src="assets/img_accueil_1.png" alt="Image d'Accueil" class="img_home_1">
+    </section>
+
+    <section class="sec_Trendings">
+      <!-- Tendances du jour (existant) -->
+      <h3> Les tendances du jour !</h3>
+      <div class="carousel-container">
+        <button class="carousel-button prev">&#8249;</button>
+        <div class="bloc_TrendingMoviesByDay">
+            <!-- Les covers des top films du jour s'affiche ici -->
+        </div>
+        <button class="carousel-button next">&#8250;</button>
+      </div>
+
+      <!-- Tendances de la semaine -->
+      <h3> Les tendances de la semaine !</h3>
+      <div class="carousel-container">
+        <button class="carousel-button prev">&#8249;</button>
+        <div class="bloc_TrendingMoviesByWeek">
+            <!-- Les covers des top films de la semaine s'affiche ici -->
+        </div>
+        <button class="carousel-button next">&#8250;</button>
+      </div>
+
+    </section>
+
+    <section class="sec_info1">
+      <h1>
+        Ecrivez et partagez des critiques. Compilez vos propres listes. Partagez <br>
+        votre vie au cinéma.
+      </h1>
+      <h6>
+        Vous trouverez ci-dessous quelques critiques et listes populaires de cette semaine. <a href="http://localhost:3000/signup">Inscrivez-vous</a> pour créer la vôtre.
+      </h6>
+    </section>
+
+    <section>
+      <h3 class="title_comm_pop"> Commentaires populaires cette semaine </h3>
+      <div class="carousel-container">
+        <button class="carousel-button prev">&#8249;</button>
+        <div class="bloc_comm_pop">
+          <!-- Les commentaires seront injectés ici dynamiquement par JavaScript -->
+        </div>
+        <button class="carousel-button next">&#8250;</button>
+      </div>
+    </section>
+
+    <section>
+      <!-- Films à venir -->
+      <h3>À venir..</h3>
+      <div class="carousel-container">
+        <button class="carousel-button prev">&#8249;</button>
+        <div class="bloc_UpcomingMovies">
+            <!-- Les covers des films à venir s'affiche ici -->
+        </div>
+        <button class="carousel-button next">&#8250;</button>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <%- include('components/footer') %>
+  </footer>
+</body>
 </html>

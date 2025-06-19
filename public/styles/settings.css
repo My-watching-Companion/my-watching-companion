@@ -1,0 +1,200 @@
+/* Main Layout */
+.all-container {
+  display: flex;
+  max-width: 2000px;
+  margin: 0 auto;
+}
+
+/* Sidebar */
+.container {
+  position: sticky;
+  top: 0;
+  width: 250px;
+  height: 90vh;
+  border-right: 1px solid #e6e6e6;
+  padding: 2rem 1rem;
+}
+
+.profile{
+  max-width: 100%;
+}
+
+.profile-pic{
+  display: flex;
+  align-items: center;
+}
+
+.profile-pic > form{
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.comments {
+  display: flex;
+  margin-top: 0;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.text-sidebar {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  font-size: 1rem;
+  color: #666;
+  transition: color 0.2s ease-in-out;
+}
+
+.text-sidebar:hover {
+  color: #f7384a;
+}
+
+.text-sidebar > .material-symbols-rounded {
+  font-size: 1.5rem;
+}
+
+.comment-sidebar {
+  color: #a6a6a6;
+  text-align: center;
+  font-size: 0.875rem;
+}
+
+/* Main Content */
+.settings-container {
+  flex: 1;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Confidentiality Section */
+.conf-div {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  width: 100%;
+  max-width: 800px;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.25);
+}
+
+.conf-text {
+  flex: 1;
+  padding-right: 1rem;
+}
+
+#confselect, #gender {
+  border: none;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-weight: bold;
+  color: white;
+  background-color: #f7384a;
+  box-shadow: 0px 5px 10px 0px #f7384a;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+#confselect:hover, #gender:hover {
+  box-shadow: 0px 5px 10px 2.5px #f7384a;
+}
+
+/* Profile Section */
+.profile {
+  background-color: white;
+  display: flex;
+  padding: 2rem;
+  width: 100%;
+  max-width: 800px;
+  border-radius: 10px;
+  box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.25);
+}
+
+.profile-info {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  flex: 1;
+}
+
+.pp {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.custom-file-upload, button {
+  border: none;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-weight: bold;
+  color: white;
+  background-color: #f7384a;
+  box-shadow: 0px 5px 10px 0px #f7384a;
+  transition: box-shadow 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.custom-file-upload:hover, button:hover {
+  box-shadow: 0px 5px 10px 2.5px #f7384a;
+}
+
+.settings-bio {
+  width: 100%;
+  padding: 1rem;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  border: none;
+  box-shadow: 0px 5px 10px 0px rgba(0, 0, 0, 0.25);
+  resize: none;
+}
+
+.gender-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; 
+  width: 100%;
+  max-width: 800px;
+}
+
+#gender-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+#gender {
+  width: 200px; 
+  text-align: center;
+}
+
+
+@media screen and (max-width: 768px) {
+  .all-container {
+    flex-direction: column;
+  }
+
+  .container {
+    width: 100%;
+    height: auto;
+    position: static;
+    border-right: none;
+    border-bottom: 1px solid #e6e6e6;
+  }
+
+  .profile, .conf-div {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .profile-info {
+    flex-direction: column;
+  }
+}
