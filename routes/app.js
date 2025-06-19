@@ -14,6 +14,14 @@ const notifController = require("../controllers/backend/notifs");
 // Apply session refresh middleware to all routes
 router.use(refreshSession);
 
+// Middleware pour vérifier si l'utilisateur est admin
+const isAdmin = (req, res, next) => {
+  if (!req.session.user || req.session.user.roleId !== 2) {
+    return res.redirect('/');
+  }
+  next();
+};
+
 // Home
 router.get("/", homeController.getHome);
 
@@ -48,6 +56,18 @@ router.get(
 router.get("/my-watchlists/:name", watchlistsController.getWatchlistByName);
 
 router.get("/artwork/:id", artworksController.getArtwork);
+
+// Route d'administration
+router.get('/admin', isAuthenticated, async (req, res) => {
+  if (!req.session.user || req.session.user.roleId !== 2) {
+    return res.redirect('/');
+  }
+  res.render('admin', { 
+    title: 'Administration', 
+    user: req.session.user, 
+    selected: 'Administration' 
+  });
+});
 
 // Définition de la route erreur 404
 router.get("*", errorController.getError);
