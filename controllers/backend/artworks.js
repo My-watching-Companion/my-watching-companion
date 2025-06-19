@@ -183,9 +183,8 @@ exports.toggleUserLikedArtworkByID = async (req, res) => {
     );
 
     res.status(200).json({
-      message: `Le titre a été ${
-        liked === undefined ? "retiré" : "ajouté"
-      } de vos "j'aime" avec succès.`,
+      message: `Le titre a été ${liked === undefined ? "retiré" : "ajouté"
+        } de vos "j'aime" avec succès.`,
       liked: liked !== undefined,
     });
   } catch (error) {
@@ -269,3 +268,164 @@ exports.toggleUserWatchedArtworkByID = async (req, res) => {
     });
   }
 };
+
+// Home page
+exports.getTrendingMoviesByDay = async (req, res) => {
+  try {
+    const options = {
+      method: 'GET',
+      headers: {
+        accept: 'application/json',
+        Authorization: `Bearer ${TMDB_API_KEY}`
+      }
+    };
+
+    const movies = [];
+
+    let moviesByDay = await fetch('https://api.themoviedb.org/3/trending/movie/day?language=fr-FR', options)
+    moviesByDay = await moviesByDay.json();
+    moviesByDay = moviesByDay.results;
+
+    for (const movie of moviesByDay) {
+      const movieData = await executeQuery(
+        `IF NOT EXISTS (SELECT 1 FROM Artwork WHERE ArtworkAPILink = @apiLink)
+               BEGIN
+                 INSERT INTO Artwork (ArtworkName, ArtworkAPILink, ArtworkPosterImage)
+                 VALUES (@title, @apiLink, @poster);
+                 SELECT * FROM Artwork WHERE ArtworkAPILink = @apiLink;
+               END
+               ELSE
+               BEGIN
+                 SELECT * FROM Artwork WHERE ArtworkAPILink = @apiLink;
+               END`,
+        [
+          { name: "title", type: sql.NVarChar, value: movie.title },
+          {
+            name: "apiLink",
+            type: sql.VarChar,
+            value: `https://api.themoviedb.org/3/movie/${movie.id}`,
+          },
+          {
+            name: "poster",
+            type: sql.NVarChar,
+            value: movie.poster_path,
+          },
+        ]
+      );
+      movies.push(movieData[0]);
+    }
+
+    res.json(movies);
+  } catch (error) {
+    res.status(500).json({
+      error: "Une erreur est survenue lors de la récupération des tendances du jour.",
+    });
+  }
+}
+
+
+exports.getTrendingMoviesByWeek = async (req, res) => {
+  try {
+    const options = {
+      method: 'GET',
+      headers: {
+        accept: 'application/json',
+        Authorization: `Bearer ${TMDB_API_KEY}`
+      }
+    };
+
+    const movies = [];
+
+    let moviesByWeek = await fetch('https://api.themoviedb.org/3/trending/movie/week?language=fr-FR', options)
+    moviesByWeek = await moviesByWeek.json();
+    moviesByWeek = moviesByWeek.results;
+
+    for (const movie of moviesByWeek) {
+      const movieData = await executeQuery(
+        `IF NOT EXISTS (SELECT 1 FROM Artwork WHERE ArtworkAPILink = @apiLink)
+               BEGIN
+                 INSERT INTO Artwork (ArtworkName, ArtworkAPILink, ArtworkPosterImage)
+                 VALUES (@title, @apiLink, @poster);
+                 SELECT * FROM Artwork WHERE ArtworkAPILink = @apiLink;
+               END
+               ELSE
+               BEGIN
+                 SELECT * FROM Artwork WHERE ArtworkAPILink = @apiLink;
+               END`,
+        [
+          { name: "title", type: sql.NVarChar, value: movie.title },
+          {
+            name: "apiLink",
+            type: sql.VarChar,
+            value: `https://api.themoviedb.org/3/movie/${movie.id}`,
+          },
+          {
+            name: "poster",
+            type: sql.NVarChar,
+            value: movie.poster_path,
+          },
+        ]
+      );
+      movies.push(movieData[0]);
+    }
+
+    res.json(movies);
+  } catch (error) {
+    res.status(500).json({
+      error: "Une erreur est survenue lors de la récupération des tendances de la semaine.",
+    });
+  }
+}
+
+exports.getUpcomingMovies = async (req, res) => {
+  try {
+    const options = {
+      method: 'GET',
+      headers: {
+        accept: 'application/json',
+        Authorization: `Bearer ${TMDB_API_KEY}`
+      }
+    };
+
+    const movies = [];
+
+    let upcomingMovies = await fetch('https://api.themoviedb.org/3/movie/upcoming?language=fr-FR&page=4', options)
+    upcomingMovies = await upcomingMovies.json();
+    upcomingMovies = upcomingMovies.results;
+
+    for (const movie of upcomingMovies) {
+      const movieData = await executeQuery(
+        `IF NOT EXISTS (SELECT 1 FROM Artwork WHERE ArtworkAPILink = @apiLink)
+               BEGIN
+                 INSERT INTO Artwork (ArtworkName, ArtworkAPILink, ArtworkPosterImage)
+                 VALUES (@title, @apiLink, @poster);
+                 SELECT * FROM Artwork WHERE ArtworkAPILink = @apiLink;
+               END
+               ELSE
+               BEGIN
+                 SELECT * FROM Artwork WHERE ArtworkAPILink = @apiLink;
+               END`,
+        [
+          { name: "title", type: sql.NVarChar, value: movie.title },
+          {
+            name: "apiLink",
+            type: sql.VarChar,
+            value: `https://api.themoviedb.org/3/movie/${movie.id}`,
+          },
+          {
+            name: "poster",
+            type: sql.NVarChar,
+            value: movie.poster_path,
+          },
+        ]
+      );
+      movies.push(movieData[0]);
+    }
+
+    res.json(movies);
+  } catch (error) {
+    res.status(500).json({
+      error: "Une erreur est survenue lors de la récupération des films à venir.",
+    });
+  }
+}
