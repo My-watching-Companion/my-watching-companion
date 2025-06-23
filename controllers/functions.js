@@ -129,6 +129,34 @@ function formatDate(dateString) {
   return new Date(year, month, day);
 }
 
+async function GetUserNotifications(userId) {
+  const notifQuery = `
+    SELECT n.NotifID, n.message, rnu.NotificationRead, rnu.NotifDate,
+           rn.ReplaceParam, rn.ReplaceValue
+    FROM Ref_NotifUser rnu
+    JOIN Notification n ON rnu.NotifID = n.NotifID
+    JOIN ReplaceNotif rn ON rnu.ReplaceID = rn.ReplaceID
+    WHERE rnu.UserID = ${userId}
+    ORDER BY rnu.NotifDate DESC
+  `;
+
+  const rows = await executeQuery(notifQuery);
+  console.log("TYPE rows:", typeof rows);
+  console.log("IS ARRAY:", Array.isArray(rows));
+  console.log("rows =", rows);
+  
+  const notifications = rows.map(row => {
+    const message = row.message.replace(row.ReplaceParam, row.ReplaceValue);
+    return {
+      message,
+      read: row.NotificationRead,
+      date: row.NotifDate
+    };
+  });
+  const unreadCount = notifications.filter(n => !n.read).length;
+  return {notifications, unreadCount};
+}
+
 module.exports = {
   isAuthenticated,
   validateSession,
@@ -141,4 +169,5 @@ module.exports = {
   TraceLogs,
   TraceError,
   formatDate,
+  GetUserNotifications,
 };

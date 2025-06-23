@@ -12,6 +12,9 @@ exports.getSignin = (req, res) => {
     title: "Sign In",
     selected: "Connexion",
     sessionExpired: sessionExpired,
+    notifications: [],
+    unreadCount: 0,
+    user: req.session.user,
   });
 };
 

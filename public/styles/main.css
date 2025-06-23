@@ -82,6 +82,7 @@ header #header-user {
   width: 3rem;
   height: 3rem;
   border-radius: 3rem;
+  transform: translateX(-20%);
 }
 
 /* Header Connection */
@@ -329,3 +330,51 @@ footer {
     display: flex;
   }
 }
+
+.notif-container{
+  display: flex;
+}
+
+.notif-icon {
+    position: relative;
+    font-size: 24px;
+    cursor: pointer;
+  }
+
+  .notif-count {
+    transform: translate(-50%, -50%);
+    top: -6px;
+    right: -6px;
+    background: red;
+    color: white;
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 12px;
+  }
+
+  .notif-dropdown {
+    position: absolute;
+    transform: translate(30%, 0%);
+    background: white;
+    color: black;
+    border: 1px solid #ddd;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    width: 250px;
+    margin-top: 8px;
+    border-radius: 6px;
+  }
+
+  .invisible {
+    visibility: hidden;
+  }
+
+  .notif-dropdown .notif {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+  }
+
+  .notif-dropdown .notif .unread {
+    background-color: #f3f3f3;
+  }

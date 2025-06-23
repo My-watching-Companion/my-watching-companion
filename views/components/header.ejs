@@ -9,11 +9,41 @@
   <a href="/my-watchlists" class="nav-item <% if (selected === "Mes Watchlists") { %>selected<% } %>">Mes Watchlists</a>
   <a href="/discovery" class="nav-item <% if (selected === "Découverte") { %>selected<% } %>">Découverte</a>
   <a href="/settings" class="nav-item <% if (selected === "Paramètres") { %>selected<% } %>">Paramètres</a>
+  <div style="position: relative;" onclick="toggleNotifDropdown()" class="notif-container">
+  <span class="material-symbols-rounded">notifications</span>
+  <% if (unreadCount > 0) { %>
+    <span class="notif-count"><%= unreadCount %></span>
+  <% } %>
+
+  <div class="notif-dropdown invisible" id="notifDropdown">
+    <% if (notifications.length === 0) { %>
+      <div class="notif">Aucune notification</div>
+    <% } else { %>
+      <% notifications.forEach(n => { %>
+        <div class="notif <%= n.read ? '' : 'unread' %>">
+          <%= n.message %><br/>
+          <small><%= new Date(n.date).toLocaleString('fr-FR') %></small>
+        </div>
+      <% }) %>
+    <% } %>
+  </div>
+</div>
 </nav>
+
+
+
+
+
+<script>
+    function toggleNotifDropdown() {
+      const dropdown = document.getElementById("notifDropdown");
+      dropdown.classList.toggle("invisible");
+    }
+</script>
 
 <div id="header-user">
   <% if (typeof user !== "undefined") { %>
-    <a class="sign" href="/account"><img id="user-profile-picture" <% if (user.avatar_url !== "Default") { %> src="<%= user.avatar_url %>" <% } else { %> src="c:\Users\twiss\Downloads\icone-profil-avatar-par-defaut-image-utilisateur-medias-sociaux-icone-avatar-gris-silhouette-profil-.png" <% } %> alt="<%= user.username %>'s profile picture."></img></a>
+    <a class="sign" href="/profil"><img id="user-profile-picture" <% if (user.avatar_url !== "Default") { %> src="<%= user.avatar_url %>" <% } else { %> src="c:\Users\twiss\Downloads\icone-profil-avatar-par-defaut-image-utilisateur-medias-sociaux-icone-avatar-gris-silhouette-profil-.png" <% } %> alt="<%= user.username %>'s profile picture."></img></a>
   <% } else { %>
     <% if (selected === "Connexion") { %>
       <button class="btn-primary sign" id="sign-up" onclick="location.href='/signup'">INSCRIPTION</button>

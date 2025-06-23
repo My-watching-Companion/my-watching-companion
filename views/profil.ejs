@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr">
+    
+<head>
+    <%- include('components/head', { selected: null }) %>
+    <meta charset="UTF-8">
+    <title>Profil - My Watching Companion</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">.
+    <link rel="stylesheet" href="../../styles/profile.css">
+</head>
+<body>
+    <header><%- include('components/header', { selected: null }) %></header>
+    <div class="profile-container">
+        <div style="text-align:center;">
+            <img src="<%= user.avatar_url || '/images/default-avatar.png' %>" alt="Avatar" class="avatar">
+            <h1><%= user.username %></h1>
+            <div class="info">
+                <p>Email : <%= user.email %></p>
+            </div>
+        </div>
+        <div style="text-align:center;">
+            <a href="/settings/profile/modifyprofile"><button class="edit-btn">Modifier le profil</button></a>
+        </div>
+    </div>
+</body>
+</html>

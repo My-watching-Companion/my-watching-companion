@@ -1,0 +1,59 @@
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #ffffff;
+    color: #e0e0e0;
+    margin: 0;
+}
+
+.profile-container {
+    max-width: 500px;
+    margin: 40px auto;
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 40px 32px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    border: 1px solid #232323;
+}
+
+.avatar {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #d41e30;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+h1 {
+    margin: 0 0 12px 0;
+    font-size: 2.2em;
+    font-weight: 600;
+    color: #000000;
+    letter-spacing: 1px;
+}
+
+.info {
+    margin-bottom: 28px;
+    color: #bdbdbd;
+    font-size: 1.05em;
+}
+
+
+.edit-btn {
+    background: linear-gradient(90deg, #d41e30 0%, #ff6b7d 100%);
+    color: #232323;
+    border: none;
+    padding: 12px 32px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.05em;
+    font-weight: 600;
+    transition: background 0.2s, color 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+
+.edit-btn:hover {
+    background: linear-gradient(90deg, #f7384a 0%, #f7384a 100%);
+    color: #181818;
+}

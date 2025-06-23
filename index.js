@@ -19,6 +19,8 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   next();
 });
+
+
 // Définition du répertoire des fichiers et moteur de modèles
 app.set("views", path.join(__dirname + "/views"));
 app.set("view engine", "ejs");
